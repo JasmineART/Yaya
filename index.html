@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Yaya - Author Store Site">
+    <title>Yaya - Author Store</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Georgia', serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+        }
+        
+        header {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        header p {
+            font-size: 1.2rem;
+            font-style: italic;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .hero {
+            background-color: #fff;
+            padding: 3rem;
+            margin: 2rem 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .hero h2 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 2rem;
+        }
+        
+        .hero p {
+            font-size: 1.1rem;
+            color: #555;
+            margin-bottom: 1.5rem;
+        }
+        
+        .books-section {
+            margin: 3rem 0;
+        }
+        
+        .books-section h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+        }
+        
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .book-card {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .book-card h3 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .book-card p {
+            color: #666;
+            margin-bottom: 1rem;
+        }
+        
+        .book-card .price {
+            font-size: 1.3rem;
+            color: #27ae60;
+            font-weight: bold;
+            margin-top: 1rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.8rem 2rem;
+            background-color: #3498db;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .about-section {
+            background-color: #fff;
+            padding: 3rem;
+            margin: 3rem 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .about-section h2 {
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+        
+        .about-section p {
+            color: #555;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+        
+        footer {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+        
+        footer p {
+            margin: 0.5rem 0;
+        }
+        
+        footer a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Yaya</h1>
+        <p>Welcome to the Author Store</p>
+    </header>
+    
+    <div class="container">
+        <section class="hero">
+            <h2>Discover Amazing Stories</h2>
+            <p>Browse our collection of captivating books and connect with talented authors</p>
+            <a href="#books" class="btn">Explore Books</a>
+        </section>
+        
+        <section id="books" class="books-section">
+            <h2>Featured Books</h2>
+            <div class="books-grid">
+                <div class="book-card">
+                    <h3>Book Title One</h3>
+                    <p>A captivating story that will take you on an unforgettable journey through time and space.</p>
+                    <p class="price">$19.99</p>
+                    <a href="#" class="btn">View Details</a>
+                </div>
+                
+                <div class="book-card">
+                    <h3>Book Title Two</h3>
+                    <p>An inspiring tale of courage, adventure, and the power of human connection.</p>
+                    <p class="price">$24.99</p>
+                    <a href="#" class="btn">View Details</a>
+                </div>
+                
+                <div class="book-card">
+                    <h3>Book Title Three</h3>
+                    <p>A thought-provoking exploration of life's greatest mysteries and deepest questions.</p>
+                    <p class="price">$22.99</p>
+                    <a href="#" class="btn">View Details</a>
+                </div>
+            </div>
+        </section>
+        
+        <section class="about-section">
+            <h2>About the Author</h2>
+            <p>Welcome to Yaya's author store. Here you'll find a curated collection of books that inspire, entertain, and provoke thought. Each story is carefully crafted to transport you to new worlds and introduce you to unforgettable characters.</p>
+            <p>Join us on this literary journey and discover your next favorite book.</p>
+        </section>
+    </div>
+    
+    <footer>
+        <p>&copy; 2025 Yaya Author Store. All rights reserved.</p>
+        <p>Contact: <a href="mailto:info@yaya.com">info@yaya.com</a></p>
+    </footer>
+</body>
+</html>
