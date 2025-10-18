@@ -1,0 +1,25 @@
+{
+  "name": "yaya-payments-server",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test-webhook": "node test_webhook.js",
+    "e2e": "node e2e_full_purchase.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "stripe": "^12.0.0",
+    "dotenv": "^16.0.0",
+    "node-fetch": "^3.3.2",
+    "@supabase/supabase-js": "^2.12.0",
+    "nodemailer":"^6.9.3",
+    "express-rate-limit":"^6.7.0",
+    "express-validator":"^6.15.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}

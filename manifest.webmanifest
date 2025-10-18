@@ -1,0 +1,11 @@
+{
+  "name": "Yaya Starchild",
+  "short_name": "Yaya",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#fffafc",
+  "theme_color": "#ffd6ea",
+  "icons": [
+    {"src":"/favicon.ico","sizes":"64x64","type":"image/x-icon"}
+  ]
+}
