@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yaya Site - Functionality Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .test-item {
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            border-left: 4px solid #ddd;
+            background: #f9f9f9;
+        }
+        .test-item.pass {
+            border-left-color: #4caf50;
+            background: #f1f8f4;
+        }
+        .test-item.fail {
+            border-left-color: #f44336;
+            background: #fef1f0;
+        }
+        .test-item.warn {
+            border-left-color: #ff9800;
+            background: #fff8f0;
+        }
+        h1 { color: #333; }
+        h2 { color: #666; margin-top: 0; }
+        .status { font-weight: bold; }
+        .pass .status { color: #4caf50; }
+        .fail .status { color: #f44336; }
+        .warn .status { color: #ff9800; }
+        button {
+            background: #6200ea;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+        }
+        button:hover {
+            background: #5100d3;
+        }
+        .sparkle-test-area {
+            position: relative;
+            height: 300px;
+            background: linear-gradient(135deg, #FFB5D8 0%, #E6B5FF 30%, #C5A0E8 60%, #B5D8FF 100%);
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Yaya Site - Functionality Test Suite</h1>
+    
+    <div class="test-section">
+        <h2>📄 Page Structure Tests</h2>
+        <div id="structure-tests"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>✨ Sparkle Animation Test</h2>
+        <div id="sparkle-tests"></div>
+        <div class="sparkle-test-area" id="sparkle-test-area">
+            <p style="color: white; text-align: center; padding-top: 130px; font-size: 1.2rem;">
+                Watch for sparkles floating upward...
+            </p>
+        </div>
+        <button onclick="testSparkleGeneration()">Generate Test Sparkles</button>
+        <button onclick="clearSparkles()">Clear Sparkles</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>🎬 Scroll Reveal Animation Test</h2>
+        <div id="reveal-tests"></div>
+        <button onclick="testRevealAnimations()">Test Scroll Reveals</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>🛒 Cart Functionality Test</h2>
+        <div id="cart-tests"></div>
+        <button onclick="testCartFunctions()">Test Cart</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>🔗 Link Validation</h2>
+        <div id="link-tests"></div>
+        <button onclick="testLinks()">Validate Links</button>
+    </div>
+
+    <script>
+        // Test utilities
+        function addTestResult(containerId, status, message) {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = `test-item ${status}`;
+            div.innerHTML = `<span class="status">${status.toUpperCase()}</span>: ${message}`;
+            container.appendChild(div);
+        }
+
+        // Page Structure Tests
+        function testPageStructure() {
+            const pages = ['index.html', 'shop.html', 'about.html', 'cart.html', 'checkout.html', 'product.html'];
+            
+            addTestResult('structure-tests', 'pass', `Testing ${pages.length} pages...`);
+            
+            pages.forEach(page => {
+                fetch(page)
+                    .then(response => {
+                        if (response.ok) {
+                            return response.text();
+                        }
+                        throw new Error(`HTTP ${response.status}`);
+                    })
+                    .then(html => {
+                        // Check for header
+                        if (!html.includes('class="site-header"')) {
+                            addTestResult('structure-tests', 'fail', `${page}: Missing site-header`);
+                            return;
+                        }
+                        
+                        // Check for navigation
+                        if (!html.includes('class="nav"')) {
+                            addTestResult('structure-tests', 'fail', `${page}: Missing navigation`);
+                            return;
+                        }
+                        
+                        // Check for footer
+                        if (!html.includes('class="site-footer"')) {
+                            addTestResult('structure-tests', 'warn', `${page}: Missing footer`);
+                        }
+                        
+                        // Check for Font Awesome
+                        if (!html.includes('font-awesome')) {
+                            addTestResult('structure-tests', 'warn', `${page}: Font Awesome not loaded`);
+                        }
+                        
+                        // Check for duplicate headers/footers
+                        const headerCount = (html.match(/class="site-header"/g) || []).length;
+                        const footerCount = (html.match(/class="site-footer"/g) || []).length;
+                        
+                        if (headerCount > 1) {
+                            addTestResult('structure-tests', 'fail', `${page}: Duplicate headers (${headerCount})`);
+                        }
+                        if (footerCount > 1) {
+                            addTestResult('structure-tests', 'fail', `${page}: Duplicate footers (${footerCount})`);
+                        }
+                        
+                        if (headerCount === 1 && footerCount <= 1) {
+                            addTestResult('structure-tests', 'pass', `${page}: Structure valid`);
+                        }
+                    })
+                    .catch(err => {
+                        addTestResult('structure-tests', 'fail', `${page}: ${err.message}`);
+                    });
+            });
+        }
+
+        // Sparkle Animation Tests
+        function testSparkleGeneration() {
+            const testArea = document.getElementById('sparkle-test-area');
+            let sparkleCount = 0;
+            
+            // Create test sparkles
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const sparkle = document.createElement('div');
+                    sparkle.className = 'sparkle';
+                    sparkle.style.position = 'absolute';
+                    sparkle.style.left = (20 + Math.random() * 60) + '%';
+                    sparkle.style.width = '4px';
+                    sparkle.style.height = '4px';
+                    sparkle.style.background = 'white';
+                    sparkle.style.borderRadius = '50%';
+                    sparkle.style.boxShadow = '0 0 10px rgba(255,255,255,0.8)';
+                    sparkle.style.animation = 'floatSparkle 4s ease-in-out';
+                    sparkle.style.setProperty('--drift', (Math.random() - 0.5) * 100 + 'px');
+                    
+                    testArea.appendChild(sparkle);
+                    sparkleCount++;
+                    
+                    setTimeout(() => sparkle.remove(), 4000);
+                }, i * 200);
+            }
+            
+            addTestResult('sparkle-tests', 'pass', `Generated ${5} test sparkles`);
+            
+            // Check if animation exists
+            const styles = Array.from(document.styleSheets);
+            let hasFloatSparkleAnimation = false;
+            
+            try {
+                styles.forEach(sheet => {
+                    try {
+                        const rules = Array.from(sheet.cssRules || sheet.rules || []);
+                        rules.forEach(rule => {
+                            if (rule.name === 'floatSparkle' || (rule.cssText && rule.cssText.includes('floatSparkle'))) {
+                                hasFloatSparkleAnimation = true;
+                            }
+                        });
+                    } catch(e) {
+                        // Cross-origin stylesheets can't be accessed
+                    }
+                });
+            } catch(e) {
+                addTestResult('sparkle-tests', 'warn', 'Could not check for animation: ' + e.message);
+            }
+            
+            if (hasFloatSparkleAnimation) {
+                addTestResult('sparkle-tests', 'pass', 'floatSparkle animation found');
+            } else {
+                addTestResult('sparkle-tests', 'warn', 'floatSparkle animation not detected (might be in external CSS)');
+            }
+        }
+        
+        function clearSparkles() {
+            const sparkles = document.querySelectorAll('.sparkle');
+            sparkles.forEach(s => s.remove());
+            addTestResult('sparkle-tests', 'pass', `Cleared ${sparkles.length} sparkles`);
+        }
+
+        // Scroll Reveal Tests
+        function testRevealAnimations() {
+            fetch('index.html')
+                .then(r => r.text())
+                .then(html => {
+                    const hasReveal = html.includes('class="reveal') || html.includes('class=reveal');
+                    const hasRevealLeft = html.includes('reveal-left');
+                    const hasRevealRight = html.includes('reveal-right');
+                    const hasRevealScale = html.includes('reveal-scale');
+                    
+                    if (hasReveal) {
+                        addTestResult('reveal-tests', 'pass', 'Reveal classes found in HTML');
+                    } else {
+                        addTestResult('reveal-tests', 'fail', 'No reveal classes in HTML');
+                    }
+                    
+                    if (hasRevealLeft) {
+                        addTestResult('reveal-tests', 'pass', 'reveal-left found');
+                    }
+                    if (hasRevealRight) {
+                        addTestResult('reveal-tests', 'pass', 'reveal-right found');
+                    }
+                    if (hasRevealScale) {
+                        addTestResult('reveal-tests', 'pass', 'reveal-scale found');
+                    }
+                })
+                .catch(err => {
+                    addTestResult('reveal-tests', 'fail', 'Could not test: ' + err.message);
+                });
+            
+            // Check if revealOnScroll function exists
+            fetch('app.js')
+                .then(r => r.text())
+                .then(js => {
+                    if (js.includes('function revealOnScroll')) {
+                        addTestResult('reveal-tests', 'pass', 'revealOnScroll() function exists');
+                    } else {
+                        addTestResult('reveal-tests', 'fail', 'revealOnScroll() function missing');
+                    }
+                })
+                .catch(err => {
+                    addTestResult('reveal-tests', 'fail', 'Could not check app.js: ' + err.message);
+                });
+        }
+
+        // Cart Tests
+        function testCartFunctions() {
+            fetch('app.js')
+                .then(r => r.text())
+                .then(js => {
+                    const functions = ['getCart', 'saveCart', 'addToCart', 'updateCartCount', 'renderCartContents'];
+                    
+                    functions.forEach(fn => {
+                        if (js.includes(`function ${fn}(`) || js.includes(`${fn} =`) || js.includes(`${fn}:`)) {
+                            addTestResult('cart-tests', 'pass', `${fn}() found`);
+                        } else {
+                            addTestResult('cart-tests', 'fail', `${fn}() missing`);
+                        }
+                    });
+                    
+                    // Check for discount codes
+                    if (js.includes('SUN10') && js.includes('FAIRY5') && js.includes('MAGIC15')) {
+                        addTestResult('cart-tests', 'pass', 'Discount codes defined');
+                    } else {
+                        addTestResult('cart-tests', 'warn', 'Some discount codes might be missing');
+                    }
+                })
+                .catch(err => {
+                    addTestResult('cart-tests', 'fail', 'Could not test: ' + err.message);
+                });
+        }
+
+        // Link Validation
+        function testLinks() {
+            const pages = ['index.html', 'shop.html', 'about.html', 'cart.html', 'checkout.html', 'product.html'];
+            
+            Promise.all(pages.map(page => 
+                fetch(page).then(r => r.text()).then(html => ({page, html}))
+            ))
+            .then(results => {
+                let totalLinks = 0;
+                let brokenLinks = 0;
+                
+                results.forEach(({page, html}) => {
+                    // Check internal links
+                    const internalLinks = html.match(/href="[^"#]*\.html/g) || [];
+                    totalLinks += internalLinks.length;
+                    
+                    internalLinks.forEach(link => {
+                        const href = link.match(/href="([^"]*)"/)[1];
+                        if (!pages.includes(href)) {
+                            addTestResult('link-tests', 'warn', `${page}: Unknown link ${href}`);
+                            brokenLinks++;
+                        }
+                    });
+                });
+                
+                addTestResult('link-tests', 'pass', `Checked ${totalLinks} internal links`);
+                
+                if (brokenLinks === 0) {
+                    addTestResult('link-tests', 'pass', 'All internal links valid');
+                } else {
+                    addTestResult('link-tests', 'warn', `${brokenLinks} potential issues found`);
+                }
+            })
+            .catch(err => {
+                addTestResult('link-tests', 'fail', 'Link validation failed: ' + err.message);
+            });
+        }
+
+        // Auto-run on load
+        window.addEventListener('DOMContentLoaded', () => {
+            addTestResult('structure-tests', 'pass', 'Test suite loaded successfully');
+            testPageStructure();
+        });
+    </script>
+</body>
+</html>

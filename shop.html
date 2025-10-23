@@ -6,6 +6,7 @@
     <title>Shop — Yaya Starchild</title>
   <meta name="description" content="Shop Yaya Starchild — Suncatcher Spirit and related merch." />
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/favicon.ico">
     <script defer src="products.js"></script>
@@ -30,8 +31,8 @@
     </header>
 
   <main id="main" class="container" role="main">
-      <h2>Shop</h2>
-      <p class="lead">Curated with pastel dreams and small wonders. Click a product to view details.</p>
+      <h2 class="reveal"><i class="fas fa-shop"></i> Enchanted Shop</h2>
+      <p class="lead reveal">Curated with pastel dreams and small wonders. Each piece is touched by magic and made to bring light into your everyday moments. Click any treasure to view its story.</p>
 
       <section id="products-grid" class="products-grid">
         <!-- products rendered by products.js -->
@@ -41,15 +42,23 @@
     <footer class="site-footer">
       <div class="container footer-grid">
         <div>
-          <h5>About Yaya</h5>
-          <p>Yaya Starchild writes small, luminous poems for readers who collect light.</p>
+          <h5><i class="fas fa-feather"></i> About Yaya</h5>
+          <p>Yaya Starchild writes luminous poems for readers who collect light and magic. Author of "Suncatcher Spirit" — available now.</p>
         </div>
         <div>
-          <h5>Contact</h5>
-          <p>hello@yayastarchild.example</p>
+          <h5><i class="fas fa-envelope-open-text"></i> Newsletter</h5>
+          <form id="newsletter-form" class="form-inline">
+            <input type="email" id="newsletter-email" placeholder="Your email ✨" aria-label="Email" required />
+            <button class="btn primary" type="submit">Join</button>
+          </form>
+        </div>
+        <div>
+          <h5><i class="fas fa-at"></i> Contact</h5>
+          <p>Email: <a href="mailto:faeriepoetics@gmail.com">faeriepoetics@gmail.com</a></p>
+          <p style="margin-top:1rem; font-size:0.95rem;">Use codes: SUN10 • FAIRY5 • MAGIC15</p>
         </div>
       </div>
-      <p class="copy">© 2025 Yaya Starchild</p>
+      <p class="copy">© 2025 Yaya Starchild • Pastel Poetics • Made with magic <i class="fas fa-wand-sparkles"></i></p>
     </footer>
   </body>
 </html>

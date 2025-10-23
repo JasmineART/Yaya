@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sparkle Debug</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        .debug-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            max-width: 400px;
+            z-index: 99999;
+        }
+        .debug-panel h3 {
+            margin-top: 0;
+            color: #4caf50;
+        }
+        .debug-item {
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+        }
+        .success { color: #4caf50; }
+        .error { color: #f44336; }
+        .warning { color: #ff9800; }
+        button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0.25rem;
+        }
+        button:hover {
+            background: #1976D2;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-panel">
+        <h3>✨ Sparkle Debug Panel</h3>
+        <div id="debug-output"></div>
+        <div style="margin-top: 1rem;">
+            <button onclick="manualSparkleTest()">Create Sparkle</button>
+            <button onclick="clearAllSparkles()">Clear All</button>
+            <button onclick="checkAnimations()">Check Animations</button>
+        </div>
+    </div>
+
+    <div style="text-align: center; padding-top: 200px;">
+        <h1 style="color: white; text-shadow: 0 0 20px rgba(255,255,255,0.5);">
+            ✨ Sparkle Debugging ✨
+        </h1>
+        <p style="color: white; font-size: 1.2rem;">
+            Watch the debug panel and look for sparkles floating upward.
+        </p>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        const output = document.getElementById('debug-output');
+
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `debug-item ${type}`;
+            div.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            output.insertBefore(div, output.firstChild);
+            
+            // Keep only last 10 messages
+            while (output.children.length > 10) {
+                output.removeChild(output.lastChild);
+            }
+        }
+
+        function manualSparkleTest() {
+            try {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.style.left = '50%';
+                sparkle.style.width = '6px';
+                sparkle.style.height = '6px';
+                
+                const drift = (Math.random() - 0.5) * 100;
+                sparkle.style.setProperty('--drift', drift + 'px');
+                sparkle.style.animation = 'floatSparkle 5s ease-in-out';
+                
+                document.body.appendChild(sparkle);
+                log('Created test sparkle', 'success');
+                
+                setTimeout(() => {
+                    sparkle.remove();
+                    log('Removed sparkle after 5s', 'info');
+                }, 5000);
+            } catch(e) {
+                log('Error creating sparkle: ' + e.message, 'error');
+            }
+        }
+
+        function clearAllSparkles() {
+            const sparkles = document.querySelectorAll('.sparkle');
+            sparkles.forEach(s => s.remove());
+            log(`Cleared ${sparkles.length} sparkles`, 'success');
+        }
+
+        function checkAnimations() {
+            // Check if floatSparkle animation exists
+            let found = false;
+            try {
+                const styles = document.getElementById('sparkle-animation-styles');
+                if (styles) {
+                    log('sparkle-animation-styles element found', 'success');
+                    if (styles.textContent.includes('floatSparkle')) {
+                        log('floatSparkle keyframes defined', 'success');
+                        found = true;
+                    }
+                } else {
+                    log('sparkle-animation-styles element NOT found', 'error');
+                }
+                
+                // Check for .sparkle class in CSS
+                const sparkles = document.querySelectorAll('.sparkle');
+                log(`Currently ${sparkles.length} sparkles in DOM`, 'info');
+                
+                // Check if createMagicalSparkles exists
+                if (typeof createMagicalSparkles === 'function') {
+                    log('createMagicalSparkles() function exists', 'success');
+                } else {
+                    log('createMagicalSparkles() NOT FOUND', 'error');
+                }
+                
+                // Check if injectSparkleStyles exists
+                if (typeof injectSparkleStyles === 'function') {
+                    log('injectSparkleStyles() function exists', 'success');
+                } else {
+                    log('injectSparkleStyles() NOT FOUND', 'error');
+                }
+                
+            } catch(e) {
+                log('Error checking animations: ' + e.message, 'error');
+            }
+        }
+
+        // Auto-check on load
+        window.addEventListener('DOMContentLoaded', () => {
+            log('Page loaded', 'success');
+            setTimeout(() => {
+                checkAnimations();
+                log('Sparkles should be generating automatically...', 'info');
+            }, 1000);
+        });
+
+        // Count sparkles every 5 seconds
+        setInterval(() => {
+            const count = document.querySelectorAll('.sparkle').length;
+            if (count > 0) {
+                log(`${count} sparkles visible`, 'success');
+            }
+        }, 5000);
+    </script>
+</body>
+</html>
