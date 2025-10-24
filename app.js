@@ -114,42 +114,56 @@ function createMagicalSparkles() {
   console.log('✨ Sparkle generation system active');
 }
 
-// Cloud animation system - fluffy clouds at top of page
-function createClouds() {
+// Neon castle outline in background
+function createNeonCastle() {
   const isHomePage = window.location.pathname === '/' || window.location.pathname.includes('index.html') || window.location.pathname === '';
   
   if (!isHomePage) return; // Only on home page
   
-  console.log('☁️ Creating clouds...');
+  console.log('🏰 Creating neon castle...');
   
-  const cloudCount = 6; // Number of clouds
+  const castle = document.createElement('div');
+  castle.className = 'neon-castle';
+  castle.innerHTML = `
+    <svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+      <!-- Center tower (tallest) -->
+      <path class="neon-line" d="M 340 150 L 340 450 L 460 450 L 460 150 L 450 150 L 450 130 L 460 130 L 460 110 L 450 110 L 450 150 L 410 150 L 410 110 L 400 110 L 400 130 L 410 130 L 410 150 L 350 150 L 350 110 L 340 110 L 340 150 Z"/>
+      
+      <!-- Left tower -->
+      <path class="neon-line" d="M 220 220 L 220 450 L 320 450 L 320 220 L 310 220 L 310 200 L 320 200 L 320 180 L 310 180 L 310 220 L 280 220 L 280 180 L 270 180 L 270 200 L 280 200 L 280 220 L 230 220 L 230 180 L 220 180 L 220 220 Z"/>
+      
+      <!-- Right tower -->
+      <path class="neon-line" d="M 480 220 L 480 450 L 580 450 L 580 220 L 570 220 L 570 200 L 580 200 L 580 180 L 570 180 L 570 220 L 540 220 L 540 180 L 530 180 L 530 200 L 540 200 L 540 220 L 490 220 L 490 180 L 480 180 L 480 220 Z"/>
+      
+      <!-- Base wall -->
+      <path class="neon-line" d="M 200 450 L 200 400 L 600 400 L 600 450 Z"/>
+      
+      <!-- Main gate -->
+      <path class="neon-line" d="M 360 450 L 360 380 Q 360 360 380 360 L 420 360 Q 440 360 440 380 L 440 450"/>
+      
+      <!-- Windows on center tower -->
+      <circle class="neon-dot" cx="400" cy="250" r="3"/>
+      <circle class="neon-dot" cx="400" cy="300" r="3"/>
+      <circle class="neon-dot" cx="400" cy="350" r="3"/>
+      
+      <!-- Windows on left tower -->
+      <circle class="neon-dot" cx="270" cy="300" r="2.5"/>
+      <circle class="neon-dot" cx="270" cy="350" r="2.5"/>
+      
+      <!-- Windows on right tower -->
+      <circle class="neon-dot" cx="530" cy="300" r="2.5"/>
+      <circle class="neon-dot" cx="530" cy="350" r="2.5"/>
+      
+      <!-- Decorative stars/sparkles around castle -->
+      <path class="neon-star" d="M 180 160 l 3 6 l 6 0 l -5 4 l 2 6 l -6 -3 l -6 3 l 2 -6 l -5 -4 l 6 0 Z"/>
+      <path class="neon-star" d="M 620 180 l 2.5 5 l 5 0 l -4 3.5 l 1.5 5 l -5 -2.5 l -5 2.5 l 1.5 -5 l -4 -3.5 l 5 0 Z"/>
+      <path class="neon-star" d="M 160 320 l 2 4 l 4 0 l -3 3 l 1 4 l -4 -2 l -4 2 l 1 -4 l -3 -3 l 4 0 Z"/>
+      <path class="neon-star" d="M 640 280 l 2 4 l 4 0 l -3 3 l 1 4 l -4 -2 l -4 2 l 1 -4 l -3 -3 l 4 0 Z"/>
+    </svg>
+  `;
   
-  for(let i = 0; i < cloudCount; i++) {
-    setTimeout(() => {
-      const cloud = document.createElement('div');
-      cloud.className = 'cloud';
-      
-      // Start off-screen left, distributed across animation timeline
-      cloud.style.left = '-250px';
-      cloud.style.top = (Math.random() * 12 + 2) + '%'; // Top 2-14% of screen
-      
-      // Random size
-      const scale = 0.4 + Math.random() * 0.9; // 0.4 to 1.3x
-      cloud.style.transform = `scale(${scale})`;
-      cloud.style.opacity = (0.5 + Math.random() * 0.4); // Varying opacity
-      
-      // Random animation duration (slower = more distant)
-      const duration = 50 + (Math.random() * 50); // 50-100 seconds
-      cloud.style.animationDuration = duration + 's';
-      
-      // Stagger starting positions
-      cloud.style.animationDelay = (i * -15) + 's'; // Start at different points
-      
-      document.body.appendChild(cloud);
-    }, i * 200);
-  }
-  
-  console.log('☁️ Clouds created');
+  document.body.appendChild(castle);
+  console.log('🏰 Neon castle created');
 }
 
 // Spotlight effect from bottom of page
@@ -200,7 +214,7 @@ if (typeof window !== 'undefined') {
     console.log('🌟 DOM Content Loaded - initializing...');
     injectSparkleStyles();
     createMagicalSparkles();
-    createClouds();
+    createNeonCastle();
     createSpotlights();
     revealOnScroll();
     console.log('✅ All systems initialized');

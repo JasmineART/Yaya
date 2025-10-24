@@ -5,14 +5,14 @@ const PRODUCTS = [
     title:'<i class="fas fa-crown"></i> Suncatcher Spirit (Signed Edition)',
     price:19.99,
     description:"The debut poetry collection by Yaya Starchild — 64 pages of luminous verses exploring love, loss, resilience, and present-moment magic. This signed limited edition includes a handwritten blessing and arrives wrapped in tissue paper. Each copy numbered and touched by magic. ISBN: 979-8-9999322-0-4 | Published by Pastel Poetics | October 25, 2025",
-    images:['assets/suncatcher-1.jpg','assets/suncatcher-2.jpg','assets/suncatcher-3.jpg','assets/suncatcher-4.jpg','assets/suncatcher-5.jpg']
+    images:['assets/suncatcher-cover.jpg']
   },
   {
     id:2,
     title:'<i class="fas fa-book"></i> Suncatcher Spirit (Paperback)',
     price:19.99,
     description:'Softcover paperback edition — 64 pages of poetry perfect for bedside reading, carrying in your bag, or gifting to a friend who needs reminding of their light. Printed on cream-colored pages that feel gentle in your hands. ISBN: 979-8-9999322-0-4',
-    images:['assets/book-pb-1.jpg']
+    images:['assets/suncatcher-cover.jpg']
   },
   {
     id:3,

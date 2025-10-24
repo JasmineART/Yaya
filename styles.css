@@ -81,56 +81,6 @@ body::before {
   /* Animation applied via inline style in JavaScript */
 }
 
-/* Fluffy clouds at top of page */
-.cloud {
-  position: fixed;
-  width: 200px;
-  height: 60px;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 100px;
-  pointer-events: none;
-  z-index: 2; /* Above sparkles, below content */
-  animation: cloudDrift 60s linear infinite;
-  box-shadow: 
-    -50px 0 30px 20px rgba(255, 255, 255, 0.4),
-    50px 0 30px 20px rgba(255, 255, 255, 0.4),
-    0 -10px 20px 10px rgba(255, 255, 255, 0.5),
-    0 10px 20px 10px rgba(255, 255, 255, 0.5);
-}
-
-.cloud::before,
-.cloud::after {
-  content: '';
-  position: absolute;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 50%;
-}
-
-.cloud::before {
-  width: 80px;
-  height: 80px;
-  top: -40px;
-  left: 30px;
-  box-shadow: 0 0 30px 15px rgba(255, 255, 255, 0.5);
-}
-
-.cloud::after {
-  width: 100px;
-  height: 100px;
-  top: -45px;
-  right: 30px;
-  box-shadow: 0 0 35px 20px rgba(255, 255, 255, 0.5);
-}
-
-@keyframes cloudDrift {
-  0% {
-    transform: translateX(-250px);
-  }
-  100% {
-    transform: translateX(calc(100vw + 250px));
-  }
-}
-
 /* Spotlight effects from bottom */
 .spotlight {
   position: fixed;
@@ -176,6 +126,117 @@ body::before {
   50% {
     opacity: 0.7;
     transform: scaleY(1.2) rotate(2deg);
+  }
+}
+
+/* Neon Castle Effect */
+.neon-castle {
+  position: fixed;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50vw;
+  max-width: 800px;
+  height: 45vh;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.6;
+}
+
+.neon-castle svg {
+  width: 100%;
+  height: 100%;
+}
+
+.neon-line {
+  fill: none;
+  stroke: #E6B5FF;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 8px #E6B5FF) 
+          drop-shadow(0 0 15px #FFB5D8) 
+          drop-shadow(0 0 25px rgba(230, 181, 255, 0.5));
+  animation: neonPulse 3s ease-in-out infinite;
+}
+
+.neon-dot {
+  fill: #FFE5B5;
+  filter: drop-shadow(0 0 6px #FFE5B5) 
+          drop-shadow(0 0 12px #FFB5D8);
+  animation: neonPulse 2.5s ease-in-out infinite;
+}
+
+.neon-star {
+  fill: #B5E5FF;
+  stroke: none;
+  filter: drop-shadow(0 0 8px #B5E5FF) 
+          drop-shadow(0 0 15px rgba(181, 229, 255, 0.8));
+  animation: twinkle 2s ease-in-out infinite;
+}
+
+@keyframes neonPulse {
+  0%, 100% {
+    opacity: 0.8;
+    filter: drop-shadow(0 0 8px #E6B5FF) 
+            drop-shadow(0 0 15px #FFB5D8) 
+            drop-shadow(0 0 25px rgba(230, 181, 255, 0.5));
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 12px #E6B5FF) 
+            drop-shadow(0 0 20px #FFB5D8) 
+            drop-shadow(0 0 35px rgba(230, 181, 255, 0.7));
+  }
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+/* Fairy theme glow animations */
+@keyframes fairyGlow {
+  0%, 100% {
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15), 
+                0 0 20px rgba(230, 181, 255, 0.4),
+                0 0 30px rgba(255, 181, 216, 0.3);
+  }
+  50% {
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15), 
+                0 0 30px rgba(230, 181, 255, 0.6),
+                0 0 45px rgba(255, 181, 216, 0.5),
+                0 0 60px rgba(181, 229, 255, 0.3);
+  }
+}
+
+@keyframes fairyGlowHover {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.15);
+  }
+}
+
+@keyframes fairyTextGlow {
+  0%, 100% {
+    text-shadow: 3px 3px 6px rgba(0,0,0,0.2),
+                 0 0 30px rgba(230, 181, 255, 0.6),
+                 0 0 50px rgba(255, 181, 216, 0.4),
+                 0 0 70px rgba(181, 229, 255, 0.3);
+  }
+  50% {
+    text-shadow: 3px 3px 6px rgba(0,0,0,0.2),
+                 0 0 40px rgba(230, 181, 255, 0.8),
+                 0 0 65px rgba(255, 181, 216, 0.6),
+                 0 0 90px rgba(181, 229, 255, 0.5);
   }
 }
 
@@ -313,7 +374,9 @@ a:focus,button:focus,input:focus,textarea:focus{
   border-bottom:1px solid rgba(255,255,255,0.2);
   position:relative;
   z-index:100;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1),
+              0 0 25px rgba(230, 181, 255, 0.2),
+              0 0 40px rgba(255, 181, 216, 0.15);
 }
 
 .brand{
@@ -345,7 +408,9 @@ a:focus,button:focus,input:focus,textarea:focus{
   font-family: 'Cinzel', serif;
   font-weight:700;
   color:var(--white);
-  text-shadow:2px 2px 4px rgba(0,0,0,0.1);
+  text-shadow:2px 2px 4px rgba(0,0,0,0.1),
+              0 0 20px rgba(230, 181, 255, 0.5),
+              0 0 35px rgba(255, 181, 216, 0.3);
   letter-spacing:2px;
 }
 
@@ -457,8 +522,12 @@ a:focus,button:focus,input:focus,textarea:focus{
   font-family: 'Cinzel', serif;
   font-weight:700;
   color:var(--white);
-  text-shadow:3px 3px 6px rgba(0,0,0,0.2);
+  text-shadow:3px 3px 6px rgba(0,0,0,0.2),
+              0 0 30px rgba(230, 181, 255, 0.6),
+              0 0 50px rgba(255, 181, 216, 0.4),
+              0 0 70px rgba(181, 229, 255, 0.3);
   line-height:1.1;
+  animation: fairyTextGlow 3s ease-in-out infinite;
 }
 
 .lead{
@@ -515,15 +584,22 @@ a:focus,button:focus,input:focus,textarea:focus{
   background:linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
   backdrop-filter:blur(10px);
   border:2px solid rgba(255,255,255,0.4);
-  box-shadow:0 8px 25px rgba(0,0,0,0.15), var(--glow);
+  box-shadow:0 8px 25px rgba(0,0,0,0.15), 
+             0 0 20px rgba(230, 181, 255, 0.4),
+             0 0 30px rgba(255, 181, 216, 0.3);
   position:relative;
   z-index:1;
+  animation: fairyGlow 2s ease-in-out infinite;
 }
 
 .btn.primary:hover{
   transform:translateY(-3px);
-  box-shadow:0 12px 35px rgba(0,0,0,0.2), 0 0 30px rgba(255, 181, 216, 0.5);
+  box-shadow:0 12px 35px rgba(0,0,0,0.2), 
+             0 0 35px rgba(230, 181, 255, 0.7),
+             0 0 50px rgba(255, 181, 216, 0.6),
+             0 0 70px rgba(181, 229, 255, 0.4);
   border-color:rgba(255,255,255,0.6);
+  animation: fairyGlowHover 1s ease-in-out infinite;
 }
 
 .btn.ghost{
@@ -614,7 +690,9 @@ a:focus,button:focus,input:focus,textarea:focus{
 
 .product-card:hover{
   transform:translateY(-12px) scale(1.03);
-  box-shadow:0 20px 60px rgba(0,0,0,0.25), var(--glow);
+  box-shadow:0 20px 60px rgba(0,0,0,0.25), 
+             0 0 30px rgba(230, 181, 255, 0.5),
+             0 0 50px rgba(255, 181, 216, 0.3);
   border-color:rgba(255,255,255,0.4);
 }
 
@@ -729,12 +807,21 @@ a:focus,button:focus,input:focus,textarea:focus{
 h2, h3, h4, h5{
   font-family: 'Cinzel', serif;
   color:var(--white);
-  text-shadow:2px 2px 4px rgba(0,0,0,0.1);
+  text-shadow:2px 2px 4px rgba(0,0,0,0.1),
+              0 0 20px rgba(230, 181, 255, 0.4),
+              0 0 35px rgba(255, 181, 216, 0.3);
 }
 
 h2{
   font-size:2.5rem;
   margin-bottom:1rem;
+  animation: fairyTextGlow 3.5s ease-in-out infinite;
+}
+
+h4 {
+  text-shadow:2px 2px 4px rgba(0,0,0,0.1),
+              0 0 15px rgba(230, 181, 255, 0.35),
+              0 0 25px rgba(255, 181, 216, 0.25);
 }
 
 .footer-grid{

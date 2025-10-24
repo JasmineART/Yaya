@@ -1,0 +1,14 @@
+PLEASE UPLOAD THE NEW BOOK COVER IMAGE HERE
+
+The attached fairy book cover image should be saved as:
+assets/suncatcher-cover.jpg
+
+This will replace all instances of the book cover throughout the site.
+
+The new cover features:
+- A fairy with wings in a green dress
+- Magical pastel sky background
+- Sparkles, butterflies, and flowers
+- The title "Suncatcher Spirit" with "poems by Yaya Starchild"
+
+All references in the code have been updated to point to: assets/suncatcher-cover.jpg
