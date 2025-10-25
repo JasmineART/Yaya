@@ -7,6 +7,7 @@
     "start": "node optimized-server.js",
     "dev": "NODE_ENV=development node optimized-server.js",
     "server": "cd server && node index.js",
+    "build": "node build-static.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
