@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EmailJS Debug Test - Updated</title>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        button { background: #4CAF50; color: white; padding: 15px 25px; border: none; border-radius: 5px; cursor: pointer; margin: 10px 5px; font-size: 16px; }
+        button:hover { background: #45a049; }
+        .debug { background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 5px; font-family: monospace; }
+        .error { background: #ffebee; color: #c62828; padding: 15px; border-radius: 5px; }
+        .success { background: #e8f5e8; color: #2e7d32; padding: 15px; border-radius: 5px; }
+        .warning { background: #fff3e0; color: #ef6c00; padding: 15px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>EmailJS Debug Test</h1>
+    <div id="status">Loading...</div>
+    <button onclick="runTest()">Send Test Email</button>
+    <div id="result"></div>
+
+    <script>
+        const status = document.getElementById('status');
+        const result = document.getElementById('result');
+
+        // EmailJS configuration
+        const config = {
+            serviceId: 'service_eodjffq',
+            templateId: 'template_b6rgdel', 
+            userId: 'FWvhfYEosGwcS5rxq'
+        };
+
+        console.log('EmailJS Config:', config);
+
+        // Initialize EmailJS
+        try {
+            emailjs.init(config.userId);
+            status.innerHTML = '✅ EmailJS initialized successfully';
+            console.log('✅ EmailJS initialized');
+        } catch (error) {
+            status.innerHTML = '❌ EmailJS initialization failed: ' + error.message;
+            console.error('❌ EmailJS init error:', error);
+        }
+
+        async function runTest() {
+            result.innerHTML = '📤 Sending test email...';
+            console.log('🚀 Starting email test...');
+            
+            const templateParams = {
+                to_email: 'faeriepoetics@gmail.com',
+                from_name: 'Yaya Website Debug Test',
+                subject: '🔧 DEBUG: EmailJS Test',
+                message: 'This is a debug test email.\n\nTimestamp: ' + new Date().toISOString() + '\nTest type: Newsletter signup notification',
+                reply_to: 'faeriepoetics@gmail.com',
+                timestamp: new Date().toLocaleString()
+            };
+
+            console.log('Template params:', templateParams);
+
+            try {
+                console.log('Calling emailjs.send with:', {
+                    serviceId: config.serviceId,
+                    templateId: config.templateId,
+                    templateParams: templateParams
+                });
+
+                const response = await emailjs.send(
+                    config.serviceId,
+                    config.templateId,
+                    templateParams
+                );
+
+                result.innerHTML = `✅ SUCCESS! Email sent successfully!<br>
+                                   Response: ${response.text}<br>
+                                   Status: ${response.status}<br>
+                                   Check faeriepoetics@gmail.com for the email.`;
+                
+                console.log('✅ Email sent successfully:', response);
+                
+            } catch (error) {
+                result.innerHTML = `❌ ERROR: ${error.message}<br>
+                                   Error details: ${JSON.stringify(error)}<br>
+                                   Check console for more details.`;
+                
+                console.error('❌ Email send error:', error);
+                console.error('Error details:', {
+                    name: error.name,
+                    message: error.message,
+                    stack: error.stack
+                });
+            }
+        }
+
+        // Auto-run test after 2 seconds
+        setTimeout(() => {
+            console.log('Auto-running test...');
+            runTest();
+        }, 2000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EmailJS Simple Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+<body>
+    <h2>EmailJS Simple Test</h2>
+    <button onclick="sendSimpleTest()">Send Simple Test</button>
+    <div id="output"></div>
+
+    <script>
+        // Initialize EmailJS
+        emailjs.init('FWvhfYEosGwcS5rxq');
+        
+        function sendSimpleTest() {
+            const output = document.getElementById('output');
+            output.innerHTML = 'Sending...';
+            
+            // Very basic template parameters that should work with most templates
+            const params = {
+                message: 'Hello! This is a test email from the Yaya Starchild website.',
+                subject: 'Test Email from Website',
+                from_name: 'Yaya Website Test',
+                to_email: 'faeriepoetics@gmail.com'
+            };
+            
+            console.log('Sending with params:', params);
+            
+            emailjs.send('service_eodjffq', 'template_b6rgdel', params)
+                .then(function(response) {
+                    console.log('SUCCESS!', response.status, response.text);
+                    output.innerHTML = `<div style="color: green;">
+                        ✅ SUCCESS! Email sent.<br>
+                        Status: ${response.status}<br>
+                        Message ID: ${response.text}<br>
+                        Check your Gmail inbox!
+                    </div>`;
+                })
+                .catch(function(error) {
+                    console.log('FAILED...', error);
+                    output.innerHTML = `<div style="color: red;">
+                        ❌ FAILED: ${error.text || error.message}<br>
+                        Status: ${error.status}<br>
+                        Check console for details.
+                    </div>`;
+                });
+        }
+        
+        // Auto-send test after 3 seconds
+        setTimeout(sendSimpleTest, 3000);
+    </script>
+</body>
+</html>

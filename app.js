@@ -2,6 +2,8 @@
 const STORAGE_KEY = 'yaya_cart_v1';
 const DISCOUNTS = { 'SUN10':0.10, 'FAIRY5':0.05, 'MAGIC15':0.15 };
 
+// Email functions will be available globally from simple-email.js script
+
 // Add custom animation with drift - do this first
 function injectSparkleStyles() {
   // Check if already injected
@@ -343,18 +345,36 @@ document.addEventListener('DOMContentLoaded',()=>{
     nf.addEventListener('submit',async e=>{
       e.preventDefault();
       const email = document.getElementById('newsletter-email').value;
-      // If server configured, post to server endpoint
+      
+      // Send notification email via EmailJS
+      const emailResult = await sendNewsletterSignup(email, window.location.pathname);
+      
+      // If EmailJS succeeded, show success message
+      if(emailResult && emailResult.success) {
+        alert('Thanks — you are subscribed! 📧 Notification sent.');
+        nf.reset();
+        return;
+      }
+      
+      // If server configured, try server endpoint
       if(window.YAYA_CONFIG && window.YAYA_CONFIG.serverUrl){
         try{
           const resp = await fetch(window.YAYA_CONFIG.serverUrl + '/newsletter',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
           const data = await resp.json();
-          if(data && data.ok) { alert('Thanks — you are subscribed!'); nf.reset(); return; }
+          if(data && data.ok) { alert('Thanks — you are subscribed! 📧'); nf.reset(); return; }
         }catch(e){console.warn('server subscribe failed',e)}
       }
-      // Fallback to Supabase direct or Formspree
+      
+      // Fallback to Supabase only (skip broken Formspree)
       const saved = await postToSupabase('/rest/v1/newsletter', {email, created_at: new Date().toISOString()});
-      if(saved){alert('Thanks — you are subscribed!'); nf.reset(); return}
-      fetch('https://formspree.io/f/maypznwl',{method:'POST',body:JSON.stringify({email}),headers:{'Content-Type':'application/json'}}).then(()=>{alert('Thanks — you are subscribed!');nf.reset()}).catch(()=>alert('Subscription failed'))
+      if(saved){
+        alert('Thanks — you are subscribed! 📧'); 
+        nf.reset(); 
+        return;
+      }
+      
+      // If all else fails
+      alert('Subscription system temporarily unavailable. Please try again later.')
     });
   }
 

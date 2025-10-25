@@ -20,6 +20,7 @@ const staticFiles = [
   'styles.css',
   'app.js',
   'products.js',
+  'simple-email.js',
   'cookie-consent.js',
   'data-handler.js',
   'error-monitor.js',

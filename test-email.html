@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EmailJS Template Test - Yaya Starchild</title>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+        button { background: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 10px 5px; }
+        button:hover { background: #45a049; }
+        .test-section { border: 1px solid #ddd; padding: 15px; margin: 15px 0; border-radius: 8px; }
+        #result { margin-top: 20px; padding: 10px; background: #f5f5f5; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>📧 EmailJS Template Testing</h1>
+    
+    <div class="test-section">
+        <h3>✨ Newsletter Template Test</h3>
+        <p><strong>Template ID:</strong> template_b6rgdel</p>
+        <button onclick="testNewsletter()">Test Newsletter Template</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>🛒 Order Template Test</h3>
+        <p><strong>Template ID:</strong> New_Order</p>
+        <button onclick="testOrder()">Test Order Template</button>
+    </div>
+    
+    <div id="result"></div>
+
+    <script>
+        // EmailJS configuration - Updated for both templates
+        const EMAILJS_CONFIG = {
+            serviceId: 'service_eodjffq',
+            newsletterTemplateId: 'template_b6rgdel',
+            orderTemplateId: 'New_Order',
+            userId: 'FWvhfYEosGwcS5rxq'
+        };
+
+        // Initialize EmailJS
+        emailjs.init(EMAILJS_CONFIG.userId);
+
+        async function testNewsletter() {
+            const result = document.getElementById('result');
+            result.innerHTML = '⏳ Testing newsletter template (template_b6rgdel)...';
+            
+            try {
+                // Use your exact template structure for newsletter
+                const templateParams = {
+                    user_email: 'test@example.com',
+                    page: 'Test Page',
+                    timestamp: new Date().toLocaleString()
+                };
+
+                const response = await emailjs.send(
+                    EMAILJS_CONFIG.serviceId,
+                    EMAILJS_CONFIG.newsletterTemplateId,
+                    templateParams
+                );
+
+                result.innerHTML = `✅ <strong>Newsletter Template SUCCESS!</strong><br>
+                Template ID: ${EMAILJS_CONFIG.newsletterTemplateId}<br>
+                Message ID: ${response.text}<br>
+                Check faeriepoetics@gmail.com for the email!`;
+                result.style.background = '#d4edda';
+                result.style.color = '#155724';
+                console.log('✅ Newsletter email sent:', response);
+                
+            } catch (error) {
+                result.innerHTML = `❌ <strong>Newsletter Template FAILED:</strong><br>${error.message}`;
+                result.style.background = '#f8d7da';
+                result.style.color = '#721c24';
+                console.error('❌ Newsletter email error:', error);
+            }
+        }
+
+        async function testOrder() {
+            const result = document.getElementById('result');
+            result.innerHTML = '⏳ Testing order template (New_Order)...';
+            
+            try {
+                // Use your order template structure
+                const templateParams = {
+                    customer_name: 'Jane Doe',
+                    customer_email: 'jane.doe@example.com',
+                    order_total: '29.99',
+                    order_items: 'Suncatcher Spirit x1 - $19.99\nPoetry Book x1 - $10.00',
+                    shipping_address: '123 Main Street\nAnytown, ST 12345\nUnited States',
+                    timestamp: new Date().toLocaleString()
+                };
+
+                const response = await emailjs.send(
+                    EMAILJS_CONFIG.serviceId,
+                    EMAILJS_CONFIG.orderTemplateId,
+                    templateParams
+                );
+
+                result.innerHTML = `✅ <strong>Order Template SUCCESS!</strong><br>
+                Template ID: ${EMAILJS_CONFIG.orderTemplateId}<br>
+                Message ID: ${response.text}<br>
+                Check faeriepoetics@gmail.com for the email!`;
+                result.style.background = '#d4edda';
+                result.style.color = '#155724';
+                console.log('✅ Order email sent:', response);
+                
+            } catch (error) {
+                result.innerHTML = `❌ <strong>Order Template FAILED:</strong><br>${error.message}`;
+                result.style.background = '#f8d7da';
+                result.style.color = '#721c24';
+                console.error('❌ Order email error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
