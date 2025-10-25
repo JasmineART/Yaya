@@ -29,7 +29,7 @@ const staticFiles = [
   'robots.txt',
   'sitemap.xml',
   'favicon.ico',
-  'logo.svg'
+  'assets/logo-new.jpg'
 ];
 
 // Directories to copy recursively
