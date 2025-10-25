@@ -1,0 +1,70 @@
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFB5D8;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#E6B5FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#C5A0E8;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <rect width="400" height="400" fill="url(#bg)" rx="20"/>
+  
+  <!-- Sticker 1: Moon -->
+  <g transform="translate(70, 70)">
+    <circle cx="35" cy="35" r="32" fill="white" opacity="0.95" filter="url(#glow)"/>
+    <path d="M 35 15 Q 45 25, 45 35 Q 45 45, 35 55 Q 25 45, 25 35 Q 25 25, 35 15 Z" fill="#FFB5D8" opacity="0.8"/>
+    <circle cx="30" cy="25" r="3" fill="#C5A0E8"/>
+    <circle cx="40" cy="35" r="2.5" fill="#C5A0E8"/>
+    <circle cx="32" cy="42" r="2" fill="#C5A0E8"/>
+  </g>
+  
+  <!-- Sticker 2: Star -->
+  <g transform="translate(200, 70)">
+    <circle cx="35" cy="35" r="32" fill="white" opacity="0.95" filter="url(#glow)"/>
+    <path d="M 35 15 L 38 28 L 52 28 L 41 36 L 45 49 L 35 41 L 25 49 L 29 36 L 18 28 L 32 28 Z" fill="#FFE5B4" stroke="#FFB5D8" stroke-width="2"/>
+  </g>
+  
+  <!-- Sticker 3: Flower -->
+  <g transform="translate(70, 200)">
+    <circle cx="35" cy="35" r="32" fill="white" opacity="0.95" filter="url(#glow)"/>
+    <circle cx="35" cy="25" r="8" fill="#FFB5D8" opacity="0.9"/>
+    <circle cx="45" cy="30" r="8" fill="#E6B5FF" opacity="0.9"/>
+    <circle cx="45" cy="40" r="8" fill="#C5A0E8" opacity="0.9"/>
+    <circle cx="35" cy="45" r="8" fill="#B5D8FF" opacity="0.9"/>
+    <circle cx="25" cy="40" r="8" fill="#9FECF0" opacity="0.9"/>
+    <circle cx="25" cy="30" r="8" fill="#FFE5B4" opacity="0.9"/>
+    <circle cx="35" cy="35" r="6" fill="#FFFACD"/>
+  </g>
+  
+  <!-- Sticker 4: Heart -->
+  <g transform="translate(200, 200)">
+    <circle cx="35" cy="35" r="32" fill="white" opacity="0.95" filter="url(#glow)"/>
+    <path d="M 35 45 L 25 35 Q 20 30, 20 25 Q 20 18, 27.5 18 Q 32 18, 35 22 Q 38 18, 42.5 18 Q 50 18, 50 25 Q 50 30, 45 35 Z" fill="#FF69B4" opacity="0.9"/>
+  </g>
+  
+  <!-- Sticker 5: Sparkles (top right) -->
+  <g transform="translate(295, 50)">
+    <circle cx="25" cy="25" r="22" fill="white" opacity="0.95" filter="url(#glow)"/>
+    <path d="M 25 10 L 26 18 L 33 15 L 28 22 L 35 25 L 28 28 L 33 35 L 26 32 L 25 40 L 24 32 L 17 35 L 22 28 L 15 25 L 22 22 L 17 15 L 24 18 Z" fill="#FFD700" opacity="0.95"/>
+  </g>
+  
+  <!-- Sticker 6: Cloud -->
+  <g transform="translate(295, 295)">
+    <circle cx="25" cy="25" r="22" fill="white" opacity="0.95" filter="url(#glow)"/>
+    <ellipse cx="20" cy="25" rx="10" ry="8" fill="#B5D8FF" opacity="0.9"/>
+    <ellipse cx="30" cy="25" rx="10" ry="8" fill="#B5D8FF" opacity="0.9"/>
+    <ellipse cx="25" cy="20" rx="8" ry="6" fill="#B5D8FF" opacity="0.9"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="200" y="370" font-family="'Cinzel', serif" font-size="24" font-weight="600" fill="white" text-anchor="middle" opacity="0.95">Suncatcher Spirit</text>
+  <text x="200" y="390" font-family="'Cormorant Garamond', serif" font-size="16" font-weight="500" fill="white" text-anchor="middle" opacity="0.85">Sticker Collection</text>
+</svg>

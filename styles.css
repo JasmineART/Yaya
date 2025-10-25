@@ -1,15 +1,17 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:wght@300;400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Cormorant+Garamond:wght@400;500;600;700&display=swap');
 
 :root{
-  --pink:#FFB5D8;
-  --purple:#C5A0E8;
+  --pink:#E89CC8;
+  --pink-dark:#D87BB5;
+  --purple:#B88DD8;
+  --purple-dark:#9B6EC7;
   --blue:#A8D8FF;
   --teal:#9FECF0;
   --white:#FFFFFF;
-  --glass: rgba(255,255,255,0.15);
-  --glass-strong: rgba(255,255,255,0.25);
-  --shadow: 0 8px 32px rgba(139, 92, 246, 0.15);
-  --glow: 0 0 20px rgba(255, 181, 216, 0.4);
+  --glass: rgba(255,255,255,0.22);
+  --glass-strong: rgba(255,255,255,0.35);
+  --shadow: 0 8px 32px rgba(139, 92, 246, 0.25);
+  --glow: 0 0 20px rgba(255, 181, 216, 0.5);
   --radius:20px;
 }
 
@@ -27,11 +29,15 @@ html,body{
 body{
   margin:0;
   font-family: 'Cormorant Garamond', serif;
-  background: linear-gradient(135deg, #FFB5D8 0%, #E6B5FF 30%, #C5A0E8 60%, #B5D8FF 100%);
+  font-weight: 500;
+  background: linear-gradient(135deg, #E89CC8 0%, #D899E6 30%, #B88DD8 60%, #9BB8E6 100%);
   color:var(--white);
   -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   position:relative;
   min-height:100vh;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.15);
 }
 
 /* Magical sparkle overlay */
@@ -44,22 +50,22 @@ body::before {
   height: 100%;
   background-image: 
     radial-gradient(2px 2px at 20% 30%, white, transparent),
-    radial-gradient(2px 2px at 60% 70%, rgba(255,255,255,0.8), transparent),
-    radial-gradient(1px 1px at 50% 50%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(2px 2px at 60% 70%, rgba(255,255,255,0.9), transparent),
+    radial-gradient(1px 1px at 50% 50%, rgba(255,255,255,0.7), transparent),
     radial-gradient(1px 1px at 80% 10%, white, transparent),
-    radial-gradient(2px 2px at 90% 60%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(2px 2px at 90% 60%, rgba(255,255,255,0.8), transparent),
     radial-gradient(1px 1px at 33% 80%, white, transparent),
-    radial-gradient(1px 1px at 15% 55%, rgba(255,255,255,0.9), transparent);
+    radial-gradient(1px 1px at 15% 55%, rgba(255,255,255,0.95), transparent);
   background-size: 200% 200%;
   animation: sparkle 8s ease-in-out infinite;
   pointer-events: none;
   z-index: 1;
-  opacity: 0.6;
+  opacity: 0.7;
 }
 
 @keyframes sparkle {
   0%, 100% { 
-    opacity: 0.6;
+    opacity: 0.7;
     transform: scale(1);
   }
   50% { 
@@ -258,10 +264,10 @@ body::before {
   }
 }
 
-/* Scroll-triggered reveal animations */
+/* Scroll-triggered reveal animations - instant visibility */
 .reveal {
-  opacity: 0;
-  transform: translateY(50px);
+  opacity: 1;
+  transform: translateY(0);
   transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -271,8 +277,8 @@ body::before {
 }
 
 .reveal-left {
-  opacity: 0;
-  transform: translateX(-50px);
+  opacity: 1;
+  transform: translateX(0);
   transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -282,8 +288,8 @@ body::before {
 }
 
 .reveal-right {
-  opacity: 0;
-  transform: translateX(50px);
+  opacity: 1;
+  transform: translateX(0);
   transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -293,8 +299,8 @@ body::before {
 }
 
 .reveal-scale {
-  opacity: 0;
-  transform: scale(0.9);
+  opacity: 1;
+  transform: scale(1);
   transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -416,10 +422,10 @@ a:focus,button:focus,input:focus,textarea:focus{
 
 .tag{
   margin:0.2rem 0 0 0;
-  color:rgba(255,255,255,0.9);
+  color:rgba(255,255,255,0.95);
   font-size:0.95rem;
   font-style:italic;
-  font-weight:300;
+  font-weight:500;
 }
 
 .nav{
@@ -432,7 +438,7 @@ a:focus,button:focus,input:focus,textarea:focus{
   color:var(--white);
   text-decoration:none;
   font-size:1.1rem;
-  font-weight:400;
+  font-weight:600;
   position:relative;
   padding:0.4rem 0.8rem;
   transition:all 0.3s ease;
@@ -531,11 +537,11 @@ a:focus,button:focus,input:focus,textarea:focus{
 }
 
 .lead{
-  color:rgba(255,255,255,0.95);
+  color:rgba(255,255,255,0.98);
   font-size:1.15rem;
   line-height:1.7;
   margin:0.8rem 0;
-  font-weight:300;
+  font-weight:500;
 }
 
 .cta-row{
@@ -614,6 +620,11 @@ a:focus,button:focus,input:focus,textarea:focus{
   transform:translateY(-3px);
 }
 
+/* Prevent button hover when entire card is clickable */
+.product-card[onclick] .btn.ghost{
+  pointer-events:none;
+}
+
 
 .features{
   display:grid;
@@ -648,9 +659,10 @@ a:focus,button:focus,input:focus,textarea:focus{
 }
 
 .features p{
-  color:rgba(255,255,255,0.9);
+  color:rgba(255,255,255,0.95);
   line-height:1.6;
   font-size:1rem;
+  font-weight:500;
 }
 
 .products-grid{
@@ -698,6 +710,9 @@ a:focus,button:focus,input:focus,textarea:focus{
 
 .product-card img{
   width:100%;
+  height:280px;
+  object-fit:cover;
+  object-position:center;
   border-radius:12px;
   box-shadow:0 5px 20px rgba(0,0,0,0.15);
   transition:transform 0.3s ease;
@@ -705,6 +720,15 @@ a:focus,button:focus,input:focus,textarea:focus{
 
 .product-card:hover img{
   transform:scale(1.05);
+}
+
+.product-card[onclick]{
+  cursor:pointer;
+  user-select:none;
+}
+
+.product-card[onclick]:active{
+  transform:translateY(-8px) scale(1.01);
 }
 
 .product-card .meta{
@@ -720,11 +744,18 @@ a:focus,button:focus,input:focus,textarea:focus{
   font-size:1.3rem;
   margin:0.8rem 0 0.5rem 0;
   color:var(--white);
+  font-weight:600;
+}
+
+.product-card p{
+  color:rgba(255,255,255,0.95);
+  line-height:1.6;
+  font-weight:500;
 }
 
 .product-card .price{
   font-size:1.2rem;
-  font-weight:600;
+  font-weight:700;
   color:var(--white);
 }
 
@@ -756,13 +787,136 @@ a:focus,button:focus,input:focus,textarea:focus{
   font-family: 'Cinzel', serif;
   color:var(--white);
   font-size:2.2rem;
+  font-weight:700;
 }
 
 .product-detail p{
-  color:rgba(255,255,255,0.95);
+  color:rgba(255,255,255,0.98);
   line-height:1.8;
   font-size:1.1rem;
+  font-weight:500;
 }
+
+/* Magazine-style product layout */
+.product-magazine-layout {
+  display: flex;
+  gap: 2rem;
+  width: 100%;
+}
+
+.product-image-column {
+  flex: 0 0 50vw;
+  position: sticky;
+  top: 2rem;
+  align-self: flex-start;
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  padding: 2rem;
+  border-radius: var(--radius);
+  border: 1px solid rgba(255,255,255,0.25);
+}
+
+.product-image-column #main-image {
+  width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: 15px;
+  box-shadow: 0 15px 50px rgba(0,0,0,0.2);
+  display: block;
+}
+
+.pdf-viewer {
+  background: rgba(255,255,255,0.95);
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 15px 50px rgba(0,0,0,0.2);
+  margin-top: 1rem;
+}
+
+.pdf-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.pdf-controls h4 {
+  color: #8b7a86;
+  margin: 0;
+}
+
+#pdf-scroll-container {
+  overflow-y: auto;
+  max-height: 60vh;
+  border: 1px solid rgba(139,122,134,0.2);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.product-thumbnails {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.product-content-column {
+  flex: 1;
+  min-width: 300px;
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  padding: 2rem;
+  border-radius: var(--radius);
+  border: 1px solid rgba(255,255,255,0.25);
+}
+
+.product-content-column h2 {
+  margin-top: 0;
+  font-family: 'Cinzel', serif;
+  color: var(--white);
+  font-size: 2.2rem;
+  font-weight: 700;
+}
+
+.product-content-column .lead {
+  line-height: 1.8;
+  margin: 1rem 0 1.5rem 0;
+  font-size: 1.1rem;
+}
+
+.product-meta {
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+  opacity: 0.95;
+}
+
+.product-price {
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 1.5rem 0;
+}
+
+.product-perks {
+  font-size: 0.95rem;
+  opacity: 0.95;
+  margin: 1.5rem 0;
+}
+
+.product-reviews {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255,255,255,0.2);
+}
+
+.product-reviews h4 {
+  margin: 0 0 1rem 0;
+}
+
+.reviews-list {
+  display: grid;
+  gap: 1rem;
+}
+
 
 
 .cart-contents{
@@ -815,10 +969,17 @@ h2, h3, h4, h5{
 h2{
   font-size:2.5rem;
   margin-bottom:1rem;
+  font-weight:700;
   animation: fairyTextGlow 3.5s ease-in-out infinite;
 }
 
+h3{
+  font-size:1.8rem;
+  font-weight:600;
+}
+
 h4 {
+  font-weight:600;
   text-shadow:2px 2px 4px rgba(0,0,0,0.1),
               0 0 15px rgba(230, 181, 255, 0.35),
               0 0 25px rgba(255, 181, 216, 0.25);
@@ -841,11 +1002,13 @@ h4 {
 .site-footer h5{
   font-size:1.2rem;
   margin-bottom:0.7rem;
+  font-weight:600;
 }
 
 .site-footer p, .site-footer a{
-  color:rgba(255,255,255,0.9);
+  color:rgba(255,255,255,0.95);
   line-height:1.6;
+  font-weight:500;
 }
 
 .site-footer a{
@@ -861,9 +1024,10 @@ h4 {
 
 .copy{
   text-align:center;
-  color:rgba(255,255,255,0.8);
+  color:rgba(255,255,255,0.9);
   margin-top:1.5rem;
   font-size:0.95rem;
+  font-weight:500;
 }
 
 .about .author-photo{
@@ -896,9 +1060,10 @@ h4 {
 }
 
 .bio-grid p{
-  color:rgba(255,255,255,0.95);
+  color:rgba(255,255,255,0.98);
   line-height:1.8;
   font-size:1.1rem;
+  font-weight:500;
 }
 
 .comments{
@@ -944,12 +1109,14 @@ input,textarea,select{
   backdrop-filter:blur(10px);
   color:var(--white);
   font-size:1rem;
+  font-weight:500;
   font-family: 'Cormorant Garamond', serif;
   transition:all 0.3s ease;
 }
 
 input::placeholder,textarea::placeholder{
-  color:rgba(255,255,255,0.7);
+  color:rgba(255,255,255,0.75);
+  font-weight:500;
 }
 
 input:focus,textarea:focus,select:focus{
@@ -986,6 +1153,25 @@ textarea{
   
   .product-page{
     grid-template-columns:1fr;
+  }
+  
+  /* Stack magazine layout on mobile */
+  .product-magazine-layout {
+    flex-direction: column;
+  }
+  
+  .product-image-column {
+    flex: 1;
+    position: static;
+    width: 100%;
+  }
+  
+  .product-image-column #main-image {
+    max-height: 50vh;
+  }
+  
+  #pdf-scroll-container {
+    max-height: 50vh;
   }
   
   .features{

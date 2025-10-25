@@ -11,8 +11,13 @@
     <meta property="og:image" content="assets/suncatcher-cover.jpg" />
     <link rel="stylesheet" href="styles.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="manifest" href="/manifest.webmanifest">
+    <!-- PDF.js for preview -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <!-- <link rel="manifest" href="/manifest.webmanifest"> -->
     <link rel="icon" href="/favicon.ico">
+    <script src="error-monitor.js"></script>
+    <script src="cookie-consent.js"></script>
+    <script src="data-handler.js"></script>
     <script defer src="products.js"></script>
     <script defer src="app.js"></script>
   </head>
@@ -66,11 +71,21 @@
           <p>
             <a href="https://www.instagram.com/pastelpoetics/" target="_blank"><i class="fab fa-instagram"></i> Instagram</a><br>
             <a href="https://www.tiktok.com/@pastelpoetics" target="_blank"><i class="fab fa-tiktok"></i> TikTok</a><br>
-            <a href="https://www.goodreads.com/author/show/58859016.Yaya_Starchild" target="_blank"><i class="fab fa-goodreads"></i> Goodreads</a>
+            <a href="https://www.goodreads.com/author/show/58859016.Yaya_Starchild" target="_blank"><i class="fab fa-goodreads"></i> Goodreads</a><br>
+          </p>
+          <p style="margin-top:0.5rem; font-size:0.95rem;">
+            <a href="policies.html#shipping">Shipping</a> • 
+            <a href="policies.html#returns">Returns</a> • 
+            <a href="policies.html#privacy">Privacy</a> • 
+            <a href="policies.html#cookies">Cookies</a> • 
+            <a href="policies.html#terms">Terms</a>
           </p>
         </div>
       </div>
       <p class="copy">© 2025 Yaya Starchild • Pastel Poetics • Made with magic <i class="fas fa-wand-sparkles"></i> and stardust <i class="fas fa-star"></i></p>
     </footer>
+    
+    <!-- Firebase Configuration -->
+    <script type="module" src="firebase-config.js"></script>
   </body>
 </html>

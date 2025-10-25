@@ -1,0 +1,64 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "title": "Suncatcher Spirit (Signed Edition)",
+      "titleIcon": "fas fa-crown",
+      "price": 24.99,
+      "isbn": "979-8-9999322-0-4",
+      "description": "The debut poetry collection by Yaya Starchild — 64 pages of luminous verses exploring love, loss, resilience, and present-moment magic. This signed limited edition includes a handwritten blessing and arrives wrapped in tissue paper. Each copy is numbered and touched by magic. Published by Pastel Poetics — October 25, 2025.",
+      "reviews": [
+        {
+          "name": "Moon Sisters Book Club",
+          "rating": 5,
+          "text": "A tender, luminous collection that feels both grounding and uplifting. One of those books you return to again and again.",
+          "date": "2025-10-27"
+        },
+        {
+          "name": "Ingrid",
+          "rating": 5,
+          "text": "Delightful — playful yet deep. Yaya's voice sparkles.",
+          "date": "2025-10-29"
+        }
+      ],
+      "images": ["assets/suncatcher-cover.jpg"],
+      "featured": true
+    },
+    {
+      "id": 2,
+      "title": "Suncatcher Spirit (Paperback)",
+      "titleIcon": "fas fa-book",
+      "price": 19.99,
+      "isbn": "979-8-9999322-0-4",
+      "description": "Softcover paperback edition — 64 pages of poetry perfect for bedside reading, carrying in your bag, or gifting. Printed on cream-colored paper that feels gentle in your hands.",
+      "reviews": [
+        {
+          "name": "Adriana Auch",
+          "rating": 4,
+          "text": "Perfect for quiet mornings in the park — brings calm and wonder.",
+          "date": "2025-11-02"
+        }
+      ],
+      "images": ["assets/suncatcher-cover.jpg"],
+      "featured": true
+    },
+    {
+      "id": 3,
+      "title": "Suncatcher Sticker Pack",
+      "titleIcon": "fas fa-sparkles",
+      "price": 3.00,
+      "sku": "STK-SS-001",
+      "description": "A professionally designed set of 6 waterproof vinyl stickers featuring original artwork from Suncatcher Spirit. Each pack includes moon, star, flower, heart, sparkle, and cloud designs in vibrant pastel colors. Perfect for decorating laptops, water bottles, journals, phone cases, or any smooth surface. Durable, weather-resistant, and fade-proof.",
+      "reviews": [
+        {
+          "name": "StickerFan",
+          "rating": 5,
+          "text": "Stuck these on my laptop and they never peel — gorgeous colors.",
+          "date": "2025-11-05"
+        }
+      ],
+      "images": ["assets/sticker-pack.svg"],
+      "featured": true
+    }
+  ]
+}

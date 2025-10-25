@@ -26,6 +26,21 @@ let mailer = null;
 if(smtpHost){
   mailer = nodemailer.createTransport({host:process.env.SMTP_HOST,port:parseInt(process.env.SMTP_PORT||587,10),secure:false,auth:{user:process.env.SMTP_USER,pass:process.env.SMTP_PASS}});
 }
+// Firebase Admin (optional) - initialize with service account JSON in env or path
+const admin = require('firebase-admin');
+let firestore = null;
+const firebaseServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT || '';
+const firebaseServiceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || '';
+if(firebaseServiceAccount || firebaseServiceAccountPath){
+  try{
+    const serviceAccount = firebaseServiceAccount ? JSON.parse(firebaseServiceAccount) : require(firebaseServiceAccountPath);
+    admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+    firestore = admin.firestore();
+    console.log('Firebase Admin initialized');
+  }catch(e){
+    console.warn('Firebase Admin init failed', e && e.message ? e.message : e);
+  }
+}
 // In-memory sent emails for local tests (do not rely on this in production)
 const sentEmails = [];
 
@@ -205,4 +220,49 @@ app.get('/_debug/orders', async (req,res)=>{
     if(error) throw error;
     res.json(data);
   }catch(e){res.status(500).json({error:e.message});}
+});
+
+// New endpoint: accept order submissions, persist to Firebase Firestore (if configured) and send an email to COMPANY_EMAIL
+app.post('/submit-order', [
+  body('name').isLength({min:1}),
+  body('email').isEmail(),
+  body('items').isArray({min:1})
+], async (req,res)=>{
+  const errors = validationResult(req);
+  if(!errors.isEmpty()) return res.status(400).json({errors:errors.array()});
+  const {name,email,address,city,items,giftWrap,pay} = req.body;
+  const order = {name,email,address,city,items,giftWrap:!!giftWrap,pay,created_at:new Date().toISOString()};
+  try{
+    let docId = null;
+    if(firestore){
+      const docRef = await firestore.collection('orders').add(order);
+      docId = docRef.id;
+    }else if(supabase){
+      try{ const {data,error} = await supabase.from('orders').insert([Object.assign({},order,{created_at:new Date().toISOString()})]).select(); if(error) console.warn('supabase order insert failed',error); else if(data && data[0] && data[0].id) docId = data[0].id; }catch(e){console.warn('supabase insert error',e)}
+    }
+
+    // Prepare email body
+    const summary = (items||[]).map(i=>`<li>${i.title || i.id} × ${i.qty} — $${(i.price||0).toFixed ? (i.price||0).toFixed(2) : (i.price||0)}</li>`).join('');
+    const html = `<p>New order received</p><p><strong>Name:</strong> ${name}</p><p><strong>Email:</strong> ${email}</p><p><strong>Address:</strong> ${address || ''} ${city || ''}</p><p><strong>Items:</strong></p><ul>${summary}</ul><p><strong>Gift wrap:</strong> ${giftWrap ? 'Yes' : 'No'}</p><p><strong>Order ID:</strong> ${docId || 'n/a'}</p>`;
+
+    const recipient = process.env.COMPANY_EMAIL || process.env.EMAIL_TO || process.env.SMTP_USER;
+    if(!recipient) console.warn('No COMPANY_EMAIL configured; order will be stored but not emailed');
+
+    if(process.env.SENDGRID_API_KEY && recipient){
+      try{
+        await sendgrid.send({to:recipient,from:process.env.EMAIL_FROM || process.env.SMTP_USER || 'no-reply@yaya.example',subject:'New Yaya order',html});
+        sentEmails.push({to:recipient,subject:'New Yaya order',orderId:docId});
+      }catch(e){console.warn('SendGrid send failed',e)}
+    }else if(mailer && recipient){
+      try{
+        await mailer.sendMail({from:process.env.EMAIL_FROM || process.env.SMTP_USER, to: recipient, subject: 'New Yaya order', text: `New order from ${name} (${email})`, html});
+        sentEmails.push({to:recipient,subject:'New Yaya order',orderId:docId});
+      }catch(e){console.warn('Mailer send failed',e)}
+    }
+
+    res.json({ok:true,id:docId});
+  }catch(err){
+    console.error('submit-order failed',err);
+    res.status(500).json({error:err.message});
+  }
 });

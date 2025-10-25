@@ -38,80 +38,85 @@ function injectSparkleStyles() {
   console.log('✨ Sparkle animation styles injected');
 }
 
-// Magical sparkle stream animation - more particles, flowing pattern
+// Magical sparkle stream animation - optimized for performance
 function createMagicalSparkles() {
-  // Calculate sparkles based on screen size (200 per inch of screen width - DOUBLED)
-  const screenWidthInches = window.innerWidth / 96; // 96 DPI standard
-  const targetSparkleCount = Math.floor(screenWidthInches * 200); // DOUBLED from 100 to 200
+  // Reduce sparkle count for better performance
+  const screenWidthInches = window.innerWidth / 96;
+  const targetSparkleCount = Math.floor(screenWidthInches * 50); // Reduced from 200
   
-  // Limit to reasonable numbers for performance
-  const maxSparkles = 1000; // Increased max
+  // Lower max for better performance
+  const maxSparkles = 300; // Reduced from 1000
   const totalSparkles = Math.min(targetSparkleCount, maxSparkles);
   
   console.log('✨ Sparkle system starting...', {
     screenWidth: window.innerWidth,
-    screenWidthInches: screenWidthInches.toFixed(2),
     targetSparkles: totalSparkles
   });
   
-  // Create initial batch of sparkles distributed across screen
+  // Use DocumentFragment for batch DOM insertion (performance optimization)
   function createSparklesBatch() {
-    const batchSize = Math.min(20, Math.ceil(totalSparkles / 10)); // Create in batches
+    const batchSize = Math.min(10, Math.ceil(totalSparkles / 10)); // Smaller batches
+    const fragment = document.createDocumentFragment();
     
     for(let i = 0; i < batchSize; i++) {
-      setTimeout(() => {
-        createSingleSparkle();
-      }, i * 50); // Stagger creation for smooth appearance
+      fragment.appendChild(createSingleSparkle());
     }
+    
+    document.body.appendChild(fragment);
   }
   
   function createSingleSparkle() {
     const sparkle = document.createElement('div');
     sparkle.className = 'sparkle';
     
-    // Distribute across full screen width
     const posX = Math.random() * 100;
     sparkle.style.left = posX + '%';
     
-    // Start from random vertical position for initial fill
-    const startY = Math.random() * 120; // 0-120% to fill screen
+    const startY = Math.random() * 120;
     sparkle.style.bottom = -startY + '%';
     
-    // Vary sizes for depth
-    const size = Math.random() * 3 + 1.5; // Smaller sparkles (1.5-4.5px)
+    const size = Math.random() * 3 + 1.5;
     sparkle.style.width = size + 'px';
     sparkle.style.height = size + 'px';
     
-    // Randomize animation properties for organic movement
-    const duration = Math.random() * 8 + 10; // Slower (10-18s)
+    const duration = Math.random() * 8 + 10;
     const delay = Math.random() * 2;
-    const drift = (Math.random() - 0.5) * 80; // Reduced drift
+    const drift = (Math.random() - 0.5) * 80;
     
     sparkle.style.animation = `floatSparkle ${duration}s ease-in-out ${delay}s infinite`;
     sparkle.style.setProperty('--drift', drift + 'px');
     
-    document.body.appendChild(sparkle);
+    return sparkle;
   }
   
-  // Initial population - fill screen with sparkles
-  const initialBatches = Math.ceil(totalSparkles / 20);
-  for(let batch = 0; batch < initialBatches; batch++) {
-    setTimeout(() => createSparklesBatch(), batch * 1000);
+  // Initial population - use requestAnimationFrame for smoother creation
+  const initialBatches = Math.ceil(totalSparkles / 10);
+  let batchIndex = 0;
+  
+  function createNextBatch() {
+    if (batchIndex < initialBatches) {
+      createSparklesBatch();
+      batchIndex++;
+      requestAnimationFrame(createNextBatch);
+    }
   }
   
-  // Maintain sparkle count - check and refill periodically
+  requestAnimationFrame(createNextBatch);
+  
+  // Maintain sparkle count - less frequent checks
   setInterval(() => {
     const currentSparkles = document.querySelectorAll('.sparkle').length;
-    if (currentSparkles < totalSparkles * 0.8) { // If below 80%, add more
-      const needed = totalSparkles - currentSparkles;
-      const toAdd = Math.min(needed, 10);
+    if (currentSparkles < totalSparkles * 0.7) {
+      const fragment = document.createDocumentFragment();
+      const toAdd = Math.min(totalSparkles - currentSparkles, 5);
       for(let i = 0; i < toAdd; i++) {
-        setTimeout(() => createSingleSparkle(), i * 100);
+        fragment.appendChild(createSingleSparkle());
       }
+      document.body.appendChild(fragment);
     }
-  }, 3000); // Check every 3 seconds
+  }, 5000); // Check every 5 seconds instead of 3
   
-  console.log('✨ Sparkle generation system active');
+  console.log('✨ Sparkle generation optimized');
 }
 
 // Neon castle outline in background
@@ -192,7 +197,7 @@ function createSpotlights() {
   console.log('💡 Spotlights created');
 }
 
-// Scroll-triggered reveal animations
+// Scroll-triggered reveal animations - trigger immediately on load
 function revealOnScroll() {
   const reveals = document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale');
   
@@ -201,39 +206,54 @@ function revealOnScroll() {
     const elementBottom = element.getBoundingClientRect().bottom;
     const windowHeight = window.innerHeight;
     
-    // Reveal when element is 15% into viewport
+    // Reveal when element is in viewport OR on initial load
     if (elementTop < windowHeight * 0.85 && elementBottom > 0) {
       element.classList.add('active');
     }
   });
 }
 
+// Make all content visible immediately on page load
+function showAllContent() {
+  // Remove any loading/hidden states
+  const allElements = document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale');
+  allElements.forEach(el => el.classList.add('active'));
+}
+
 // Initialize on load
 if (typeof window !== 'undefined') {
   window.addEventListener('DOMContentLoaded', () => {
     console.log('🌟 DOM Content Loaded - initializing...');
+    
+    // Show all content FIRST - no delays
+    showAllContent();
+    revealOnScroll();
+    
+    // Then add visual enhancements
     injectSparkleStyles();
     createMagicalSparkles();
     createNeonCastle();
     createSpotlights();
-    revealOnScroll();
+    
     console.log('✅ All systems initialized');
   });
   
   window.addEventListener('scroll', revealOnScroll);
   window.addEventListener('resize', revealOnScroll);
   
-  // Handle window resize for sparkle recalculation
+  // Handle window resize for sparkle recalculation - debounced
   let resizeTimer;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
-      // Remove old sparkles and recreate with new screen size
+      // Limit sparkle recreation frequency
       const oldSparkles = document.querySelectorAll('.sparkle');
-      oldSparkles.forEach(s => s.remove());
-      createMagicalSparkles();
-      console.log('✨ Sparkles recalculated for new screen size');
-    }, 500); // Debounce resize
+      if (oldSparkles.length > 500) { // Only recreate if too many
+        oldSparkles.forEach(s => s.remove());
+        createMagicalSparkles();
+        console.log('✨ Sparkles recalculated for new screen size');
+      }
+    }, 1000); // Increased debounce time
   });
 }
 
@@ -367,6 +387,15 @@ document.addEventListener('DOMContentLoaded',()=>{
       // Save order attempt to Supabase if available
       const orderRecord = {name,email,items,created_at:new Date().toISOString()};
       try{ await postToSupabase('/rest/v1/orders',orderRecord); }catch(e){}
+
+      // Also notify the server (if configured) so it can persist to Firebase/DB and send email to the company
+      try{
+        if(window.YAYA_CONFIG && window.YAYA_CONFIG.serverUrl){
+          fetch(window.YAYA_CONFIG.serverUrl + '/submit-order', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(Object.assign({}, orderRecord, {address: document.getElementById('address') ? document.getElementById('address').value : '', city: document.getElementById('city') ? document.getElementById('city').value : '', giftWrap: !!document.getElementById('gift-wrap') && document.getElementById('gift-wrap').checked}))}).then(async r=>{
+            if(r.ok){ const j = await r.json(); console.log('server submit-order response', j); }
+          }).catch(err=>{console.warn('submit-order to server failed',err)});
+        }
+      }catch(e){console.warn('notify server failed',e)}
 
       // Call server to create payment session
       try{
