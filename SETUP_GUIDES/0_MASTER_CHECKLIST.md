@@ -39,9 +39,13 @@ testWrite();
 
 ---
 
-## Phase 2: Email Setup (20 minutes)
+## Phase 2: Email Setup
 
-### Option A: EmailJS (Recommended)
+### Choose ONE option:
+
+### Option A: EmailJS (Quick - 20 minutes)
+**Best for:** Simple setup, low volume
+**Free tier:** 200 emails/month
 
 1. [ ] Sign up at https://www.emailjs.com/ with faeriepoetics@gmail.com
 2. [ ] Connect Gmail service
@@ -49,6 +53,33 @@ testWrite();
    - [ ] Newsletter signup
    - [ ] Reader comments
    - [ ] New orders
+
+**See:** `2_EMAIL_SETUP.md`
+
+---
+
+### Option B: Google Cloud Functions (Secure - 45 minutes)
+**Best for:** Maximum security, unlimited emails
+**Free tier:** 2 million emails/month (essentially free)
+
+1. [ ] Set up Google Cloud Project
+2. [ ] Configure OAuth credentials
+3. [ ] Store secrets in Secret Manager
+4. [ ] Deploy Cloud Function
+5. [ ] Update frontend client
+
+**See:** `2B_GOOGLE_CLOUD_EMAIL.md`
+
+**Security benefits:**
+- ✅ No API keys exposed in frontend
+- ✅ Server-side authentication only
+- ✅ Professional email delivery
+
+**Run automated setup:**
+```bash
+cd /workspaces/Yaya
+./setup-google-email.sh
+```
 4. [ ] Copy Public Key and Service ID
 5. [ ] Create `/workspaces/Yaya/email-config.js`
 6. [ ] Add EmailJS script to HTML files

@@ -1,0 +1,26 @@
+# Ignore node_modules
+node_modules/
+
+# Ignore local test files
+*.test.js
+test.js
+
+# Ignore credentials (should be in Secret Manager)
+*.json
+!package.json
+
+# Ignore local environment files
+.env
+.env.local
+
+# Ignore IDE files
+.vscode/
+.idea/
+
+# Ignore logs
+*.log
+npm-debug.log*
+
+# Ignore OS files
+.DS_Store
+Thumbs.db

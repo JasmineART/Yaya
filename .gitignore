@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Google Cloud SDK - DO NOT COMMIT
+google-cloud-sdk/
+yaya_starchild_website/
+
+# Google Cloud Credentials - NEVER COMMIT THESE
+**/gmail-credentials.json
+**/service-account-key.json
+**/*-credentials.json
+**/*-key.json
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# API Keys and Secrets
+secrets/
+*.pem
+*.key
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+logs/
+
+# Firebase
+firebase-debug.log
+.firebase/
+
+# Local testing
+test-data/
+*.test.local.js
