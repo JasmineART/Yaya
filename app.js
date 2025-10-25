@@ -262,10 +262,16 @@ function getCart(){
 }
 function saveCart(items){localStorage.setItem(STORAGE_KEY,JSON.stringify(items));}
 
-function addToCart(productId, qty=1){
+function addToCart(productId, qty=1, metadata={}){
   const items = getCart();
-  const found = items.find(i=>i.id===productId);
-  if(found) found.qty += qty; else items.push({id:productId,qty});
+  // For items with variants, create unique cart entries
+  const uniqueKey = metadata.variantId ? `${productId}-${metadata.variantId}` : productId;
+  const found = items.find(i=>i.uniqueKey===uniqueKey || (!i.uniqueKey && i.id===productId && !metadata.variantId));
+  if(found) {
+    found.qty += qty;
+  } else {
+    items.push({id:productId, qty, uniqueKey, metadata});
+  }
   saveCart(items);
 }
 
@@ -288,11 +294,12 @@ function renderCartContents(){
   const rows = items.map(it=>{
     const p = window.PRODUCTS.find(x=>x.id===it.id);
     if(!p) return ''; // Skip if product not found
+    const variantLabel = it.metadata && it.metadata.variantName ? ` - ${it.metadata.variantName}` : '';
     return `
       <div class="cart-item">
         <img src="${p.images[0]}" alt="${p.title}"/>
         <div>
-          <strong>${p.title}</strong>
+          <strong>${p.title}${variantLabel}</strong>
           <div>${it.qty} × ${formatPrice(p.price)}</div>
         </div>
         <div style="margin-left:auto">${formatPrice(p.price*it.qty)}</div>
