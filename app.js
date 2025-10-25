@@ -278,10 +278,16 @@ function updateCartCount(){
 function renderCartContents(){
   const node = document.getElementById('cart-contents');
   if(!node) return;
+  if(!window.PRODUCTS || window.PRODUCTS.length === 0) {
+    // Products not loaded yet, wait and retry
+    setTimeout(renderCartContents, 100);
+    return;
+  }
   const items = getCart();
   if(items.length===0){node.innerHTML='<p>Your enchanted cart is empty. ✨</p>';return}
   const rows = items.map(it=>{
     const p = window.PRODUCTS.find(x=>x.id===it.id);
+    if(!p) return ''; // Skip if product not found
     return `
       <div class="cart-item">
         <img src="${p.images[0]}" alt="${p.title}"/>
@@ -293,7 +299,10 @@ function renderCartContents(){
       </div>
     `;
   }).join('');
-  const total = items.reduce((s,it)=>s + (window.PRODUCTS.find(x=>x.id===it.id).price * it.qty),0);
+  const total = items.reduce((s,it)=>{
+    const p = window.PRODUCTS.find(x=>x.id===it.id);
+    return p ? s + (p.price * it.qty) : s;
+  },0);
   node.innerHTML = rows + `<p style="text-align:right"><strong>Total: ${formatPrice(total)}</strong></p>`;
 }
 
@@ -376,13 +385,20 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(checkout){
     checkout.addEventListener('submit',async e=>{
       e.preventDefault();
+      
+      if(!window.PRODUCTS || window.PRODUCTS.length === 0) {
+        alert('Products not loaded yet. Please wait a moment and try again.');
+        return;
+      }
+      
       const pay = document.querySelector('input[name="pay"]:checked').value;
       const name = document.getElementById('fullname').value;
       const email = document.getElementById('email').value;
       const items = getCart().map(it=>{
         const p = window.PRODUCTS.find(x=>x.id===it.id);
+        if(!p) return null;
         return {id: it.id, title: p.title, price: p.price, qty: it.qty};
-      });
+      }).filter(Boolean); // Remove null entries
 
       // Save order attempt to Supabase if available
       const orderRecord = {name,email,items,created_at:new Date().toISOString()};

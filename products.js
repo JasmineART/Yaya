@@ -97,7 +97,7 @@ function renderProductDetail(){
   
   // Preview button for book products
   const previewButton = isBookProduct ? `
-    <button id="view-preview-btn" class="thumb" style="width:90px; height:90px; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(255,255,255,0.1); border:2px solid rgba(255,255,255,0.3); border-radius:12px; cursor:pointer; transition:all 0.3s ease; margin-right:10px;" onmouseover="this.style.transform='scale(1.1)'; this.style.borderColor='rgba(255,255,255,0.6)';" onmouseout="this.style.transform='scale(1)'; this.style.borderColor='rgba(255,255,255,0.3)';">
+    <button id="view-preview-btn" class="thumb preview-thumb" style="width:90px; height:90px; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(255,255,255,0.1); border:2px solid rgba(255,255,255,0.3); border-radius:12px; cursor:pointer; transition:all 0.3s ease; margin-right:10px;" onmouseover="this.style.transform='scale(1.1)'; this.style.borderColor='rgba(255,255,255,0.6)';" onmouseout="this.style.transform='scale(1)'; this.style.borderColor='rgba(255,255,255,0.3)';">
       <i class="fas fa-book-open" style="font-size:1.5rem; margin-bottom:0.3rem;"></i>
       <span style="font-size:0.75rem; font-weight:600;">Preview</span>
     </button>
@@ -106,14 +106,16 @@ function renderProductDetail(){
   el.innerHTML = `
     <div class="product-magazine-layout">
       <div class="product-image-column">
-        <img id="main-image" src="${p.images[0]}" alt="${escapeHtml(p.title)} main view" loading="eager"/>
-        <div id="pdf-preview-container" style="display:none;">
-          <div class="pdf-viewer">
-            <div class="pdf-controls">
-              <h4><i class="fas fa-book-open"></i> Book Preview</h4>
-              <button id="close-preview-btn" class="btn ghost"><i class="fas fa-times"></i> Close</button>
+        <div id="image-view-container">
+          <img id="main-image" src="${p.images[0]}" alt="${escapeHtml(p.title)} main view" loading="eager"/>
+          <div id="pdf-preview-container" style="display:none;">
+            <div class="pdf-viewer">
+              <div class="pdf-controls">
+                <h4><i class="fas fa-book-open"></i> Book Preview</h4>
+                <button id="close-preview-btn" class="btn ghost"><i class="fas fa-times"></i> Close</button>
+              </div>
+              <div id="pdf-scroll-container"></div>
             </div>
-            <div id="pdf-scroll-container"></div>
           </div>
         </div>
         <div class="product-thumbnails">${thumbs}${previewButton}</div>
@@ -140,10 +142,19 @@ function renderProductDetail(){
   `;
   
   // thumbnail click to swap
-  document.querySelectorAll('.thumb').forEach(t=>t.addEventListener('click',e=>{
+  document.querySelectorAll('.thumb[data-src]').forEach(t=>t.addEventListener('click',e=>{
     const src = e.currentTarget.dataset.src;
-    document.getElementById('main-image').src = src;
+    const mainImage = document.getElementById('main-image');
+    const previewContainer = document.getElementById('pdf-preview-container');
+    
+    // Hide preview and show image
+    if(previewContainer) previewContainer.style.display = 'none';
+    if(mainImage) {
+      mainImage.style.display = 'block';
+      mainImage.src = src;
+    }
   }));
+  
   document.getElementById('add-to-cart').addEventListener('click',()=>{
     addToCart(p.id);
     // Create a magical notification instead of alert
@@ -183,7 +194,9 @@ function renderProductDetail(){
 
     // Show preview when clicking the preview button
     if(viewPreviewBtn) {
-      viewPreviewBtn.addEventListener('click', function() {
+      viewPreviewBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
         mainImage.style.display = 'none';
         previewContainer.style.display = 'block';
         if(!pdfLoaded) {
@@ -194,7 +207,9 @@ function renderProductDetail(){
 
     // Close preview and show main image
     if(closePreviewBtn) {
-      closePreviewBtn.addEventListener('click', function() {
+      closePreviewBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
         previewContainer.style.display = 'none';
         mainImage.style.display = 'block';
       });
