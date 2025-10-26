@@ -813,3 +813,7 @@ window.getCartItems = getCartItems;
 window.getCart = getCart;
 window.removeFromCart = removeFromCart;
 window.removeDiscount = removeDiscount;
+window.getAppliedDiscount = getAppliedDiscount;
+window.calculateDiscount = calculateDiscount;
+window.saveAppliedDiscount = saveAppliedDiscount;
+window.clearAppliedDiscount = clearAppliedDiscount;

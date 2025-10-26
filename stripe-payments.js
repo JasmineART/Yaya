@@ -46,43 +46,127 @@ async function createStripeCheckout(cartItems, customerInfo) {
       throw new Error('Stripe not initialized');
     }
 
-    // Convert cart items to Stripe line items format (client-side checkout)
-    const lineItems = cartItems.map(item => ({
-      price_data: {
-        currency: STRIPE_CONFIG.currency,
-        product_data: {
-          name: item.name || item.title || 'Product',
-          description: item.description || '',
-          images: item.image ? [window.location.origin + '/' + item.image] : []
-        },
-        unit_amount: Math.round(parseFloat(item.price) * 100) // Convert to cents
-      },
-      quantity: item.quantity || item.qty || 1
-    }));
-
-    // Calculate total for logging
-    const total = cartItems.reduce((sum, item) => sum + (parseFloat(item.price) * (item.quantity || item.qty || 1)), 0);
-    console.log('🛒 Creating client-side checkout:', { lineItems, total, customer: customerInfo });
-
-    // Create checkout session directly with Stripe (no server needed)
-    const { error } = await stripe.redirectToCheckout({
-      mode: 'payment',
-      line_items: lineItems,
-      success_url: `${window.location.origin}/success.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${window.location.origin}/cart.html`,
-      customer_email: customerInfo.email,
-      shipping_address_collection: {
-        allowed_countries: ['US', 'CA']
-      },
-      billing_address_collection: 'required',
-      metadata: {
-        customer_name: customerInfo.name,
-        order_source: 'yaya_website'
+    // Calculate totals and apply any discounts
+    let subtotal = cartItems.reduce((sum, item) => sum + (parseFloat(item.price) * (item.quantity || item.qty || 1)), 0);
+    let total = subtotal;
+    let discountAmount = 0;
+    
+    // Check for applied discount from app.js
+    const appliedDiscount = window.getAppliedDiscount ? window.getAppliedDiscount() : null;
+    if (appliedDiscount && appliedDiscount.code && window.calculateDiscount) {
+      const discountResult = window.calculateDiscount(subtotal, appliedDiscount.code);
+      if (discountResult.valid) {
+        discountAmount = discountResult.amount;
+        total = subtotal - discountAmount;
+        console.log('💰 Discount applied:', { code: appliedDiscount.code, amount: discountAmount, newTotal: total });
       }
+    }
+
+    // For client-side checkout with discounts, we need to use Stripe's embedded checkout
+    // Create line items including discount as a separate item if applicable
+    const lineItems = [];
+    
+    // Add product items
+    cartItems.forEach(item => {
+      lineItems.push({
+        price_data: {
+          currency: STRIPE_CONFIG.currency,
+          product_data: {
+            name: item.name || item.title || 'Product',
+            description: item.description || '',
+            images: item.image ? [window.location.origin + '/' + item.image] : []
+          },
+          unit_amount: Math.round(parseFloat(item.price) * 100) // Convert to cents
+        },
+        quantity: item.quantity || item.qty || 1
+      });
     });
 
-    if (error) throw error;
+    // Add discount as a negative line item if applicable
+    if (discountAmount > 0 && appliedDiscount) {
+      lineItems.push({
+        price_data: {
+          currency: STRIPE_CONFIG.currency,
+          product_data: {
+            name: `Discount (${appliedDiscount.code})`,
+            description: `Applied discount code: ${appliedDiscount.code}`
+          },
+          unit_amount: -Math.round(discountAmount * 100) // Negative amount for discount
+        },
+        quantity: 1
+      });
+    }
 
+    console.log('🛒 Creating checkout session:', { lineItems, total, customer: customerInfo });
+
+    // Use the server endpoint to create a proper Stripe Checkout Session
+    // This approach works correctly and supports all features including discounts
+    
+    const serverUrl = window.YAYA_CONFIG?.serverUrl || '';
+    const response = await fetch(`${serverUrl}/create-stripe-session`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        items: cartItems.map(item => ({
+          id: item.id,
+          name: item.name || item.title,
+          price: parseFloat(item.price),
+          quantity: item.quantity || item.qty || 1,
+          image: item.image
+        })),
+        customer: customerInfo,
+        discountAmount: discountAmount,
+        discountCode: appliedDiscount?.code || '',
+        total: total,
+        successUrl: `${window.location.origin}/success.html?session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${window.location.origin}/cart.html`
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Server error ${response.status}: ${errorText}`);
+    }
+
+    const session = await response.json();
+    console.log('✅ Checkout session created:', session);
+
+    // Redirect to Stripe Checkout
+    if (session.url) {
+      // Direct URL redirect (newer Stripe approach)
+      window.location.href = session.url;
+    } else if (session.id) {
+      // Session ID redirect (older Stripe approach)
+      const { error } = await stripe.redirectToCheckout({ sessionId: session.id });
+      if (error) {
+        throw new Error(`Stripe redirect error: ${error.message}`);
+      }
+    } else {
+      throw new Error('No checkout URL or session ID returned from server');
+    }    // Fallback: Client-side payment form
+    // Since redirectToCheckout with line_items isn't supported, we'll create a payment form
+    console.log('💳 Using client-side payment form approach');
+    
+    // Store order details for the payment form
+    window.sessionStorage.setItem('pendingOrder', JSON.stringify({
+      items: cartItems,
+      customer: customerInfo,
+      total: total,
+      discountAmount: discountAmount,
+      discountCode: appliedDiscount?.code || ''
+    }));
+    
+    // For now, alert the user - in production you'd integrate Stripe Elements
+    alert(`Order Total: $${total.toFixed(2)}${discountAmount > 0 ? ` (Discount: -$${discountAmount.toFixed(2)})` : ''}\n\nClick OK to proceed to payment form.`);
+    
+    // Redirect to a payment page with Stripe Elements
+    // You would create a separate payment.html page with embedded Stripe Elements
+    window.location.href = '/payment.html';
+    
+    console.log('� Order prepared:', { total, discountAmount, items: cartItems.length });
+    
   } catch (error) {
     console.error('❌ Stripe checkout error:', error);
     alert(`Payment error: ${error.message}`);
@@ -159,7 +243,7 @@ async function handleStripeCheckout() {
     const checkoutBtn = document.getElementById('stripe-checkout-btn');
     if (checkoutBtn) {
       checkoutBtn.disabled = false;
-      checkoutBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> Complete Your Order';
+      checkoutBtn.innerHTML = '<i class="fas fa-credit-card"></i> Continue to Payment';
     }
   }
 }

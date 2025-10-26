@@ -55,27 +55,95 @@ if(sendgridKey){
 app.get('/',(req,res)=>res.json({ok:true,server:'Yaya payments mock server'}));
 
 // Create a Stripe Checkout session
-app.post('/create-stripe-session', [
-  body('items').isArray().notEmpty(),
-  body('items.*.id').isInt(),
-  body('items.*.qty').isInt({min:1})
-], async (req,res)=>{
-  const errors = validationResult(req);
-  if(!errors.isEmpty()) return res.status(400).json({errors:errors.array()});
+app.post('/create-stripe-session', async (req,res)=>{
   if(!stripe) return res.status(500).json({error:'Stripe not configured'});
   try{
-    const {items, successUrl, cancelUrl} = req.body;
-    // Map items to line_items
-    const line_items = (items||[]).map(it=>({price_data:{currency:'usd',product_data:{name:it.title},unit_amount:Math.round(it.price*100)},quantity:it.qty}));
-    const session = await stripe.checkout.sessions.create({payment_method_types:['card'],mode:'payment',line_items,success_url:successUrl || 'http://localhost:8000/index.html',cancel_url:cancelUrl || 'http://localhost:8000/cart.html'});
-    // Optionally persist an order placeholder in Supabase
-    if(supabase){
-      try{ await supabase.from('orders').insert([{stripe_session_id:session.id,metadata:{items},status:'created',created_at:new Date().toISOString()}]); }catch(e){console.warn('supabase insert failed',e)}
+    const {items, customer, discountAmount, discountCode, total, successUrl, cancelUrl} = req.body;
+    
+    if(!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({error:'Items array is required'});
     }
-    res.json({url:session.url, id: session.id});
+    
+    // Map items to line_items for Stripe
+    const line_items = items.map(item => ({
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: item.name || item.title || 'Product',
+          description: item.description || '',
+          images: item.image ? [`${req.headers.origin || 'https://pastelpoetics.com'}/${item.image}`] : []
+        },
+        unit_amount: Math.round((item.price || 0) * 100) // Convert to cents
+      },
+      quantity: item.quantity || item.qty || 1
+    }));
+    
+    // Add discount as a separate line item if applicable
+    if (discountAmount > 0 && discountCode) {
+      line_items.push({
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: `Discount (${discountCode})`,
+            description: `Applied discount code: ${discountCode}`
+          },
+          unit_amount: -Math.round(discountAmount * 100) // Negative amount for discount
+        },
+        quantity: 1
+      });
+    }
+    
+    // Create Stripe checkout session
+    const sessionConfig = {
+      payment_method_types: ['card'],
+      mode: 'payment',
+      line_items,
+      success_url: successUrl || 'https://pastelpoetics.com/success.html?session_id={CHECKOUT_SESSION_ID}',
+      cancel_url: cancelUrl || 'https://pastelpoetics.com/cart.html',
+      shipping_address_collection: {
+        allowed_countries: ['US', 'CA', 'GB', 'AU']
+      },
+      billing_address_collection: 'required',
+      metadata: {
+        customer_name: customer?.name || 'Guest',
+        discount_code: discountCode || '',
+        discount_amount: discountAmount?.toString() || '0',
+        order_source: 'yaya_website'
+      }
+    };
+    
+    // Add customer email if provided
+    if (customer && customer.email) {
+      sessionConfig.customer_email = customer.email;
+    }
+    
+    const session = await stripe.checkout.sessions.create(sessionConfig);
+    
+    // Store order information in Supabase
+    if(supabase){
+      try{ 
+        await supabase.from('orders').insert([{
+          stripe_session_id: session.id,
+          customer_email: customer?.email || '',
+          customer_name: customer?.name || '',
+          total_amount: total || 0,
+          discount_code: discountCode || '',
+          discount_amount: discountAmount || 0,
+          metadata: {items, customer},
+          status: 'created',
+          created_at: new Date().toISOString()
+        }]); 
+      } catch(e) {
+        console.warn('supabase insert failed',e);
+      }
+    }
+    
+    console.log('✅ Stripe session created:', { sessionId: session.id, total, discountCode });
+    res.json({url: session.url, id: session.id});
+    
   }catch(err){
-    console.error(err);
-    res.status(500).json({error:err.message});
+    console.error('❌ Stripe session creation failed:', err);
+    res.status(500).json({error: err.message});
   }
 });
 

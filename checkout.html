@@ -71,31 +71,14 @@
             </div>
           </div>
 
-          <fieldset>
-            <legend>Payment Method</legend>
-            <div class="payment-methods" style="display:flex; gap:1.5rem; margin:1rem 0 1.25rem 0;">
-              <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
-                <input type="radio" name="pay" value="card" checked aria-describedby="card-help" /> 
-                <span><i class="fas fa-credit-card" aria-hidden="true"></i> Credit/Debit Card</span>
-              </label>
-              <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
-                <input type="radio" name="pay" value="paypal" aria-describedby="paypal-help" /> 
-                <span><i class="fab fa-paypal" aria-hidden="true"></i> PayPal</span>
-              </label>
-            </div>
-            <div id="card-help" class="sr-only">Secure payment processing via Stripe</div>
-            <div id="paypal-help" class="sr-only">PayPal payment option</div>
-          </fieldset>
-
-          <div id="card-fields" style="display:grid; gap:0.8rem; margin-bottom:1.5rem;">
-            <label for="card-number" style="display:block;">
-              <span style="display:block; margin-bottom:0.4rem; font-weight:600;">Card Number</span>
-              <input id="card-number" placeholder="4242 4242 4242 4242" />
-            </label>
-            <label for="card-cvc" style="display:block;">
-              <span style="display:block; margin-bottom:0.4rem; font-weight:600;">CVC</span>
-              <input id="card-cvc" placeholder="123" style="width:120px;" />
-            </label>
+          <div class="payment-info" style="background:rgba(232,156,200,0.1); border:1px solid rgba(232,156,200,0.3); border-radius:var(--radius); padding:1rem; margin-bottom:1.5rem;">
+            <h4 style="margin:0 0 0.5rem 0; color:var(--primary); display:flex; align-items:center; gap:0.5rem;">
+              <i class="fas fa-shield-alt" aria-hidden="true"></i> Secure Payment
+            </h4>
+            <p style="margin:0; font-size:0.95rem; line-height:1.5;">
+              Payment details (card number, expiration date, CVC) will be securely collected on the next page by Stripe. 
+              We never store your payment information.
+            </p>
           </div>
 
           <label for="gift-wrap" style="display:flex; align-items:center; gap:0.8rem; margin:1.25rem 0;">
@@ -104,10 +87,10 @@
           </label>
 
           <button class="btn primary" id="stripe-checkout-btn" type="button" onclick="handleStripeCheckout()" aria-describedby="security-note" style="width:100%; font-size:1.2rem; padding:1rem;">
-            <i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i> Complete Your Order
+            <i class="fas fa-credit-card" aria-hidden="true"></i> Continue to Payment
           </button>
           <p id="security-note" style="text-align:center; margin-top:1rem; font-size:0.95rem; opacity:0.9;">
-            <i class="fas fa-lock" aria-hidden="true"></i> Secure checkout powered by Stripe
+            <i class="fas fa-lock" aria-hidden="true"></i> You'll enter payment details securely on the next page
           </p>
         </form>
 
