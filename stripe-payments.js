@@ -6,7 +6,8 @@
 
 // Stripe configuration
 const STRIPE_CONFIG = {
-  publishableKey: 'pk_live_51SM7yMRMDdiM5E9AoXPdpUxWXxK3h2ZlOwy2hbqwp4o2BHAr2bM30LKSuNv8AdeMJV0l6nfhvIa2Hzxny8VI9GQx00dDiIoUZ6', // Live Stripe key
+  // Prefer a key injected via `window.YAYA_CONFIG` for environment-specific deployments.
+  publishableKey: (window.YAYA_CONFIG && window.YAYA_CONFIG.stripePublishableKey) || 'pk_live_51SM7yMRMDdiM5E9AoXPdpUxWXxK3h2ZlOwy2hbqwp4o2BHAr2bM30LKSuNv8AdeMJV0l6nfhvIa2Hzxny8VI9GQx00dDiIoUZ6', // Live Stripe key (fallback)
   currency: 'usd',
   companyName: 'Yaya Starchild Poetry',
   companyDescription: 'Pastel Poetics & Magical Creations'
