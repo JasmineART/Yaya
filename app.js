@@ -319,6 +319,41 @@ if (typeof window !== 'undefined') {
 function getCart(){
   try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||[];}catch(e){return []}
 }
+
+// Alias function for Stripe integration compatibility
+function getCartItems() {
+  const cartItems = getCart();
+  
+  // Convert cart items to format expected by Stripe
+  return cartItems.map(item => {
+    const product = window.PRODUCTS ? window.PRODUCTS.find(p => p.id === item.id) : null;
+    
+    if (!product) {
+      console.warn('Product not found for cart item:', item);
+      return null;
+    }
+    
+    let productName = product.title || product.name || `Product ${item.id}`;
+    let productPrice = product.price || 0;
+    let productImage = product.images && product.images[0] ? product.images[0] : null;
+    
+    // Handle variant items (like stickers with specific designs)
+    if (item.metadata && item.metadata.variantName) {
+      productName = `${productName} - ${item.metadata.variantName}`;
+    }
+    
+    return {
+      id: item.uniqueKey || item.id,
+      name: productName,
+      price: productPrice,
+      quantity: item.qty,
+      description: product.description || '',
+      image: productImage,
+      metadata: item.metadata || {}
+    };
+  }).filter(item => item !== null); // Remove any null items
+}
+
 function saveCart(items){localStorage.setItem(STORAGE_KEY,JSON.stringify(items));}
 
 function addToCart(productId, qty=1, metadata={}){
@@ -576,3 +611,5 @@ function renderOrderSummary(){
 // utilities used by products.js
 window.addToCart = addToCart;
 window.updateCartCount = updateCartCount;
+window.getCartItems = getCartItems;
+window.getCart = getCart;

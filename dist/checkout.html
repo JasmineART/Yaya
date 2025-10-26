@@ -56,10 +56,20 @@
               <span style="display:block; margin-bottom:0.4rem; font-weight:600;">Address</span>
               <input type="text" id="address" placeholder="Street address" required />
             </label>
-            <label for="city" style="display:block;">
-              <span style="display:block; margin-bottom:0.4rem; font-weight:600;">City & ZIP</span>
-              <input type="text" id="city" placeholder="City, State ZIP" required />
-            </label>
+            <div style="display:grid; grid-template-columns:1fr 120px 120px; gap:0.8rem;">
+              <label for="city" style="display:block;">
+                <span style="display:block; margin-bottom:0.4rem; font-weight:600;">City</span>
+                <input type="text" id="city" placeholder="City" required />
+              </label>
+              <label for="state" style="display:block;">
+                <span style="display:block; margin-bottom:0.4rem; font-weight:600;">State</span>
+                <input type="text" id="state" placeholder="CA" maxlength="2" required />
+              </label>
+              <label for="zip" style="display:block;">
+                <span style="display:block; margin-bottom:0.4rem; font-weight:600;">ZIP Code</span>
+                <input type="text" id="zip" placeholder="90210" required />
+              </label>
+            </div>
           </div>
 
           <fieldset>
@@ -94,7 +104,7 @@
             <span>🎁 Add gift wrapping (+$5) — includes handwritten note and sparkle confetti</span>
           </label>
 
-          <button class="btn primary" id="place-order" type="button" onclick="handleStripeCheckout()" aria-describedby="security-note" style="width:100%; font-size:1.2rem; padding:1rem;">
+          <button class="btn primary" id="stripe-checkout-btn" type="button" onclick="handleStripeCheckout()" aria-describedby="security-note" style="width:100%; font-size:1.2rem; padding:1rem;">
             <i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i> Complete Your Order
           </button>
           <p id="security-note" style="text-align:center; margin-top:1rem; font-size:0.95rem; opacity:0.9;">

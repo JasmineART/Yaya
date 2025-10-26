@@ -107,11 +107,26 @@ async function handleStripeCheckout() {
     // Get customer info from form
     const customerInfo = {
       name: document.getElementById('name')?.value || 'Guest Customer',
-      email: document.getElementById('email')?.value || ''
+      email: document.getElementById('email')?.value || '',
+      address: document.getElementById('address')?.value || '',
+      city: document.getElementById('city')?.value || '',
+      state: document.getElementById('state')?.value || '',
+      zip: document.getElementById('zip')?.value || ''
     };
 
+    // Validation
     if (!customerInfo.email) {
       alert('Please enter your email address');
+      return;
+    }
+    
+    if (!customerInfo.name.trim()) {
+      alert('Please enter your full name');
+      return;
+    }
+    
+    if (!customerInfo.address.trim() || !customerInfo.city.trim() || !customerInfo.state.trim() || !customerInfo.zip.trim()) {
+      alert('Please fill in all shipping address fields');
       return;
     }
 
@@ -119,18 +134,20 @@ async function handleStripeCheckout() {
     const checkoutBtn = document.getElementById('stripe-checkout-btn');
     if (checkoutBtn) {
       checkoutBtn.disabled = true;
-      checkoutBtn.textContent = 'Processing...';
+      checkoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
     }
 
     // Send order notification email before payment
     if (window.sendOrderNotification) {
       const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+      const fullAddress = `${customerInfo.address}, ${customerInfo.city}, ${customerInfo.state} ${customerInfo.zip}`;
+      
       await window.sendOrderNotification({
         customerName: customerInfo.name,
         customerEmail: customerInfo.email,
         total: total.toFixed(2),
         items: cart,
-        shippingAddress: 'To be collected during checkout'
+        shippingAddress: fullAddress
       });
     }
 
@@ -144,7 +161,7 @@ async function handleStripeCheckout() {
     const checkoutBtn = document.getElementById('stripe-checkout-btn');
     if (checkoutBtn) {
       checkoutBtn.disabled = false;
-      checkoutBtn.textContent = 'Pay with Stripe';
+      checkoutBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> Complete Your Order';
     }
   }
 }
