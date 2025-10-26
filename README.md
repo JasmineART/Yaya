@@ -5,7 +5,8 @@
 A complete e-commerce website for an independent poetry author, featuring secure payments, email notifications, and a magical user experience.
 
 ## 🚀 Live Site
-**Production:** https://jasmineart.github.io/Yaya/  
+**Production:** https://pastelpoetics.com  
+**GitHub Pages:** https://jasmineart.github.io/Yaya/  
 **Local Development:** http://localhost:4242
 
 ## ✨ Features
@@ -89,7 +90,8 @@ A complete e-commerce website for an independent poetry author, featuring secure
 ## 🚀 **Deployment**
 
 ### **GitHub Pages (Production)**
-- **URL**: https://jasmineart.github.io/Yaya/
+- **Custom Domain**: https://pastelpoetics.com
+- **GitHub URL**: https://jasmineart.github.io/Yaya/
 - **Auto-Deploy**: Pushes to `main` branch trigger deployment
 - **Build Process**: Static files copied to `dist/` directory
 - **CDN**: Global content delivery via GitHub's infrastructure

@@ -32,6 +32,7 @@ const staticFiles = [
   'robots.txt',
   'sitemap.xml',
   'favicon.ico',
+  'CNAME',
   'assets/logo-new.jpg'
 ];
 
