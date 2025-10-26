@@ -6,7 +6,8 @@
 
 // Stripe configuration
 const STRIPE_CONFIG = {
-  publishableKey: 'pk_live_51SM7yMRMDdiM5E9AoXPdpUxWXxK3h2ZlOwy2hbqwp4o2BHAr2bM30LKSuNv8AdeMJV0l6nfhvIa2Hzxny8VI9GQx00dDiIoUZ6', // Live Stripe key
+  // Prefer a key injected via `window.YAYA_CONFIG` for environment-specific deployments.
+  publishableKey: (window.YAYA_CONFIG && window.YAYA_CONFIG.stripePublishableKey) || 'pk_live_51SM7yMRMDdiM5E9AoXPdpUxWXxK3h2ZlOwy2hbqwp4o2BHAr2bM30LKSuNv8AdeMJV0l6nfhvIa2Hzxny8VI9GQx00dDiIoUZ6', // Live Stripe key (fallback)
   currency: 'usd',
   companyName: 'Yaya Starchild Poetry',
   companyDescription: 'Pastel Poetics & Magical Creations'
@@ -46,6 +47,7 @@ async function createStripeCheckout(cartItems, customerInfo) {
     }
 
     // Build a compact items payload for the server-side session creation.
+    // Server expects `items` with `id` (int) and `qty` (int). We'll include price/title for convenience.
     const serverItems = (cartItems || []).map((item, idx) => ({
       id: Number(item.id) || (idx + 1),
       qty: Number(item.quantity || item.qty) || 1,
@@ -56,6 +58,7 @@ async function createStripeCheckout(cartItems, customerInfo) {
     const total = cartItems.reduce((sum, item) => sum + (parseFloat(item.price) * (item.quantity || item.qty || 1)), 0);
     console.log('🛒 Creating checkout via server:', { serverItems, total, customer: customerInfo });
 
+    // Post to the server to create a Checkout Session (server/index.js -> /create-stripe-session)
     const serverBase = (window.YAYA_CONFIG && window.YAYA_CONFIG.serverUrl) ? window.YAYA_CONFIG.serverUrl : '';
     const resp = await fetch(`${serverBase}/create-stripe-session`, {
       method: 'POST',
@@ -73,7 +76,9 @@ async function createStripeCheckout(cartItems, customerInfo) {
       throw new Error(msg);
     }
 
+    // Server returns { url, id }
     if (json.url) {
+      // redirect directly to the hosted Checkout page
       window.location = json.url;
       return;
     }
@@ -82,6 +87,7 @@ async function createStripeCheckout(cartItems, customerInfo) {
       throw new Error('No Checkout Session id returned from server');
     }
 
+    // Redirect using Stripe.js to the Checkout Session created on the server
     const { error } = await stripe.redirectToCheckout({ sessionId: json.id });
     if (error) throw error;
 
