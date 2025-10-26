@@ -45,45 +45,45 @@ async function createStripeCheckout(cartItems, customerInfo) {
       throw new Error('Stripe not initialized');
     }
 
-    // Convert cart items to Stripe line items
-    const lineItems = cartItems.map(item => ({
-      price_data: {
-        currency: STRIPE_CONFIG.currency,
-        product_data: {
-          name: item.name,
-          description: item.description || '',
-          images: item.image ? [window.location.origin + '/' + item.image] : []
-        },
-        unit_amount: Math.round(parseFloat(item.price) * 100) // Convert to cents
-      },
-      quantity: item.quantity
+    // Build a compact items payload for the server-side session creation.
+    const serverItems = (cartItems || []).map((item, idx) => ({
+      id: Number(item.id) || (idx + 1),
+      qty: Number(item.quantity || item.qty) || 1,
+      price: Number(item.price) || 0,
+      title: item.name || item.title || `Item ${idx + 1}`
     }));
 
-    // Calculate total for verification
-    const total = cartItems.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+    const total = cartItems.reduce((sum, item) => sum + (parseFloat(item.price) * (item.quantity || item.qty || 1)), 0);
+    console.log('🛒 Creating checkout via server:', { serverItems, total, customer: customerInfo });
 
-    console.log('🛒 Creating checkout for:', { lineItems, total, customer: customerInfo });
-
-    // Create checkout session
-    const { error } = await stripe.redirectToCheckout({
-      mode: 'payment',
-      line_items: lineItems,
-      success_url: `${window.location.origin}/success.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${window.location.origin}/cart.html`,
-      customer_email: customerInfo.email,
-      shipping_address_collection: {
-        allowed_countries: ['US', 'CA']
-      },
-      billing_address_collection: 'required',
-      metadata: {
-        customer_name: customerInfo.name,
-        order_source: 'yaya_website'
-      }
+    const serverBase = (window.YAYA_CONFIG && window.YAYA_CONFIG.serverUrl) ? window.YAYA_CONFIG.serverUrl : '';
+    const resp = await fetch(`${serverBase}/create-stripe-session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        items: serverItems,
+        successUrl: `${window.location.origin}/success.html?session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${window.location.origin}/cart.html`
+      })
     });
 
-    if (error) {
-      throw error;
+    const json = await resp.json();
+    if (!resp.ok) {
+      const msg = (json && (json.error || (json.errors && json.errors.map(e=>e.msg).join(', ')))) || `Server error: ${resp.status}`;
+      throw new Error(msg);
     }
+
+    if (json.url) {
+      window.location = json.url;
+      return;
+    }
+
+    if (!json.id) {
+      throw new Error('No Checkout Session id returned from server');
+    }
+
+    const { error } = await stripe.redirectToCheckout({ sessionId: json.id });
+    if (error) throw error;
 
   } catch (error) {
     console.error('❌ Stripe checkout error:', error);
