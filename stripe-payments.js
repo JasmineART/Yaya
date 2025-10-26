@@ -6,7 +6,7 @@
 
 // Stripe configuration
 const STRIPE_CONFIG = {
-  publishableKey: 'pk_test_REPLACE_WITH_YOUR_KEY', // Get from Stripe Dashboard
+  publishableKey: 'pk_live_51SM7yMRMDdiM5E9AoXPdpUxWXxK3h2ZlOwy2hbqwp4o2BHAr2bM30LKSuNv8AdeMJV0l6nfhvIa2Hzxny8VI9GQx00dDiIoUZ6', // Live Stripe key
   currency: 'usd',
   companyName: 'Yaya Starchild Poetry',
   companyDescription: 'Pastel Poetics & Magical Creations'
