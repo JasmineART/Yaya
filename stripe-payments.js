@@ -1,13 +1,11 @@
 /**
- * Simple Stripe Payment Integration
- * Client-side only - no backend server needed
- * Perfect for small poetry business
+ * Stripe Payment Integration for Static Sites (GitHub Pages)
+ * Uses Stripe Payment Element for client-side payment processing
  */
 
 // Stripe configuration
 const STRIPE_CONFIG = {
-  // Prefer a key injected via `window.YAYA_CONFIG` for environment-specific deployments.
-  publishableKey: (window.YAYA_CONFIG && window.YAYA_CONFIG.stripePublishableKey) || 'pk_live_51SM7yMRMDdiM5E9AoXPdpUxWXxK3h2ZlOwy2hbqwp4o2BHAr2bM30LKSuNv8AdeMJV0l6nfhvIa2Hzxny8VI9GQx00dDiIoUZ6', // Live Stripe key (fallback)
+  publishableKey: (window.YAYA_CONFIG && window.YAYA_CONFIG.stripePublishableKey) || 'pk_live_51SM7yMRMDdiM5E9AoXPdpUxWXxK3h2ZlOwy2hbqwp4o2BHAr2bM30LKSuNv8AdeMJV0l6nfhvIa2Hzxny8VI9GQx00dDiIoUZ6',
   currency: 'usd',
   companyName: 'Yaya Starchild Poetry',
   companyDescription: 'Pastel Poetics & Magical Creations'
@@ -36,9 +34,8 @@ async function initializeStripe() {
 }
 
 /**
- * Create Stripe checkout session for cart items
- * @param {Array} cartItems - Items from cart
- * @param {Object} customerInfo - Customer details
+ * Create Stripe checkout - Static site compatible
+ * For GitHub Pages deployment without backend server
  */
 async function createStripeCheckout(cartItems, customerInfo) {
   try {
@@ -46,12 +43,12 @@ async function createStripeCheckout(cartItems, customerInfo) {
       throw new Error('Stripe not initialized');
     }
 
-    // Calculate totals and apply any discounts
+    // Calculate totals and apply discounts
     let subtotal = cartItems.reduce((sum, item) => sum + (parseFloat(item.price) * (item.quantity || item.qty || 1)), 0);
     let total = subtotal;
     let discountAmount = 0;
     
-    // Check for applied discount from app.js
+    // Check for applied discount
     const appliedDiscount = window.getAppliedDiscount ? window.getAppliedDiscount() : null;
     if (appliedDiscount && appliedDiscount.code && window.calculateDiscount) {
       const discountResult = window.calculateDiscount(subtotal, appliedDiscount.code);
@@ -62,114 +59,28 @@ async function createStripeCheckout(cartItems, customerInfo) {
       }
     }
 
-    // For client-side checkout with discounts, we need to use Stripe's embedded checkout
-    // Create line items including discount as a separate item if applicable
-    const lineItems = [];
-    
-    // Add product items
-    cartItems.forEach(item => {
-      lineItems.push({
-        price_data: {
-          currency: STRIPE_CONFIG.currency,
-          product_data: {
-            name: item.name || item.title || 'Product',
-            description: item.description || '',
-            images: item.image ? [window.location.origin + '/' + item.image] : []
-          },
-          unit_amount: Math.round(parseFloat(item.price) * 100) // Convert to cents
-        },
-        quantity: item.quantity || item.qty || 1
-      });
-    });
+    console.log('🛒 Processing checkout:', { total, discount: discountAmount, items: cartItems.length });
 
-    // Add discount as a negative line item if applicable
-    if (discountAmount > 0 && appliedDiscount) {
-      lineItems.push({
-        price_data: {
-          currency: STRIPE_CONFIG.currency,
-          product_data: {
-            name: `Discount (${appliedDiscount.code})`,
-            description: `Applied discount code: ${appliedDiscount.code}`
-          },
-          unit_amount: -Math.round(discountAmount * 100) // Negative amount for discount
-        },
-        quantity: 1
-      });
-    }
-
-    console.log('🛒 Creating checkout session:', { lineItems, total, customer: customerInfo });
-
-    // Use the server endpoint to create a proper Stripe Checkout Session
-    // This approach works correctly and supports all features including discounts
-    
-    const serverUrl = window.YAYA_CONFIG?.serverUrl || '';
-    const response = await fetch(`${serverUrl}/create-stripe-session`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        items: cartItems.map(item => ({
-          id: item.id,
-          name: item.name || item.title,
-          price: parseFloat(item.price),
-          quantity: item.quantity || item.qty || 1,
-          image: item.image
-        })),
-        customer: customerInfo,
-        discountAmount: discountAmount,
-        discountCode: appliedDiscount?.code || '',
-        total: total,
-        successUrl: `${window.location.origin}/success.html?session_id={CHECKOUT_SESSION_ID}`,
-        cancelUrl: `${window.location.origin}/cart.html`
-      })
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Server error ${response.status}: ${errorText}`);
-    }
-
-    const session = await response.json();
-    console.log('✅ Checkout session created:', session);
-
-    // Redirect to Stripe Checkout
-    if (session.url) {
-      // Direct URL redirect (newer Stripe approach)
-      window.location.href = session.url;
-    } else if (session.id) {
-      // Session ID redirect (older Stripe approach)
-      const { error } = await stripe.redirectToCheckout({ sessionId: session.id });
-      if (error) {
-        throw new Error(`Stripe redirect error: ${error.message}`);
-      }
-    } else {
-      throw new Error('No checkout URL or session ID returned from server');
-    }    // Fallback: Client-side payment form
-    // Since redirectToCheckout with line_items isn't supported, we'll create a payment form
-    console.log('💳 Using client-side payment form approach');
-    
-    // Store order details for the payment form
-    window.sessionStorage.setItem('pendingOrder', JSON.stringify({
+    // Store order details for payment page
+    const orderData = {
       items: cartItems,
       customer: customerInfo,
-      total: total,
+      subtotal: subtotal,
       discountAmount: discountAmount,
-      discountCode: appliedDiscount?.code || ''
-    }));
+      discountCode: appliedDiscount?.code || '',
+      total: total,
+      timestamp: Date.now()
+    };
     
-    // For now, alert the user - in production you'd integrate Stripe Elements
-    alert(`Order Total: $${total.toFixed(2)}${discountAmount > 0 ? ` (Discount: -$${discountAmount.toFixed(2)})` : ''}\n\nClick OK to proceed to payment form.`);
+    sessionStorage.setItem('pendingOrder', JSON.stringify(orderData));
     
-    // Redirect to a payment page with Stripe Elements
-    // You would create a separate payment.html page with embedded Stripe Elements
-    window.location.href = '/payment.html';
-    
-    console.log('� Order prepared:', { total, discountAmount, items: cartItems.length });
+    // Redirect to payment page with Stripe Elements
+    console.log('🌐 Redirecting to payment page...');
+    window.location.href = 'payment.html';
     
   } catch (error) {
-    console.error('❌ Stripe checkout error:', error);
-    alert(`Payment error: ${error.message}`);
+    console.error('❌ Checkout error:', error);
+    alert(`Payment error: ${error.message}\n\nPlease try again or contact support.`);
     throw error;
   }
 }
@@ -180,7 +91,7 @@ async function createStripeCheckout(cartItems, customerInfo) {
 async function handleStripeCheckout() {
   try {
     // Get cart items
-    const cart = getCartItems(); // This function exists in your app.js
+    const cart = getCartItems();
     if (!cart || cart.length === 0) {
       alert('Your cart is empty!');
       return;
@@ -219,18 +130,23 @@ async function handleStripeCheckout() {
       checkoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
     }
 
-    // Send order notification email before payment
+    // Send order notification email (if available)
     if (window.sendOrderNotification) {
-      const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
-      const fullAddress = `${customerInfo.address}, ${customerInfo.city}, ${customerInfo.state} ${customerInfo.zip}`;
-      
-      await window.sendOrderNotification({
-        customerName: customerInfo.name,
-        customerEmail: customerInfo.email,
-        total: total.toFixed(2),
-        items: cart,
-        shippingAddress: fullAddress
-      });
+      try {
+        const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+        const fullAddress = `${customerInfo.address}, ${customerInfo.city}, ${customerInfo.state} ${customerInfo.zip}`;
+        
+        await window.sendOrderNotification({
+          customerName: customerInfo.name,
+          customerEmail: customerInfo.email,
+          total: total.toFixed(2),
+          items: cart,
+          shippingAddress: fullAddress
+        });
+      } catch (emailError) {
+        console.warn('Email notification failed:', emailError);
+        // Continue with checkout even if email fails
+      }
     }
 
     // Create Stripe checkout
@@ -262,4 +178,4 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-console.log('💳 Stripe payment system loaded');
+console.log('💳 Stripe payment system loaded (static site mode)');

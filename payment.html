@@ -54,7 +54,7 @@
       const pendingOrder = JSON.parse(sessionStorage.getItem('pendingOrder') || '{}');
       
       if (!pendingOrder.items || pendingOrder.items.length === 0) {
-        document.getElementById('order-details').innerHTML = '<p style="color: #fa755a;">No order found. Please return to the cart and try again.</p>';
+        document.getElementById('order-details').innerHTML = '<p style="color: #fa755a;">No order found. <a href="cart.html">Return to cart</a></p>';
         document.getElementById('payment-form').style.display = 'none';
       } else {
         // Display order summary
@@ -85,102 +85,51 @@
         </div>`;
         
         document.getElementById('order-details').innerHTML = orderHTML;
+        
+        // Initialize payment form
+        initializePaymentForm();
       }
       
-      // Set up Stripe Elements
-      const elements = stripe.elements();
-      const cardElement = elements.create('card', {
-        style: {
-          base: {
-            fontSize: '16px',
-            color: '#424770',
-            '::placeholder': {
-              color: '#aab7c4',
-            },
-          },
-        },
-      });
-      
-      cardElement.mount('#card-element');
-      
-      // Handle real-time validation errors from the card Element
-      cardElement.on('change', function(event) {
-        const displayError = document.getElementById('card-errors');
-        if (event.error) {
-          displayError.textContent = event.error.message;
-        } else {
-          displayError.textContent = '';
-        }
-      });
-      
-      // Handle form submission
-      const form = document.getElementById('payment-form');
-      form.addEventListener('submit', async function(event) {
-        event.preventDefault();
-        
-        const submitButton = document.getElementById('submit-payment');
-        submitButton.disabled = true;
-        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-        
+      async function initializePaymentForm() {
         try {
-          // Create payment intent on your server
-          const response = await fetch('/create-payment-intent', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              amount: Math.round(pendingOrder.total * 100), // Convert to cents
-              customer: pendingOrder.customer,
-              metadata: {
-                discount_code: pendingOrder.discountCode,
-                discount_amount: pendingOrder.discountAmount.toString()
-              }
-            })
-          });
+          // For static sites, we show a message about payment method
+          const cardElement = document.getElementById('card-element');
+          cardElement.innerHTML = `
+            <div style="padding: 2rem; text-align: center; background: #f9f9f9; border-radius: 8px;">
+              <h3 style="color: #E89CC8; margin-bottom: 1rem;">
+                <i class="fas fa-info-circle"></i> Payment Processing Notice
+              </h3>
+              <p style="line-height: 1.6; margin-bottom: 1rem;">
+                This site is currently hosted on GitHub Pages (static hosting).
+                To complete payment processing, you'll need one of these options:
+              </p>
+              <div style="text-align: left; max-width: 500px; margin: 0 auto;">
+                <h4>Option 1: Server Deployment (Recommended)</h4>
+                <p>Deploy the server from <code>/server</code> directory to Heroku, Render, or Railway.</p>
+                <p>Then configure <code>window.YAYA_CONFIG.serverUrl</code> in your site.</p>
+                
+                <h4>Option 2: Use Netlify/Vercel</h4>
+                <p>Deploy to Netlify or Vercel which support serverless functions.</p>
+                <p>Create a serverless function to handle Stripe Payment Intents.</p>
+                
+                <h4>Option 3: Stripe Payment Links</h4>
+                <p>Create products in your Stripe Dashboard and use Payment Links.</p>
+                <p>This is the simplest option for static sites.</p>
+              </div>
+              <div style="margin-top: 2rem;">
+                <a href="cart.html" class="btn ghost" style="margin-right: 1rem;">← Back to Cart</a>
+                <a href="PAYMENT_FLOW_DOCUMENTATION.md" target="_blank" class="btn primary">View Setup Guide</a>
+              </div>
+            </div>
+          `;
           
-          const { client_secret } = await response.json();
+          // Hide the submit button
+          document.getElementById('submit-payment').style.display = 'none';
           
-          // Confirm the payment with Stripe
-          const result = await stripe.confirmCardPayment(client_secret, {
-            payment_method: {
-              card: cardElement,
-              billing_details: {
-                name: pendingOrder.customer.name,
-                email: pendingOrder.customer.email,
-                address: {
-                  line1: pendingOrder.customer.address,
-                  city: pendingOrder.customer.city,
-                  state: pendingOrder.customer.state,
-                  postal_code: pendingOrder.customer.zip
-                }
-              }
-            }
-          });
-          
-          if (result.error) {
-            // Show error to your customer
-            document.getElementById('card-errors').textContent = result.error.message;
-          } else {
-            // Payment succeeded
-            sessionStorage.removeItem('pendingOrder');
-            window.location.href = '/success.html?payment_intent=' + result.paymentIntent.id;
-          }
         } catch (error) {
-          document.getElementById('card-errors').textContent = 'Payment failed: ' + error.message;
+          console.error('Payment form initialization error:', error);
+          document.getElementById('card-errors').textContent = 'Error initializing payment form: ' + error.message;
         }
-        
-        // Re-enable the button
-        submitButton.disabled = false;
-        submitButton.innerHTML = '<i class="fas fa-lock"></i> Complete Payment';
-      });
-      
-      // If no server available, show a message
-      if (!pendingOrder.items || pendingOrder.items.length === 0) {
-        setTimeout(() => {
-          alert('Payment system requires server configuration. Please contact support.');
-          window.location.href = '/cart.html';
-        }, 3000);
       }
     </script>
   </body>
