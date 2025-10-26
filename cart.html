@@ -2,7 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="theme-color" content="#E89CC8" />
+    <meta name="color-scheme" content="light" />
     <title>Cart — Yaya Starchild</title>
   <meta name="description" content="Your cart" />
   <link rel="stylesheet" href="styles.css" />
@@ -24,25 +26,34 @@
           <p class="tag">Whimsical poet who hopes to leave you enchanted.</p>
         </div>
       </div>
-      <nav class="nav">
+      <nav class="nav" role="navigation" aria-label="Main navigation">
         <a href="index.html">Home</a>
         <a href="shop.html">Shop</a>
         <a href="about.html">About the Author</a>
-        <a href="cart.html" id="nav-cart">Cart (<span id="nav-cart-count">0</span>)</a>
+        <a href="cart.html" id="nav-cart" aria-current="page" aria-label="Shopping cart">
+          Cart (<span id="nav-cart-count" aria-label="items in cart">0</span>)
+        </a>
       </nav>
     </header>
 
   <main id="main" class="container" role="main">
-      <h2 class="reveal"><i class="fas fa-shopping-bag"></i> Your Enchanted Cart</h2>
+      <h2 class="reveal"><i class="fas fa-shopping-bag" aria-hidden="true"></i> Your Enchanted Cart</h2>
       <p class="lead reveal">Review your magical treasures before checkout. Remember to use a discount code for extra sparkle!</p>
-      <section id="cart-contents" class="cart-contents reveal-scale">
+      <section id="cart-contents" class="cart-contents reveal-scale" aria-live="polite" aria-label="Cart items">
         <!-- cart rendered by app.js -->
       </section>
       <div class="cart-actions reveal">
-        <input id="discount-code" placeholder="Enter magic code (SUN10, FAIRY5, MAGIC15) ✨" />
-        <button id="apply-discount" class="btn ghost"><i class="fas fa-tag"></i> Apply Code</button>
-        <a href="checkout.html" class="btn primary"><i class="fas fa-credit-card"></i> Proceed to Checkout</a>
+        <label for="discount-code" class="sr-only">Discount code</label>
+        <input id="discount-code" placeholder="Enter magic code (SUN10, FAIRY5, MAGIC15)" aria-describedby="discount-help" />
+        <div id="discount-help" class="sr-only">Available codes: SUN10 for 10% off, FAIRY5 for $5 off, MAGIC15 for 15% off orders over $75</div>
+        <button id="apply-discount" class="btn ghost" aria-describedby="discount-status">
+          <i class="fas fa-tag" aria-hidden="true"></i> Apply Code
+        </button>
+        <a href="checkout.html" class="btn primary" role="button">
+          <i class="fas fa-credit-card" aria-hidden="true"></i> Proceed to Checkout
+        </a>
       </div>
+      <div id="discount-status" class="live-region" aria-live="polite" aria-atomic="true"></div>
       <p style="margin-top:1.5rem; font-style:italic; text-align:center;" class="reveal"><i class="fas fa-truck"></i> Free shipping on orders over $50 | <i class="fas fa-gift"></i> Gift wrapping available at checkout</p>
     </main>
 

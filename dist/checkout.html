@@ -2,7 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="theme-color" content="#E89CC8" />
+    <meta name="color-scheme" content="light" />
     <title>Checkout — Yaya Starchild</title>
   <meta name="description" content="Checkout page" />
   <link rel="stylesheet" href="styles.css" />
@@ -42,54 +44,62 @@
         <form id="checkout-form" class="checkout-form reveal-left" style="background:var(--glass); backdrop-filter:blur(20px); padding:1.5rem; border-radius:var(--radius); border:1px solid rgba(255,255,255,0.25);">
           <h3>🌟 Shipping Information</h3>
           <div style="display:grid; gap:0.8rem; margin-bottom:1.5rem;">
-            <label style="display:block;">
+            <label for="name" style="display:block;">
               <span style="display:block; margin-bottom:0.4rem; font-weight:600;">Full Name</span>
               <input type="text" id="name" placeholder="Your magical name ✨" required />
             </label>
-            <label style="display:block;">
+            <label for="email" style="display:block;">
               <span style="display:block; margin-bottom:0.4rem; font-weight:600;">Email</span>
               <input type="email" id="email" placeholder="your@email.com" required />
             </label>
-            <label style="display:block;">
+            <label for="address" style="display:block;">
               <span style="display:block; margin-bottom:0.4rem; font-weight:600;">Address</span>
               <input type="text" id="address" placeholder="Street address" required />
             </label>
-            <label style="display:block;">
+            <label for="city" style="display:block;">
               <span style="display:block; margin-bottom:0.4rem; font-weight:600;">City & ZIP</span>
               <input type="text" id="city" placeholder="City, State ZIP" required />
             </label>
           </div>
 
-          <h3>💳 Payment Method</h3>
-          <div class="payment-methods" style="display:flex; gap:1.5rem; margin:1rem 0 1.25rem 0;">
-            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
-              <input type="radio" name="pay" value="card" checked /> 
-              <span>💳 Card</span>
-            </label>
-            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
-              <input type="radio" name="pay" value="paypal" /> 
-              <span>🅿️ PayPal</span>
-            </label>
-          </div>
+          <fieldset>
+            <legend>Payment Method</legend>
+            <div class="payment-methods" style="display:flex; gap:1.5rem; margin:1rem 0 1.25rem 0;">
+              <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+                <input type="radio" name="pay" value="card" checked aria-describedby="card-help" /> 
+                <span><i class="fas fa-credit-card" aria-hidden="true"></i> Credit/Debit Card</span>
+              </label>
+              <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+                <input type="radio" name="pay" value="paypal" aria-describedby="paypal-help" /> 
+                <span><i class="fab fa-paypal" aria-hidden="true"></i> PayPal</span>
+              </label>
+            </div>
+            <div id="card-help" class="sr-only">Secure payment processing via Stripe</div>
+            <div id="paypal-help" class="sr-only">PayPal payment option</div>
+          </fieldset>
 
           <div id="card-fields" style="display:grid; gap:0.8rem; margin-bottom:1.5rem;">
-            <label style="display:block;">
+            <label for="card-number" style="display:block;">
               <span style="display:block; margin-bottom:0.4rem; font-weight:600;">Card Number</span>
               <input id="card-number" placeholder="4242 4242 4242 4242" />
             </label>
-            <label style="display:block;">
+            <label for="card-cvc" style="display:block;">
               <span style="display:block; margin-bottom:0.4rem; font-weight:600;">CVC</span>
               <input id="card-cvc" placeholder="123" style="width:120px;" />
             </label>
           </div>
 
-          <label style="display:flex; align-items:center; gap:0.8rem; margin:1.25rem 0;">
+          <label for="gift-wrap" style="display:flex; align-items:center; gap:0.8rem; margin:1.25rem 0;">
             <input type="checkbox" id="gift-wrap" />
             <span>🎁 Add gift wrapping (+$5) — includes handwritten note and sparkle confetti</span>
           </label>
 
-          <button class="btn primary" id="place-order" type="button" onclick="handleStripeCheckout()" style="width:100%; font-size:1.2rem; padding:1rem;"><i class="fas fa-wand-magic-sparkles"></i> Complete Your Order</button>
-          <p style="text-align:center; margin-top:1rem; font-size:0.95rem; opacity:0.9;"><i class="fas fa-lock"></i> Secure checkout powered by Stripe</p>
+          <button class="btn primary" id="place-order" type="button" onclick="handleStripeCheckout()" aria-describedby="security-note" style="width:100%; font-size:1.2rem; padding:1rem;">
+            <i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i> Complete Your Order
+          </button>
+          <p id="security-note" style="text-align:center; margin-top:1rem; font-size:0.95rem; opacity:0.9;">
+            <i class="fas fa-lock" aria-hidden="true"></i> Secure checkout powered by Stripe
+          </p>
         </form>
 
         <aside class="order-summary reveal-right" id="order-summary" style="background:var(--glass); backdrop-filter:blur(20px); padding:1.5rem; border-radius:var(--radius); border:1px solid rgba(255,255,255,0.25); position:sticky; top:2rem;">

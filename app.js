@@ -4,6 +4,63 @@ const DISCOUNTS = { 'SUN10':0.10, 'FAIRY5':0.05, 'MAGIC15':0.15 };
 
 // Email functions will be available globally from simple-email.js script
 
+// ===== ACCESSIBILITY ENHANCEMENTS =====
+
+// Initialize accessibility features
+function initAccessibility() {
+  // Add keyboard navigation detection
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Tab') {
+      document.body.classList.add('keyboard-focus');
+    }
+  });
+
+  // Remove keyboard focus class on mouse interaction
+  document.addEventListener('mousedown', function() {
+    document.body.classList.remove('keyboard-focus');
+  });
+
+  // Create live region for announcements
+  if (!document.querySelector('.live-region')) {
+    const liveRegion = document.createElement('div');
+    liveRegion.className = 'live-region';
+    liveRegion.setAttribute('aria-live', 'polite');
+    liveRegion.setAttribute('aria-atomic', 'true');
+    liveRegion.id = 'announcements';
+    document.body.appendChild(liveRegion);
+  }
+
+  console.log('♿ Accessibility features initialized');
+}
+
+// Announce messages to screen readers
+function announceToScreenReader(message, priority = 'polite') {
+  const liveRegion = document.getElementById('announcements') || document.querySelector('.live-region');
+  if (liveRegion) {
+    liveRegion.setAttribute('aria-live', priority);
+    liveRegion.textContent = message;
+    
+    // Clear after announcement
+    setTimeout(() => {
+      liveRegion.textContent = '';
+    }, 1000);
+  }
+  console.log(`📢 Announced: ${message}`);
+}
+
+// Enhanced focus management
+function manageFocus(element) {
+  if (element && typeof element.focus === 'function') {
+    element.focus();
+    
+    // Scroll into view if needed
+    element.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
+  }
+}
+
 // Add custom animation with drift - do this first
 function injectSparkleStyles() {
   // Check if already injected
@@ -269,10 +326,16 @@ function addToCart(productId, qty=1, metadata={}){
   // For items with variants, create unique cart entries
   const uniqueKey = metadata.variantId ? `${productId}-${metadata.variantId}` : productId;
   const found = items.find(i=>i.uniqueKey===uniqueKey || (!i.uniqueKey && i.id===productId && !metadata.variantId));
+  
+  const product = window.products?.find(p => p.id === productId);
+  const productName = product?.name || 'Item';
+  
   if(found) {
     found.qty += qty;
+    announceToScreenReader(`Updated ${productName} quantity to ${found.qty} in cart`);
   } else {
     items.push({id:productId, qty, uniqueKey, metadata});
+    announceToScreenReader(`Added ${productName} to cart`);
   }
   saveCart(items);
 }
@@ -336,6 +399,9 @@ async function postToSupabase(path, body){
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
+  // Initialize accessibility features first
+  initAccessibility();
+  
   updateCartCount();
   renderCartContents();
 

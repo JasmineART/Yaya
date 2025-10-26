@@ -2,7 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="theme-color" content="#E89CC8" />
+    <meta name="color-scheme" content="light" />
     <title>Yaya Starchild — Whimsical Poet</title>
   <meta name="description" content="Yaya Starchild — whimsical poet. New book 'Suncatcher Spirit' out October 25th, 2025. Poetry for dreamers and women of color." />
   <meta property="og:title" content="Yaya Starchild — Suncatcher Spirit" />
@@ -11,11 +13,16 @@
   <meta name="twitter:card" content="summary_large_image" />
   
   <!-- Performance Optimizations -->
-  <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
   <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
+  <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
   
+  <!-- Critical CSS -->
   <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- Non-critical CSS with loading optimization -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" /></noscript>
   <!-- Manifest disabled in dev to avoid CORS issues -->
   <!-- <link rel="manifest" href="/manifest.webmanifest"> -->
   <link rel="icon" href="/favicon.ico">
@@ -28,27 +35,35 @@
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
-    <header class="site-header">
+    <header class="site-header" role="banner">
       <div class="brand">
-        <a href="index.html"><img src="assets/logo-new.jpg" alt="Yaya Starchild logo" class="logo"/></a>
+        <a href="index.html" aria-label="Yaya Starchild homepage">
+          <img src="assets/logo-new.jpg" alt="Yaya Starchild circular logo with whimsical script lettering" class="logo"/>
+        </a>
         <div>
           <h1>Yaya Starchild</h1>
           <p class="tag">Whimsical poet who hopes to leave you enchanted.</p>
         </div>
       </div>
-      <nav class="nav">
-        <a href="index.html">Home</a>
+      <nav class="nav" role="navigation" aria-label="Main navigation">
+        <a href="index.html" aria-current="page">Home</a>
         <a href="shop.html">Shop</a>
         <a href="about.html">About the Author</a>
-        <a href="cart.html" id="nav-cart">Cart (<span id="nav-cart-count">0</span>)</a>
+        <a href="cart.html" id="nav-cart" aria-label="Shopping cart">
+          Cart (<span id="nav-cart-count" aria-label="items in cart">0</span>)
+        </a>
       </nav>
     </header>
 
   <main id="main" class="container hero" role="main">
-      <section class="hero-left reveal-left">
-        <h2 class="eyebrow"><i class="fas fa-wand-sparkles"></i> ✨ A Fairy Tale Collection ✨ <i class="fas fa-wand-sparkles"></i></h2>
-        <h3 class="title">Suncatcher Spirit</h3>
-        <p class="lead">✨ A marriage of higher-self discovery and inner-child love — a sprinkle of fairy dust to reacquaint yourself with your childlike wonder. ✨ This enchanted debut collection invites you into a magical realm where poetry dances with illustrations, and every page sparkles with whimsy. Return to nature and your sense of wonder with playfully-introspective metaphors, mystical incantations, and fairy-kissed incantations you can whisper whenever you need a reminder of your magic. 🧚‍♀️</p>
+      <section class="hero-left reveal-left" aria-labelledby="book-title">
+        <h2 class="eyebrow">
+          <i class="fas fa-wand-sparkles" aria-hidden="true"></i> 
+          <span>A Fairy Tale Collection</span> 
+          <i class="fas fa-wand-sparkles" aria-hidden="true"></i>
+        </h2>
+        <h3 id="book-title" class="title">Suncatcher Spirit</h3>
+        <p class="lead">A marriage of higher-self discovery and inner-child love — a sprinkle of fairy dust to reacquaint yourself with your childlike wonder. This enchanted debut collection invites you into a magical realm where poetry dances with illustrations, and every page sparkles with whimsy. Return to nature and your sense of wonder with playfully-introspective metaphors, mystical incantations, and fairy-kissed incantations you can whisper whenever you need a reminder of your magic.</p>
         <div class="cta-row">
           <a class="btn primary" href="#buy-links"><i class="fas fa-wand-magic-sparkles"></i> Get Your Copy</a>
           <a class="btn ghost" href="shop.html"><i class="fas fa-shop"></i> Explore Merch</a>

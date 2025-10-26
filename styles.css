@@ -13,6 +13,22 @@
   --shadow: 0 8px 32px rgba(139, 92, 246, 0.25);
   --glow: 0 0 20px rgba(255, 181, 216, 0.5);
   --radius:20px;
+  
+  /* Accessibility & Mobile Optimizations */
+  --focus-color: #FFE4E1;
+  --focus-shadow: 0 0 0 3px rgba(255, 228, 225, 0.6);
+  --text-contrast: rgba(0, 0, 0, 0.1);
+  --min-touch-size: 44px;
+  --content-max-width: 1200px;
+  
+  /* Typography Scale */
+  --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+  --text-sm: clamp(0.875rem, 0.8rem + 0.375vw, 1rem);
+  --text-base: clamp(1rem, 0.9rem + 0.5vw, 1.125rem);
+  --text-lg: clamp(1.125rem, 1rem + 0.625vw, 1.25rem);
+  --text-xl: clamp(1.25rem, 1.1rem + 0.75vw, 1.5rem);
+  --text-2xl: clamp(1.5rem, 1.3rem + 1vw, 2rem);
+  --text-3xl: clamp(2rem, 1.7rem + 1.5vw, 3rem);
 }
 
 *{
@@ -30,6 +46,8 @@ body{
   margin:0;
   font-family: 'Cormorant Garamond', serif;
   font-weight: 500;
+  font-size: var(--text-base);
+  line-height: 1.6;
   background: linear-gradient(135deg, #E89CC8 0%, #D899E6 30%, #B88DD8 60%, #9BB8E6 100%);
   color:var(--white);
   -webkit-font-smoothing:antialiased;
@@ -38,6 +56,11 @@ body{
   position:relative;
   min-height:100vh;
   text-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  
+  /* Accessibility improvements */
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Magical sparkle overlay */
@@ -85,6 +108,304 @@ body::before {
   z-index: 1;  /* Background layer - behind all content */
   box-shadow: 0 0 8px rgba(255,255,255,0.5);
   /* Animation applied via inline style in JavaScript */
+}
+
+/* ===== ACCESSIBILITY ENHANCEMENTS ===== */
+
+/* Skip link for screen readers */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: var(--white);
+  color: var(--purple);
+  padding: 8px;
+  text-decoration: none;
+  border-radius: 4px;
+  z-index: 9999;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+  transition: top 0.3s ease;
+}
+
+.skip-link:focus {
+  top: 6px;
+}
+
+/* Focus management */
+*:focus {
+  outline: none;
+  box-shadow: var(--focus-shadow);
+  border-radius: 4px;
+}
+
+/* Enhanced focus for interactive elements */
+button:focus,
+a:focus,
+input:focus,
+select:focus,
+textarea:focus,
+[tabindex]:focus {
+  outline: 3px solid var(--focus-color);
+  outline-offset: 2px;
+  box-shadow: var(--focus-shadow), var(--shadow);
+}
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --glass: rgba(255,255,255,0.5);
+    --glass-strong: rgba(255,255,255,0.7);
+  }
+  
+  body {
+    text-shadow: 0 0 1px rgba(0,0,0,0.8);
+  }
+  
+  .btn {
+    border: 2px solid rgba(255,255,255,0.8);
+  }
+}
+
+/* ===== KEYBOARD NAVIGATION ENHANCEMENTS ===== */
+
+/* Focus indicators for keyboard navigation */
+.keyboard-focus *:focus {
+  outline: 3px solid var(--focus-color);
+  outline-offset: 3px;
+}
+
+/* Skip to main content improvements */
+.skip-nav {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  top: -100px;
+  left: 0;
+  z-index: 9999;
+}
+
+.skip-nav li {
+  margin: 0;
+  padding: 0;
+}
+
+.skip-nav a {
+  background: var(--white);
+  color: var(--purple);
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  border-radius: 0 0 4px 0;
+  font-weight: 600;
+  display: block;
+  transition: top 0.3s ease;
+}
+
+.skip-nav a:focus {
+  position: absolute;
+  top: 100px;
+}
+
+/* Enhanced keyboard navigation for interactive elements */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--focus-color);
+  outline-offset: 2px;
+  box-shadow: var(--focus-shadow), var(--shadow);
+}
+
+/* Remove focus outline for mouse users */
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+select:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible),
+[tabindex]:focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: var(--shadow);
+}
+
+/* Improve focus for cards and interactive containers */
+.product-card:focus-within {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 2px;
+}
+
+/* ===== ENHANCED SEMANTIC ELEMENTS ===== */
+
+/* Better heading hierarchy visual indicators */
+h1::before { content: ""; /* Main heading */ }
+h2::before { content: ""; /* Section heading */ }
+h3::before { content: ""; /* Subsection heading */ }
+
+/* Status and alert messages */
+.alert {
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  border-left: 4px solid;
+  background: rgba(255,255,255,0.1);
+}
+
+.alert-success {
+  border-color: #90EE90;
+  color: #90EE90;
+}
+
+.alert-warning {
+  border-color: #FFD700;
+  color: #FFD700;
+}
+
+.alert-error {
+  border-color: #ffcccb;
+  color: #ffcccb;
+}
+
+.alert-info {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+/* Live region for dynamic content updates */
+.live-region {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* Better table accessibility */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+}
+
+th, td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+th {
+  font-weight: 600;
+  background: rgba(255,255,255,0.1);
+}
+
+/* Caption styling for tables */
+caption {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  text-align: left;
+}
+
+/* ===== PERFORMANCE OPTIMIZATIONS ===== */
+
+/* Image performance optimizations */
+img {
+  height: auto;
+  max-width: 100%;
+  display: block;
+}
+
+/* Optimize font loading - add to existing font imports */
+/* Note: loading and decoding attributes should be added to HTML img tags */
+
+/* Font display optimization */
+body {
+  font-display: swap;
+}
+
+/* Reduce layout shift */
+.product-card img {
+  aspect-ratio: 3/4;
+  object-fit: cover;
+}
+
+/* Optimize animations for performance */
+.sparkle,
+.product-card,
+.btn {
+  will-change: auto;
+}
+
+/* Optimize transforms */
+.reveal,
+.reveal-left,
+.reveal-right,
+.reveal-scale {
+  contain: layout style paint;
+}
+
+/* ===== MOBILE-FIRST RESPONSIVE DESIGN ===== */
+
+/* Touch-friendly sizing */
+.btn,
+button,
+a[role="button"],
+input[type="button"],
+input[type="submit"] {
+  min-height: var(--min-touch-size);
+  min-width: var(--min-touch-size);
+  padding: 0.75rem 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+}
+
+/* Improved text sizing and spacing */
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1.2;
+  font-weight: 600;
+  margin-bottom: 0.75em;
+}
+
+h1 { font-size: var(--text-3xl); }
+h2 { font-size: var(--text-2xl); }
+h3 { font-size: var(--text-xl); }
+h4 { font-size: var(--text-lg); }
+h5 { font-size: var(--text-base); }
+h6 { font-size: var(--text-sm); }
+
+p, li {
+  font-size: var(--text-base);
+  line-height: 1.6;
+  margin-bottom: 1em;
+}
+
+/* Better link visibility */
+a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(255,255,255,0.6);
+  text-underline-offset: 3px;
+  transition: all 0.2s ease;
+}
+
+a:hover, a:focus {
+  text-decoration-color: var(--focus-color);
+  text-shadow: 0 0 8px rgba(255,255,255,0.5);
 }
 
 /* Spotlight effects from bottom */
@@ -445,6 +766,23 @@ a:focus,button:focus,input:focus,textarea:focus{
   padding:0.4rem 0.8rem;
   transition:all 0.3s ease;
   text-shadow:1px 1px 2px rgba(0,0,0,0.1);
+  border-radius: 4px;
+  min-height: var(--min-touch-size);
+  display: flex;
+  align-items: center;
+}
+
+/* Enhanced keyboard navigation for menu items */
+.nav a:focus-visible {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 2px;
+  background: rgba(255,255,255,0.15);
+}
+
+/* Current page indicator */
+.nav a[aria-current="page"] {
+  background: rgba(255,255,255,0.2);
+  font-weight: 700;
 }
 
 .nav a::after{
@@ -554,13 +892,16 @@ a:focus,button:focus,input:focus,textarea:focus{
 }
 
 .btn{
-  display:inline-block;
+  display:inline-flex;
+  align-items: center;
+  justify-content: center;
   padding:0.9rem 2rem;
+  min-height: var(--min-touch-size);
   border-radius:50px;
-  border:none;
+  border:2px solid transparent;
   background:transparent;
   cursor:pointer;
-  font-size:1.1rem;
+  font-size:var(--text-lg);
   font-family: 'Cormorant Garamond', serif;
   font-weight:600;
   text-decoration:none;
@@ -568,6 +909,8 @@ a:focus,button:focus,input:focus,textarea:focus{
   position:relative;
   overflow:hidden;
   color:var(--white);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .btn::before {
@@ -1204,24 +1547,92 @@ h4 {
 }
 
 
-/* forms */
+/* ===== ENHANCED FORM ACCESSIBILITY ===== */
+label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  font-size: var(--text-base);
+  color: var(--white);
+}
+
 input,textarea,select{
   padding:0.9rem 1.2rem;
   border-radius:12px;
-  border:1px solid rgba(255,255,255,0.3);
+  border:2px solid rgba(255,255,255,0.3);
   width:100%;
   background:rgba(255,255,255,0.15);
   backdrop-filter:blur(10px);
   color:var(--white);
-  font-size:1rem;
+  font-size:16px; /* Prevents zoom on mobile */
   font-weight:500;
   font-family: 'Cormorant Garamond', serif;
   transition:all 0.3s ease;
+  min-height: var(--min-touch-size);
+  box-sizing: border-box;
 }
 
 input::placeholder,textarea::placeholder{
   color:rgba(255,255,255,0.75);
   font-weight:500;
+  opacity: 1; /* Ensures placeholder is visible in all browsers */
+}
+
+/* Form validation states */
+input:valid {
+  border-color: rgba(144, 238, 144, 0.6);
+}
+
+input:invalid:not(:placeholder-shown) {
+  border-color: rgba(255, 99, 99, 0.6);
+}
+
+/* Fieldset and legend improvements */
+fieldset {
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: rgba(255,255,255,0.05);
+}
+
+legend {
+  font-weight: 600;
+  padding: 0 1rem;
+  color: var(--white);
+  font-size: var(--text-lg);
+}
+
+/* Checkbox and radio improvements */
+input[type="checkbox"],
+input[type="radio"] {
+  width: auto;
+  min-width: 20px;
+  min-height: 20px;
+  margin-right: 0.5rem;
+  accent-color: var(--pink);
+}
+
+/* Error and success message styles */
+.form-error {
+  color: #ffcccb;
+  font-size: var(--text-sm);
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.form-success {
+  color: #90EE90;
+  font-size: var(--text-sm);
+  margin-top: 0.25rem;
+  display: block;
+}
+
+/* Required field indicator */
+.required::after {
+  content: " *";
+  color: #ffcccb;
+  font-weight: bold;
 }
 
 input:focus,textarea:focus,select:focus{
@@ -1241,84 +1652,211 @@ textarea{
   align-items:stretch;
 }
 
-/* responsive */
-@media (max-width:900px){
-  .hero{
-    flex-direction:column;
-    padding:2rem 0;
+/* ===== MOBILE-FIRST RESPONSIVE DESIGN ===== */
+
+/* Base mobile styles (applied to all screen sizes) */
+.container {
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.hero {
+  flex-direction: column;
+  padding: 1.5rem 0;
+  gap: 2rem;
+  text-align: center;
+}
+
+.site-header {
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1rem;
+  text-align: center;
+}
+
+.nav {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.nav a {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+  min-width: 80px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.features {
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+.footer-grid {
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  text-align: center;
+}
+
+.product-page {
+  padding: 0 1rem;
+  margin: 1rem auto;
+}
+
+.product-magazine-layout {
+  flex-direction: column;
+  width: 100%;
+  padding: 1rem;
+  margin: 0;
+}
+
+.product-image-column {
+  position: static;
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.product-content-column {
+  width: 100%;
+}
+
+#image-view-container {
+  height: 60vh;
+  min-height: 300px;
+}
+
+.product-image-column #main-image {
+  max-height: 60vh;
+}
+
+#pdf-scroll-container {
+  max-height: 60vh;
+}
+
+.about .author-photo {
+  float: none;
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto 2rem auto;
+  display: block;
+  border-radius: 12px;
+}
+
+/* Form improvements for mobile */
+form {
+  width: 100%;
+}
+
+input, textarea, select {
+  font-size: 16px; /* Prevents zoom on iOS */
+  padding: 0.875rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.1);
+  color: var(--white);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+input::placeholder, textarea::placeholder {
+  color: rgba(255,255,255,0.7);
+}
+
+/* Tablet styles (768px and up) */
+@media (min-width: 48rem) {
+  .container {
+    padding: 0 2rem;
   }
   
-  .hero-right{
-    flex:1;
+  .hero {
+    padding: 2.5rem 0;
   }
   
-  .title{
-    font-size:2.5rem;
+  .site-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
   }
   
-  .product-page{
-    padding: 0 0.5rem;
-    margin: 1rem auto;
+  .nav {
+    gap: 1rem;
+    flex-wrap: nowrap;
   }
   
-  /* Stack magazine layout on mobile */
+  .features {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+  
+  .footer-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
   .product-magazine-layout {
-    flex-direction: column;
-    width: 100%;
-    max-width: 100%;
-    padding: 1rem;
-    margin: 0;
+    flex-direction: row;
+    gap: 2rem;
   }
   
-  .product-image-column {
-    flex: 1;
-    position: static;
-    width: 100%;
-    margin-bottom: 1rem;
-  }
-  
+  .product-image-column,
   .product-content-column {
-    flex: 1;
-    width: 100%;
+    width: 50%;
   }
   
   #image-view-container {
-    height: 50vh;
+    height: 70vh;
+  }
+}
+
+/* Desktop styles (1024px and up) */
+@media (min-width: 64rem) {
+  .hero {
+    flex-direction: row;
+    text-align: left;
+    padding: 3rem 0;
+    gap: 3rem;
   }
   
-  .product-image-column #main-image {
-    max-height: 50vh;
+  .features {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2.5rem;
   }
   
-  #pdf-scroll-container {
-    max-height: 50vh;
+  .footer-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
   
-  .features{
-    grid-template-columns:1fr;
-    gap:1.5rem;
+  .nav a:hover {
+    background: rgba(255,255,255,0.2);
+    transform: translateY(-2px);
   }
   
-  .footer-grid{
-    grid-template-columns:1fr;
+  .about .author-photo {
+    float: left;
+    margin: 0 2rem 1rem 0;
+    max-width: 300px;
+  }
+}
+
+/* Large desktop styles (1200px and up) */
+@media (min-width: 75rem) {
+  .container {
+    padding: 0 3rem;
   }
   
-  .nav{
-    flex-wrap:wrap;
-    gap:1rem;
+  .hero {
+    padding: 4rem 0;
   }
   
-  .site-header{
-    flex-direction:column;
-    gap:1.5rem;
-  }
-  
-  .about .author-photo{
-    float:none;
-    width:100%;
-    max-width:300px;
-    margin:0 auto 2rem auto;
-    display:block;
+  .features {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
