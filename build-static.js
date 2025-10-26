@@ -21,6 +21,8 @@ const staticFiles = [
   'app.js',
   'products.js',
   'simple-email.js',
+  'stripe-payments.js',
+  'success.html',
   'cookie-consent.js',
   'data-handler.js',
   'error-monitor.js',
