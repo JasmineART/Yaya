@@ -1,6 +1,13 @@
 /* App-wide JS: cart, newsletter, comments, checkout simulation, sparkle animations */
 const STORAGE_KEY = 'yaya_cart_v1';
-const DISCOUNTS = { 'SUN10':0.10, 'FAIRY5':0.05, 'MAGIC15':0.15 };
+const DISCOUNT_STORAGE_KEY = 'yaya_discount_v1';
+
+// Discount codes: percentage discounts and flat dollar amounts
+const DISCOUNTS = { 
+  'SUN10': { type: 'percentage', value: 0.10, description: '10% off' },
+  'FAIRY5': { type: 'flat', value: 5.00, description: '$5 off' },
+  'MAGIC15': { type: 'percentage', value: 0.15, description: '15% off', minOrder: 75.00 }
+};
 
 // Email functions will be available globally from simple-email.js script
 
@@ -356,6 +363,16 @@ function getCartItems() {
 
 function saveCart(items){localStorage.setItem(STORAGE_KEY,JSON.stringify(items));}
 
+function removeFromCart(uniqueKey) {
+  const items = getCart();
+  const filteredItems = items.filter(item => (item.uniqueKey || item.id) !== uniqueKey);
+  saveCart(filteredItems);
+  updateCartCount();
+  renderCartContents();
+  renderOrderSummary();
+  announceToScreenReader('Item removed from cart');
+}
+
 function addToCart(productId, qty=1, metadata={}){
   const items = getCart();
   // For items with variants, create unique cart entries
@@ -389,36 +406,131 @@ function renderCartContents(){
     setTimeout(renderCartContents, 100);
     return;
   }
-  const items = getCart();
-  if(items.length===0){node.innerHTML='<p>Your enchanted cart is empty. ✨</p>';return}
+  
+  let items = getCart();
+  
+  // Clean up cart - remove items for products that no longer exist
+  const validItems = items.filter(item => {
+    const product = window.PRODUCTS.find(p => p.id === item.id);
+    return product !== undefined;
+  });
+  
+  // Save cleaned cart if items were removed
+  if (validItems.length !== items.length) {
+    saveCart(validItems);
+    items = validItems;
+  }
+  
+  if(items.length===0){
+    node.innerHTML='<p>Your enchanted cart is empty. ✨</p>';
+    clearAppliedDiscount(); // Clear any applied discounts
+    return;
+  }
+  
   const rows = items.map(it=>{
     const p = window.PRODUCTS.find(x=>x.id===it.id);
-    if(!p) return ''; // Skip if product not found
+    if(!p) return ''; // Skip if product not found (shouldn't happen after cleanup)
+    
     const variantLabel = it.metadata && it.metadata.variantName ? ` - ${it.metadata.variantName}` : '';
+    const productTitle = p.title || p.name || `Product ${p.id}`;
+    
     return `
-      <div class="cart-item">
-        <img src="${p.images[0]}" alt="${p.title}"/>
-        <div>
-          <strong>${p.title}${variantLabel}</strong>
-          <div>${it.qty} × ${formatPrice(p.price)}</div>
+      <div class="cart-item" style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 12px; margin-bottom: 1rem;">
+        <img src="${p.images && p.images[0] ? p.images[0] : 'assets/logo-new.jpg'}" alt="${productTitle}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;"/>
+        <div style="flex: 1;">
+          <strong>${productTitle}${variantLabel}</strong>
+          <div style="color: rgba(255,255,255,0.8); font-size: 0.9rem;">${it.qty} × ${formatPrice(p.price)}</div>
         </div>
-        <div style="margin-left:auto">${formatPrice(p.price*it.qty)}</div>
+        <div style="font-weight: 600; font-size: 1.1rem;">${formatPrice(p.price*it.qty)}</div>
+        <button onclick="removeFromCart('${it.uniqueKey || it.id}')" style="background: rgba(255,100,100,0.7); border: none; border-radius: 50%; width: 30px; height: 30px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove item">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
     `;
   }).join('');
-  const total = items.reduce((s,it)=>{
+  
+  const subtotal = items.reduce((s,it)=>{
     const p = window.PRODUCTS.find(x=>x.id===it.id);
     return p ? s + (p.price * it.qty) : s;
   },0);
-  node.innerHTML = rows + `<p style="text-align:right"><strong>Total: ${formatPrice(total)}</strong></p>`;
+  
+  // Check for applied discount
+  const appliedDiscount = getAppliedDiscount();
+  let discountHTML = '';
+  let total = subtotal;
+  
+  if (appliedDiscount && appliedDiscount.code) {
+    const discountResult = calculateDiscount(subtotal, appliedDiscount.code);
+    if (discountResult.valid) {
+      total = subtotal - discountResult.amount;
+      discountHTML = `
+        <div style="display: flex; justify-content: space-between; padding: 0.5rem 1rem; background: rgba(102, 126, 234, 0.2); border-radius: 8px; margin: 1rem 0;">
+          <span>Discount (${appliedDiscount.code}): ${discountResult.description}</span>
+          <span>-${formatPrice(discountResult.amount)}</span>
+          <button onclick="removeDiscount()" style="background: none; border: none; color: rgba(255,255,255,0.7); cursor: pointer; margin-left: 1rem;" title="Remove discount">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      `;
+    } else {
+      // Discount no longer valid, clear it
+      clearAppliedDiscount();
+    }
+  }
+  
+  node.innerHTML = rows + discountHTML + `
+    <div style="text-align: right; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 12px; margin-top: 1rem;">
+      <div style="font-size: 0.9rem; margin-bottom: 0.5rem;">Subtotal: ${formatPrice(subtotal)}</div>
+      ${appliedDiscount ? `<div style="font-size: 1.2rem; font-weight: 700; color: #4CAF50;">Total: ${formatPrice(total)}</div>` : `<div style="font-size: 1.2rem; font-weight: 700;">Total: ${formatPrice(total)}</div>`}
+    </div>
+  `;
 }
 
 function formatPrice(v){return '$'+v.toFixed(2)}
 
-// discounts
-function applyDiscount(code){
-  const c = (code||'').toUpperCase().trim();
-  return DISCOUNTS[c]||0;
+// Discount management
+function getAppliedDiscount() {
+  try {
+    return JSON.parse(localStorage.getItem(DISCOUNT_STORAGE_KEY)) || null;
+  } catch(e) {
+    return null;
+  }
+}
+
+function saveAppliedDiscount(discountData) {
+  localStorage.setItem(DISCOUNT_STORAGE_KEY, JSON.stringify(discountData));
+}
+
+function clearAppliedDiscount() {
+  localStorage.removeItem(DISCOUNT_STORAGE_KEY);
+}
+
+function calculateDiscount(subtotal, discountCode) {
+  const discount = DISCOUNTS[discountCode];
+  if (!discount) return { valid: false, amount: 0, message: 'Invalid discount code' };
+  
+  // Check minimum order requirement
+  if (discount.minOrder && subtotal < discount.minOrder) {
+    return { 
+      valid: false, 
+      amount: 0, 
+      message: `Minimum order of $${discount.minOrder.toFixed(2)} required for this discount` 
+    };
+  }
+  
+  let discountAmount = 0;
+  if (discount.type === 'percentage') {
+    discountAmount = subtotal * discount.value;
+  } else if (discount.type === 'flat') {
+    discountAmount = Math.min(discount.value, subtotal); // Don't exceed subtotal
+  }
+  
+  return { 
+    valid: true, 
+    amount: discountAmount, 
+    description: discount.description,
+    code: discountCode
+  };
 }
 
 // Newsletter and comments - try Supabase (free tier) then fallback to Formspree
@@ -503,9 +615,43 @@ document.addEventListener('DOMContentLoaded',()=>{
   // discount apply
   const discBtn = document.getElementById('apply-discount');
   if(discBtn){discBtn.addEventListener('click',()=>{
-    const code = document.getElementById('discount-code').value;
-    const pct = applyDiscount(code);
-    if(!pct) alert('Invalid code'); else alert('Discount applied: '+(pct*100)+'%');
+    const codeInput = document.getElementById('discount-code');
+    const statusDiv = document.getElementById('discount-status');
+    const code = (codeInput.value || '').toUpperCase().trim();
+    
+    if (!code) {
+      statusDiv.innerHTML = '<div style="color: #ff6b6b; padding: 0.5rem;">Please enter a discount code</div>';
+      return;
+    }
+    
+    const items = getCart();
+    if (items.length === 0) {
+      statusDiv.innerHTML = '<div style="color: #ff6b6b; padding: 0.5rem;">Add items to cart before applying discount</div>';
+      return;
+    }
+    
+    const subtotal = items.reduce((s,it)=>{
+      const p = window.PRODUCTS.find(x=>x.id===it.id);
+      return p ? s + (p.price * it.qty) : s;
+    },0);
+    
+    const discountResult = calculateDiscount(subtotal, code);
+    
+    if (discountResult.valid) {
+      saveAppliedDiscount({ code: code, appliedAt: Date.now() });
+      statusDiv.innerHTML = `<div style="color: #4CAF50; padding: 0.5rem;">✨ Discount applied: ${discountResult.description} (saves ${formatPrice(discountResult.amount)})</div>`;
+      codeInput.value = '';
+      renderCartContents();
+      renderOrderSummary();
+      announceToScreenReader(`Discount applied: ${discountResult.description}`);
+    } else {
+      statusDiv.innerHTML = `<div style="color: #ff6b6b; padding: 0.5rem;">${discountResult.message}</div>`;
+    }
+    
+    // Clear status after 5 seconds
+    setTimeout(() => {
+      if (statusDiv) statusDiv.innerHTML = '';
+    }, 5000);
   })}
 
   // checkout
@@ -595,21 +741,75 @@ function appendComment(c){
 
 function escapeHtml(s){return (s+'').replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m]})}
 
+function removeDiscount() {
+  clearAppliedDiscount();
+  renderCartContents();
+  renderOrderSummary();
+  announceToScreenReader('Discount removed');
+}
+
 function renderOrderSummary(){
   const aside = document.getElementById('order-summary');
   if(!aside) return;
   const items = getCart();
-  if(items.length===0){aside.innerHTML='<p>No items</p>';return}
+  if(items.length===0){aside.innerHTML='<h3><i class="fas fa-box"></i> Order Summary</h3><p>No items in cart</p>';return}
+  
   const rows = items.map(it=>{
     const p = window.PRODUCTS.find(x=>x.id===it.id);
-    return `<div>${p.title} × ${it.qty} — ${formatPrice(p.price*it.qty)}</div>`;
-  }).join('');
-  const total = items.reduce((s,it)=>s + (window.PRODUCTS.find(x=>x.id===it.id).price * it.qty),0);
-  aside.innerHTML = `<h4>Order summary</h4>${rows}<p><strong>Total: ${formatPrice(total)}</strong></p>`;
+    if (!p) return ''; // Skip missing products
+    
+    const variantLabel = it.metadata && it.metadata.variantName ? ` - ${it.metadata.variantName}` : '';
+    const productTitle = p.title || p.name || `Product ${p.id}`;
+    
+    return `<div style="display: flex; justify-content: space-between; margin: 0.5rem 0; padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 6px;">
+      <span>${productTitle}${variantLabel} × ${it.qty}</span>
+      <span>${formatPrice(p.price*it.qty)}</span>
+    </div>`;
+  }).filter(row => row !== '').join('');
+  
+  const subtotal = items.reduce((s,it)=>{
+    const p = window.PRODUCTS.find(x=>x.id===it.id);
+    return p ? s + (p.price * it.qty) : s;
+  },0);
+  
+  // Check for applied discount
+  const appliedDiscount = getAppliedDiscount();
+  let discountHTML = '';
+  let total = subtotal;
+  
+  if (appliedDiscount && appliedDiscount.code) {
+    const discountResult = calculateDiscount(subtotal, appliedDiscount.code);
+    if (discountResult.valid) {
+      total = subtotal - discountResult.amount;
+      discountHTML = `
+        <div style="display: flex; justify-content: space-between; margin: 0.5rem 0; padding: 0.5rem; background: rgba(102, 126, 234, 0.2); border-radius: 6px; color: #4CAF50;">
+          <span>Discount (${appliedDiscount.code})</span>
+          <span>-${formatPrice(discountResult.amount)}</span>
+        </div>
+      `;
+    }
+  }
+  
+  aside.innerHTML = `
+    <h3><i class="fas fa-box"></i> Order Summary</h3>
+    ${rows}
+    <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.2); margin: 1rem 0;">
+    <div style="display: flex; justify-content: space-between; margin: 0.5rem 0;">
+      <span>Subtotal:</span>
+      <span>${formatPrice(subtotal)}</span>
+    </div>
+    ${discountHTML}
+    <div style="display: flex; justify-content: space-between; margin: 0.5rem 0; font-weight: 700; font-size: 1.1rem; padding-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.2);">
+      <span>Total:</span>
+      <span>${formatPrice(total)}</span>
+    </div>
+  `;
 }
 
-// utilities used by products.js
+// utilities used by products.js and other scripts
 window.addToCart = addToCart;
 window.updateCartCount = updateCartCount;
 window.getCartItems = getCartItems;
 window.getCart = getCart;
+window.removeFromCart = removeFromCart;
+window.removeDiscount = removeDiscount;
