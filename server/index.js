@@ -6,7 +6,31 @@ const fetch = require('node-fetch');
 const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
-app.use(cors());
+
+// Render.com outbound IP addresses for allowlisting
+// These IPs may need to be whitelisted in external services (Stripe, payment gateways, etc.)
+const RENDER_OUTBOUND_IPS = [
+  '44.229.227.142',
+  '54.188.71.94',
+  '52.13.128.108',
+  '74.220.48.0/24',
+  '74.220.56.0/24'
+];
+
+// CORS configuration - allow requests from your domain
+const corsOptions = {
+  origin: [
+    'https://pastelpoetics.com',
+    'https://www.pastelpoetics.com',
+    'http://localhost:8080',
+    'http://localhost:3000',
+    'http://127.0.0.1:8080'
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 const rateLimit = require('express-rate-limit');
 const { body, validationResult } = require('express-validator');
