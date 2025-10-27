@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment System Status Check</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .status-check {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: var(--glass);
+      border-radius: var(--radius);
+    }
+    .check-item {
+      padding: 1rem;
+      margin: 1rem 0;
+      border-left: 4px solid #ddd;
+      background: white;
+    }
+    .check-item.success {
+      border-left-color: #28a745;
+    }
+    .check-item.error {
+      border-left-color: #dc3545;
+    }
+    .check-item.warning {
+      border-left-color: #ffc107;
+    }
+    button {
+      padding: 0.75rem 1.5rem;
+      margin: 0.5rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .btn-primary {
+      background: #E89CC8;
+      color: white;
+    }
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <a href="index.html"><img src="assets/logo-new.jpg" alt="Yaya Starchild logo" class="logo"/></a>
+      <div>
+        <h1>Yaya Starchild</h1>
+        <p class="tag">Payment System Diagnostics</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="status-check">
+      <h2>🔍 Payment System Status Check</h2>
+      <p>This page verifies all payment system components are working correctly.</p>
+      
+      <button class="btn-primary" onclick="runAllChecks()">Run Full Diagnostic</button>
+      <button class="btn-secondary" onclick="clearResults()">Clear Results</button>
+      
+      <div id="results"></div>
+      
+      <div style="margin-top: 2rem; padding: 1rem; background: #f8f9fa; border-radius: 4px;">
+        <h3>Manual Verification Links</h3>
+        <ul>
+          <li><a href="https://yaya-srv-d3vpra7diees73ai05g0.onrender.com" target="_blank">Test Render Server</a></li>
+          <li><a href="https://dashboard.render.com/web/srv-d3vpra7diees73ai05g0" target="_blank">Render Dashboard</a></li>
+          <li><a href="checkout.html">Checkout Page</a></li>
+          <li><a href="cart.html">Shopping Cart</a></li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const serverUrl = 'https://yaya-srv-d3vpra7diees73ai05g0.onrender.com';
+    
+    async function runAllChecks() {
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = '<p>Running diagnostics...</p>';
+      
+      const checks = [
+        checkStripeLoaded,
+        checkServerConnection,
+        checkServerStripeEndpoint,
+        checkCartFunctions,
+        checkDiscountFunctions,
+        checkCheckoutPage
+      ];
+      
+      let html = '<h3>Diagnostic Results:</h3>';
+      
+      for (const check of checks) {
+        const result = await check();
+        const className = result.success ? 'success' : (result.warning ? 'warning' : 'error');
+        html += `
+          <div class="check-item ${className}">
+            <strong>${result.success ? '✅' : (result.warning ? '⚠️' : '❌')} ${result.name}</strong>
+            <p>${result.message}</p>
+            ${result.details ? `<pre style="font-size: 0.85rem; background: #f8f9fa; padding: 0.5rem; margin-top: 0.5rem;">${result.details}</pre>` : ''}
+          </div>
+        `;
+      }
+      
+      resultsDiv.innerHTML = html;
+    }
+    
+    async function checkStripeLoaded() {
+      return {
+        name: 'Stripe.js Library',
+        success: typeof Stripe !== 'undefined',
+        message: typeof Stripe !== 'undefined' 
+          ? 'Stripe.js is loaded correctly' 
+          : 'Stripe.js failed to load - check internet connection'
+      };
+    }
+    
+    async function checkServerConnection() {
+      try {
+        const response = await fetch(serverUrl + '/', { method: 'GET' });
+        const data = await response.json();
+        
+        return {
+          name: 'Render Server Connection',
+          success: response.ok && data.ok,
+          message: response.ok 
+            ? `Server is online and responding: ${data.server || 'OK'}` 
+            : `Server returned status ${response.status}`,
+          details: JSON.stringify(data, null, 2)
+        };
+      } catch (error) {
+        return {
+          name: 'Render Server Connection',
+          success: false,
+          message: 'Cannot connect to Render server',
+          details: `Error: ${error.message}\n\nPossible causes:\n1. Server not deployed yet\n2. Root directory not set to "server"\n3. Build failed\n4. Service sleeping (free tier)\n\nCheck: https://dashboard.render.com/web/srv-d3vpra7diees73ai05g0`
+        };
+      }
+    }
+    
+    async function checkServerStripeEndpoint() {
+      try {
+        const response = await fetch(serverUrl + '/create-stripe-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: [{ id: 1, name: 'Test', price: 10, quantity: 1 }],
+            customer: { email: 'test@test.com', name: 'Test' },
+            total: 10,
+            successUrl: window.location.origin + '/success.html',
+            cancelUrl: window.location.origin + '/cart.html'
+          })
+        });
+        
+        const data = await response.json();
+        
+        return {
+          name: 'Stripe Checkout Endpoint',
+          success: response.ok || response.status === 500,
+          warning: response.status === 500,
+          message: response.ok 
+            ? 'Stripe checkout endpoint is working!' 
+            : `Endpoint returned ${response.status} - ${data.error || 'Check STRIPE_SECRET env var'}`,
+          details: JSON.stringify(data, null, 2)
+        };
+      } catch (error) {
+        return {
+          name: 'Stripe Checkout Endpoint',
+          success: false,
+          message: 'Cannot test checkout endpoint',
+          details: error.message
+        };
+      }
+    }
+    
+    async function checkCartFunctions() {
+      return {
+        name: 'Cart Functions',
+        success: typeof getCartItems === 'function' && typeof addToCart === 'function',
+        message: typeof getCartItems === 'function' 
+          ? 'Cart functions are loaded (app.js working)' 
+          : 'Cart functions not found - app.js may not be loaded'
+      };
+    }
+    
+    async function checkDiscountFunctions() {
+      return {
+        name: 'Discount Code Functions',
+        success: typeof window.getAppliedDiscount === 'function' && typeof window.calculateDiscount === 'function',
+        message: typeof window.getAppliedDiscount === 'function' 
+          ? 'Discount functions are available' 
+          : 'Discount functions not found'
+      };
+    }
+    
+    async function checkCheckoutPage() {
+      try {
+        const response = await fetch('checkout.html');
+        const html = await response.text();
+        
+        const hasConfig = html.includes('YAYA_CONFIG');
+        const hasServerUrl = html.includes(serverUrl);
+        const hasStripeScript = html.includes('stripe-payments.js');
+        
+        return {
+          name: 'Checkout Page Configuration',
+          success: hasConfig && hasServerUrl && hasStripeScript,
+          message: hasConfig && hasServerUrl 
+            ? 'Checkout page is properly configured' 
+            : 'Checkout page missing configuration',
+          details: `Server URL configured: ${hasServerUrl}\nStripe script loaded: ${hasStripeScript}\nYAYA_CONFIG present: ${hasConfig}`
+        };
+      } catch (error) {
+        return {
+          name: 'Checkout Page Configuration',
+          success: false,
+          message: 'Could not load checkout page',
+          details: error.message
+        };
+      }
+    }
+    
+    function clearResults() {
+      document.getElementById('results').innerHTML = '';
+    }
+    
+    // Auto-run on page load
+    window.addEventListener('load', () => {
+      console.log('Payment diagnostic page loaded. Click "Run Full Diagnostic" to test.');
+    });
+  </script>
+</body>
+</html>
