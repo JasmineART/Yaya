@@ -22,7 +22,7 @@ Deploy the `/server` directory to a hosting platform:
 cd server
 # Push to GitHub
 # Connect to Render.com
-# Set environment variable: STRIPE_SECRET=sk_live_...
+# Set environment variable: STRIPE_SECRET_KEY=sk_live_...
 ```
 
 **Option B: Railway.app (Free)**
@@ -30,7 +30,7 @@ cd server
 cd server
 railway init
 railway up
-# Set STRIPE_SECRET environment variable
+# Set STRIPE_SECRET_KEY environment variable
 ```
 
 **Option C: Heroku (Paid)**
@@ -38,7 +38,7 @@ railway up
 cd server
 heroku create yaya-payment-server
 git push heroku main
-heroku config:set STRIPE_SECRET=sk_live_...
+heroku config:set STRIPE_SECRET_KEY=sk_live_...
 ```
 
 #### Step 2: Configure Frontend
@@ -109,7 +109,7 @@ Use a platform that supports serverless functions.
 2. **Create Netlify Function:**
    Create `netlify/functions/create-checkout-session.js`:
    ```javascript
-   const stripe = require('stripe')(process.env.STRIPE_SECRET);
+   const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
    exports.handler = async (event) => {
      const { items, customer, discountAmount, total } = JSON.parse(event.body);

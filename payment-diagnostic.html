@@ -167,7 +167,7 @@
           warning: response.status === 500,
           message: response.ok 
             ? 'Stripe checkout endpoint is working!' 
-            : `Endpoint returned ${response.status} - ${data.error || 'Check STRIPE_SECRET env var'}`,
+            : `Endpoint returned ${response.status} - ${data.error || 'Check STRIPE_SECRET_KEY env var'}`,
           details: JSON.stringify(data, null, 2)
         };
       } catch (error) {

@@ -296,7 +296,7 @@ Expected: INVALID (minimum $75 not met)
 
 ### Required Environment Variables (Server)
 ```bash
-STRIPE_SECRET=sk_live_... # Your Stripe secret key
+STRIPE_SECRET_KEY=sk_live_... # Your Stripe secret key
 SUPABASE_URL=https://xxx.supabase.co # Optional: order storage
 SUPABASE_SERVICE_ROLE=xxx # Optional: order storage
 ```
@@ -340,7 +340,7 @@ window.YAYA_CONFIG = {
 ### Problem: "Server error 500"
 **Solution**: 
 - Check server is running
-- Verify STRIPE_SECRET environment variable is set
+- Verify STRIPE_SECRET_KEY environment variable is set
 - Check server logs for detailed error
 
 ### Problem: "No checkout URL returned"

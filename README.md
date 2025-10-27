@@ -205,11 +205,11 @@ A complete e-commerce website for an independent poetry author, featuring secure
 #### **Environment Variables Required**
 ```bash
 # Production (GitHub Actions Secrets)
-STRIPE_SECRET=sk_live_*
+STRIPE_SECRET_KEY=sk_live_*
 FIREBASE_SERVICE_ACCOUNT='{...}'
 
 # Local Development (.env)
-STRIPE_SECRET=sk_test_*
+STRIPE_SECRET_KEY=sk_test_*
 SUPABASE_URL=https://*
 SUPABASE_SERVICE_ROLE=*
 COMPANY_EMAIL=faeriepoetics@gmail.com

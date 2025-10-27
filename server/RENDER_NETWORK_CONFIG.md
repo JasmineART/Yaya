@@ -82,7 +82,7 @@ curl -X POST https://api.render.com/deploy/srv-d3vpra7diees73ai05g0?key=LzX1rEwy
 
 **If payments fail:**
 1. Check Render service is running
-2. Verify STRIPE_SECRET environment variable is set
+2. Verify STRIPE_SECRET_KEY environment variable is set
 3. Check CORS errors in browser console
 4. Verify Stripe API key is not IP-restricted (unless you added Render IPs)
 

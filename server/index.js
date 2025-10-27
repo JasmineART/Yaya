@@ -39,7 +39,7 @@ const { body, validationResult } = require('express-validator');
 const limiter = rateLimit({ windowMs: 60*1000, max: 60 });
 app.use(limiter);
 
-const stripeSecret = process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET || '';
+const stripeSecret = process.env.STRIPE_SECRET_KEY || '';
 const stripe = stripeSecret ? Stripe(stripeSecret) : null;
 const supabaseUrl = process.env.SUPABASE_URL || '';
 const supabaseServiceRole = process.env.SUPABASE_SERVICE_ROLE || '';
