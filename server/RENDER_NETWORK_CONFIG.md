@@ -53,7 +53,8 @@ The server includes proper CORS configuration to accept requests from your GitHu
 ### Render Service Information:
 
 **Service ID:** srv-d3vpra7diees73ai05g0  
-**Service URL:** https://yaya-srv-d3vpra7diees73ai05g0.onrender.com  
+**Service URL:** https://yaya-1dc3.onrender.com  
+**Deploy Hook:** https://api.render.com/deploy/srv-d3vpra7diees73ai05g0?key=LzX1rEwy08w  
 **Region:** US West (Oregon)  
 **Outbound IPs:** Listed above  
 
@@ -64,14 +65,17 @@ The server includes proper CORS configuration to accept requests from your GitHu
 curl -I https://api.stripe.com/v1
 
 # Test from your browser to Render
-curl https://yaya-srv-d3vpra7diees73ai05g0.onrender.com/
+curl https://yaya-1dc3.onrender.com/
 
 # Test CORS from allowed origin
 curl -H "Origin: https://pastelpoetics.com" \
      -H "Access-Control-Request-Method: POST" \
      -H "Access-Control-Request-Headers: Content-Type" \
      -X OPTIONS \
-     https://yaya-srv-d3vpra7diees73ai05g0.onrender.com/create-stripe-session
+     https://yaya-1dc3.onrender.com/create-stripe-session
+
+# Trigger manual deployment via deploy hook
+curl -X POST https://api.render.com/deploy/srv-d3vpra7diees73ai05g0?key=LzX1rEwy08w
 ```
 
 ### Troubleshooting:
