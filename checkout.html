@@ -12,6 +12,13 @@
   <!-- <link rel="manifest" href="/manifest.webmanifest"> -->
   <link rel="icon" href="/favicon.ico">
     <script src="https://js.stripe.com/v3/"></script>
+    <!-- Configure server URL for payment processing -->
+    <script>
+      window.YAYA_CONFIG = {
+        serverUrl: 'https://yaya-srv-d3vpra7diees73ai05g0.onrender.com',
+        stripePublishableKey: 'pk_live_51SM7yMRMDdiM5E9AoXPdpUxWXxK3h2ZlOwy2hbqwp4o2BHAr2bM30LKSuNv8AdeMJV0l6nfhvIa2Hzxny8VI9GQx00dDiIoUZ6'
+      };
+    </script>
     <script src="error-monitor.js"></script>
     <script src="cookie-consent.js"></script>
     <script src="data-handler.js"></script>

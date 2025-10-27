@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Render Server</title>
+</head>
+<body>
+  <h1>Test Render Server Connection</h1>
+  <button onclick="testServer()">Test Server</button>
+  <pre id="result"></pre>
+  
+  <script>
+    async function testServer() {
+      const serverUrl = 'https://yaya-srv-d3vpra7diees73ai05g0.onrender.com';
+      const resultDiv = document.getElementById('result');
+      
+      try {
+        resultDiv.textContent = 'Testing server...';
+        
+        // Test basic connection
+        const response = await fetch(serverUrl + '/');
+        const data = await response.json();
+        
+        resultDiv.textContent = '✅ Server is working!\n\n' + JSON.stringify(data, null, 2);
+      } catch (error) {
+        resultDiv.textContent = '❌ Error: ' + error.message;
+      }
+    }
+  </script>
+</body>
+</html>

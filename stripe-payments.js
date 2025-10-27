@@ -34,8 +34,8 @@ async function initializeStripe() {
 }
 
 /**
- * Create Stripe checkout - Static site compatible
- * For GitHub Pages deployment without backend server
+ * Create Stripe checkout
+ * Uses server if configured, otherwise shows payment options
  */
 async function createStripeCheckout(cartItems, customerInfo) {
   try {
@@ -61,22 +61,78 @@ async function createStripeCheckout(cartItems, customerInfo) {
 
     console.log('🛒 Processing checkout:', { total, discount: discountAmount, items: cartItems.length });
 
-    // Store order details for payment page
-    const orderData = {
-      items: cartItems,
-      customer: customerInfo,
-      subtotal: subtotal,
-      discountAmount: discountAmount,
-      discountCode: appliedDiscount?.code || '',
-      total: total,
-      timestamp: Date.now()
-    };
+    // Check if server URL is configured
+    const serverUrl = window.YAYA_CONFIG?.serverUrl;
     
-    sessionStorage.setItem('pendingOrder', JSON.stringify(orderData));
-    
-    // Redirect to payment page with Stripe Elements
-    console.log('🌐 Redirecting to payment page...');
-    window.location.href = 'payment.html';
+    if (serverUrl) {
+      // Use server-side Stripe Checkout (full features)
+      console.log('📡 Using server-side checkout:', serverUrl);
+      
+      try {
+        const response = await fetch(`${serverUrl}/create-stripe-session`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            items: cartItems.map(item => ({
+              id: item.id,
+              name: item.name || item.title,
+              price: parseFloat(item.price),
+              quantity: item.quantity || item.qty || 1,
+              image: item.image,
+              description: item.description || ''
+            })),
+            customer: customerInfo,
+            discountAmount: discountAmount,
+            discountCode: appliedDiscount?.code || '',
+            total: total,
+            successUrl: `${window.location.origin}/success.html?session_id={CHECKOUT_SESSION_ID}`,
+            cancelUrl: `${window.location.origin}/cart.html`
+          })
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Server responded with ${response.status}: ${errorText}`);
+        }
+
+        const session = await response.json();
+        console.log('✅ Checkout session created:', session);
+
+        // Redirect to Stripe Checkout
+        if (session.url) {
+          console.log('🔗 Redirecting to Stripe Checkout...');
+          window.location.href = session.url;
+          return;
+        } else if (session.id) {
+          const { error } = await stripe.redirectToCheckout({ sessionId: session.id });
+          if (error) throw error;
+          return;
+        } else {
+          throw new Error('Server did not return checkout URL');
+        }
+      } catch (serverError) {
+        console.error('❌ Server checkout failed:', serverError);
+        throw new Error(`Server checkout failed: ${serverError.message}`);
+      }
+    } else {
+      // No server configured - show payment options page
+      console.log('⚠️ No server configured, redirecting to payment options...');
+      
+      const orderData = {
+        items: cartItems,
+        customer: customerInfo,
+        subtotal: subtotal,
+        discountAmount: discountAmount,
+        discountCode: appliedDiscount?.code || '',
+        total: total,
+        timestamp: Date.now()
+      };
+      
+      sessionStorage.setItem('pendingOrder', JSON.stringify(orderData));
+      window.location.href = 'payment.html';
+    }
     
   } catch (error) {
     console.error('❌ Checkout error:', error);
