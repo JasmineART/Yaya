@@ -146,18 +146,26 @@ app.post('/create-stripe-session', async (req,res)=>{
     }
     
     // Map items to line_items for Stripe
-    const line_items = items.map(item => ({
-      price_data: {
-        currency: 'usd',
-        product_data: {
-          name: item.name || item.title || 'Product',
-          description: item.description || '',
-          images: item.image ? [`${req.headers.origin || 'https://pastelpoetics.com'}/${item.image}`] : []
+    const line_items = items.map(item => {
+      const product_data = {
+        name: item.name || item.title || 'Product',
+        images: item.image ? [`${req.headers.origin || 'https://pastelpoetics.com'}/${item.image}`] : []
+      };
+      
+      // Only add description if it has a value (Stripe doesn't allow empty strings)
+      if (item.description) {
+        product_data.description = item.description;
+      }
+      
+      return {
+        price_data: {
+          currency: 'usd',
+          product_data,
+          unit_amount: Math.round((item.price || 0) * 100) // Convert to cents
         },
-        unit_amount: Math.round((item.price || 0) * 100) // Convert to cents
-      },
-      quantity: item.quantity || item.qty || 1
-    }));
+        quantity: item.quantity || item.qty || 1
+      };
+    });
     
     // Add discount as a separate line item if applicable
     if (discountAmount > 0 && discountCode) {
