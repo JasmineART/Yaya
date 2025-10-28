@@ -45,6 +45,19 @@ const supabaseUrl = process.env.SUPABASE_URL || '';
 const supabaseServiceRole = process.env.SUPABASE_SERVICE_ROLE || '';
 const supabase = (supabaseUrl && supabaseServiceRole) ? createClient(supabaseUrl, supabaseServiceRole) : null;
 const nodemailer = require('nodemailer');
+
+// Log server configuration on startup (no secrets)
+console.log('🔧 Server Configuration:');
+console.log('  Stripe:', stripe ? '✅ Configured' : '❌ NOT CONFIGURED');
+if (process.env.STRIPE_SECRET_LIVE_KEY) {
+  console.log('  STRIPE_SECRET_LIVE_KEY: ✅ Set (' + process.env.STRIPE_SECRET_LIVE_KEY.length + ' chars)');
+} else if (process.env.STRIPE_SECRET_KEY) {
+  console.log('  STRIPE_SECRET_KEY: ✅ Set (' + process.env.STRIPE_SECRET_KEY.length + ' chars)');
+} else {
+  console.log('  ⚠️  No Stripe secret key found in environment');
+}
+console.log('  Supabase:', supabase ? '✅ Configured' : '⚠️  Not configured');
+console.log('  CORS Origins:', corsOptions.origin);
 const smtpHost = process.env.SMTP_HOST;
 let mailer = null;
 if(smtpHost){
@@ -76,7 +89,51 @@ if(sendgridKey){
   sendgrid = sgMail;
 }
 
-app.get('/',(req,res)=>res.json({ok:true,server:'Yaya payments mock server'}));
+// Root endpoint with configuration status
+app.get('/', (req, res) => {
+  res.json({
+    ok: true,
+    server: 'Yaya payments mock server',
+    configured: {
+      stripe: stripe !== null,
+      supabase: supabase !== null
+    }
+  });
+});
+
+// Health check endpoint with environment diagnostics (no secrets exposed)
+app.get('/_health', (req, res) => {
+  const hasStripeLive = !!process.env.STRIPE_SECRET_LIVE_KEY;
+  const hasStripeFallback = !!process.env.STRIPE_SECRET_KEY;
+  const stripeKeyLength = (process.env.STRIPE_SECRET_LIVE_KEY || process.env.STRIPE_SECRET_KEY || '').length;
+  
+  res.json({
+    ok: true,
+    environment: {
+      stripe: {
+        configured: stripe !== null,
+        has_STRIPE_SECRET_LIVE_KEY: hasStripeLive,
+        has_STRIPE_SECRET_KEY: hasStripeFallback,
+        key_length: stripeKeyLength,
+        expected_length: 107
+      },
+      supabase: {
+        configured: supabase !== null,
+        has_SUPABASE_URL: !!process.env.SUPABASE_URL,
+        has_SUPABASE_SERVICE_ROLE: !!process.env.SUPABASE_SERVICE_ROLE
+      },
+      email: {
+        smtp_configured: mailer !== null,
+        sendgrid_configured: !!process.env.SENDGRID_API_KEY
+      }
+    },
+    status: {
+      ready_for_payments: stripe !== null,
+      ready_for_orders: supabase !== null,
+      ready_for_emails: mailer !== null || !!process.env.SENDGRID_API_KEY
+    }
+  });
+});
 
 // Create a Stripe Checkout session
 app.post('/create-stripe-session', async (req,res)=>{
@@ -249,7 +306,11 @@ app.get('/comments', async (req,res)=>{
 });
 
 const port = process.env.PORT || 4242;
-app.listen(port,()=>console.log('Server running on',port));
+app.listen(port, () => {
+  console.log('🚀 Server running on port', port);
+  console.log('💳 Ready to process payments:', stripe !== null);
+  console.log('📊 Health check available at: /_health');
+});
 
 // Stripe webhook endpoint for order finalization (optional)
 app.post('/webhook/stripe', express.raw({type:'application/json'}), (req,res)=>{
