@@ -46,68 +46,68 @@
       <h2 class="reveal"><i class="fas fa-magic"></i> Magical Checkout</h2>
       <p class="lead reveal">Complete your order and bring a little more magic into the world. Your purchase supports independent art and poetry.</p>
       
-      <div style="display:grid; grid-template-columns:1.5fr 1fr; gap:1.5rem; align-items:start;">
-        <form id="checkout-form" class="checkout-form reveal-left" style="background:var(--glass); backdrop-filter:blur(20px); padding:1.5rem; border-radius:var(--radius); border:1px solid rgba(255,255,255,0.25);">
+      <div class="checkout-container">
+        <form id="checkout-form" class="checkout-form reveal-left">
           <h3>🌟 Shipping Information</h3>
-          <div style="display:grid; gap:0.8rem; margin-bottom:1.5rem;">
-            <label for="name" style="display:block;">
-              <span style="display:block; margin-bottom:0.4rem; font-weight:600;">Full Name</span>
+          <div class="form-grid">
+            <label for="name">
+              <span>Full Name</span>
               <input type="text" id="name" placeholder="Your magical name ✨" required />
             </label>
-            <label for="email" style="display:block;">
-              <span style="display:block; margin-bottom:0.4rem; font-weight:600;">Email</span>
+            <label for="email">
+              <span>Email</span>
               <input type="email" id="email" placeholder="your@email.com" required />
             </label>
-            <label for="address" style="display:block;">
-              <span style="display:block; margin-bottom:0.4rem; font-weight:600;">Address</span>
+            <label for="address">
+              <span>Address</span>
               <input type="text" id="address" placeholder="Street address" required />
             </label>
-            <div style="display:grid; grid-template-columns:1fr 120px 120px; gap:0.8rem;">
-              <label for="city" style="display:block;">
-                <span style="display:block; margin-bottom:0.4rem; font-weight:600;">City</span>
+            <div class="address-row">
+              <label for="city">
+                <span>City</span>
                 <input type="text" id="city" placeholder="City" required />
               </label>
-              <label for="state" style="display:block;">
-                <span style="display:block; margin-bottom:0.4rem; font-weight:600;">State</span>
+              <label for="state">
+                <span>State</span>
                 <input type="text" id="state" placeholder="CA" maxlength="2" required />
               </label>
-              <label for="zip" style="display:block;">
-                <span style="display:block; margin-bottom:0.4rem; font-weight:600;">ZIP Code</span>
+              <label for="zip">
+                <span>ZIP Code</span>
                 <input type="text" id="zip" placeholder="90210" required />
               </label>
             </div>
           </div>
 
-          <div class="payment-info" style="background:rgba(232,156,200,0.1); border:1px solid rgba(232,156,200,0.3); border-radius:var(--radius); padding:1rem; margin-bottom:1.5rem;">
-            <h4 style="margin:0 0 0.5rem 0; color:var(--primary); display:flex; align-items:center; gap:0.5rem;">
+          <div class="payment-info">
+            <h4>
               <i class="fas fa-shield-alt" aria-hidden="true"></i> Secure Payment
             </h4>
-            <p style="margin:0; font-size:0.95rem; line-height:1.5;">
+            <p>
               Payment details (card number, expiration date, CVC) will be securely collected on the next page by Stripe. 
               We never store your payment information.
             </p>
           </div>
 
-          <label for="gift-wrap" style="display:flex; align-items:center; gap:0.8rem; margin:1.25rem 0;">
+          <label for="gift-wrap" class="gift-wrap-label">
             <input type="checkbox" id="gift-wrap" />
             <span>🎁 Add gift wrapping (+$5) — includes handwritten note and sparkle confetti</span>
           </label>
 
-          <button class="btn primary" id="stripe-checkout-btn" type="button" onclick="handleStripeCheckout()" aria-describedby="security-note" style="width:100%; font-size:1.2rem; padding:1rem;">
+          <button class="btn primary checkout-btn" id="stripe-checkout-btn" type="button" onclick="handleStripeCheckout()" aria-describedby="security-note">
             <i class="fas fa-credit-card" aria-hidden="true"></i> Continue to Payment
           </button>
-          <p id="security-note" style="text-align:center; margin-top:1rem; font-size:0.95rem; opacity:0.9;">
+          <p id="security-note" class="security-note">
             <i class="fas fa-lock" aria-hidden="true"></i> You'll enter payment details securely on the next page
           </p>
         </form>
 
-        <aside class="order-summary reveal-right" id="order-summary" style="background:var(--glass); backdrop-filter:blur(20px); padding:1.5rem; border-radius:var(--radius); border:1px solid rgba(255,255,255,0.25); position:sticky; top:2rem;">
+        <aside class="order-summary reveal-right" id="order-summary">
           <h3><i class="fas fa-box"></i> Order Summary</h3>
           <!-- summary rendered by app.js -->
-          <div style="margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid rgba(255,255,255,0.2);">
-            <p style="font-size:0.95rem; line-height:1.6;"><i class="fas fa-bookmark"></i> Every order includes a bookmark with an exclusive poem</p>
-            <p style="font-size:0.95rem; line-height:1.6;"><i class="fas fa-truck"></i> Free shipping on orders $50+</p>
-            <p style="font-size:0.95rem; line-height:1.6;"><i class="fas fa-clock"></i> Ships within 2-3 business days</p>
+          <div class="order-perks">
+            <p><i class="fas fa-bookmark"></i> Every order includes a bookmark with an exclusive poem</p>
+            <p><i class="fas fa-truck"></i> Free shipping on orders $50+</p>
+            <p><i class="fas fa-clock"></i> Ships within 2-3 business days</p>
           </div>
         </aside>
       </div>
