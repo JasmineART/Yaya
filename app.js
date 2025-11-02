@@ -349,6 +349,14 @@ function getCartItems() {
       productName = `${productName} - ${item.metadata.variantName}`;
     }
     
+    // Use variant-specific image if available
+    if (item.metadata && item.metadata.variantId && product.variants) {
+      const variant = product.variants.find(v => v.id === item.metadata.variantId);
+      if (variant && variant.image) {
+        productImage = variant.image;
+      }
+    }
+    
     return {
       id: item.uniqueKey || item.id,
       name: productName,
@@ -434,9 +442,18 @@ function renderCartContents(){
     const variantLabel = it.metadata && it.metadata.variantName ? ` - ${it.metadata.variantName}` : '';
     const productTitle = p.title || p.name || `Product ${p.id}`;
     
+    // Get the correct image - use variant image if available, otherwise use product's first image
+    let itemImage = p.images && p.images[0] ? p.images[0] : 'assets/logo-new.jpg';
+    if (it.metadata && it.metadata.variantId && p.variants) {
+      const variant = p.variants.find(v => v.id === it.metadata.variantId);
+      if (variant && variant.image) {
+        itemImage = variant.image;
+      }
+    }
+    
     return `
       <div class="cart-item" style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 12px; margin-bottom: 1rem;">
-        <img src="${p.images && p.images[0] ? p.images[0] : 'assets/logo-new.jpg'}" alt="${productTitle}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;"/>
+        <img src="${itemImage}" alt="${productTitle}${variantLabel}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;"/>
         <div style="flex: 1;">
           <strong>${productTitle}${variantLabel}</strong>
           <div style="color: rgba(255,255,255,0.8); font-size: 0.9rem;">${it.qty} × ${formatPrice(p.price)}</div>
@@ -761,9 +778,22 @@ function renderOrderSummary(){
     const variantLabel = it.metadata && it.metadata.variantName ? ` - ${it.metadata.variantName}` : '';
     const productTitle = p.title || p.name || `Product ${p.id}`;
     
-    return `<div style="display: flex; justify-content: space-between; margin: 0.5rem 0; padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 6px;">
-      <span>${productTitle}${variantLabel} × ${it.qty}</span>
-      <span>${formatPrice(p.price*it.qty)}</span>
+    // Get the correct image - use variant image if available, otherwise use product's first image
+    let itemImage = p.images && p.images[0] ? p.images[0] : 'assets/logo-new.jpg';
+    if (it.metadata && it.metadata.variantId && p.variants) {
+      const variant = p.variants.find(v => v.id === it.metadata.variantId);
+      if (variant && variant.image) {
+        itemImage = variant.image;
+      }
+    }
+    
+    return `<div style="display: flex; align-items: center; gap: 0.75rem; margin: 0.75rem 0; padding: 0.75rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+      <img src="${itemImage}" alt="${productTitle}${variantLabel}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; flex-shrink: 0;"/>
+      <div style="flex: 1; min-width: 0;">
+        <div style="font-weight: 600; font-size: 0.95rem; line-height: 1.3; margin-bottom: 0.25rem;">${productTitle}${variantLabel}</div>
+        <div style="font-size: 0.85rem; opacity: 0.8;">${it.qty} × ${formatPrice(p.price)}</div>
+      </div>
+      <div style="font-weight: 600; white-space: nowrap;">${formatPrice(p.price*it.qty)}</div>
     </div>`;
   }).filter(row => row !== '').join('');
   

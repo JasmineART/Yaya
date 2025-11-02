@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Cart Image Test - Yaya Starchild</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .test-container {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: rgba(255,255,255,0.1);
+      border-radius: 20px;
+    }
+    .test-section {
+      margin: 2rem 0;
+      padding: 1rem;
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+    }
+    button {
+      background: rgba(255,255,255,0.2);
+      border: 2px solid rgba(255,255,255,0.3);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 0.5rem;
+      font-size: 1rem;
+      font-family: inherit;
+    }
+    button:hover {
+      background: rgba(255,255,255,0.3);
+      border-color: rgba(255,255,255,0.5);
+    }
+    .log {
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      padding: 1rem;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 0.9rem;
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <h1><i class="fas fa-vial"></i> Cart Image Test</h1>
+    <p class="lead">Testing sticker variant images in cart</p>
+    
+    <div class="test-section">
+      <h3>Add Test Items to Cart</h3>
+      <button onclick="addStickerVariant('dancing', 'The Ball')">Add "The Ball" Sticker</button>
+      <button onclick="addStickerVariant('sunflower', 'Bloom')">Add "Bloom" Sticker</button>
+      <button onclick="addStickerVariant('ballerina', 'Ballerina')">Add "Ballerina" Sticker</button>
+      <button onclick="addBookItem()">Add Book (no variant)</button>
+      <button onclick="clearCart()">Clear Cart</button>
+    </div>
+    
+    <div class="test-section">
+      <h3>Cart Contents</h3>
+      <div id="cart-contents"></div>
+    </div>
+    
+    <div class="test-section">
+      <h3>Debug Log</h3>
+      <div id="log" class="log"></div>
+    </div>
+  </div>
+  
+  <script src="products.js"></script>
+  <script src="app.js"></script>
+  <script>
+    const logEl = document.getElementById('log');
+    
+    function log(message) {
+      const time = new Date().toLocaleTimeString();
+      logEl.innerHTML += `[${time}] ${message}<br>`;
+      logEl.scrollTop = logEl.scrollHeight;
+      console.log(message);
+    }
+    
+    function addStickerVariant(variantId, variantName) {
+      log(`Adding sticker variant: ${variantName} (${variantId})`);
+      
+      // Find the sticker product (ID 3)
+      const product = window.PRODUCTS.find(p => p.id === 3);
+      if (!product) {
+        log('ERROR: Sticker product not found!');
+        return;
+      }
+      
+      // Find the variant
+      const variant = product.variants.find(v => v.id === variantId);
+      if (!variant) {
+        log(`ERROR: Variant ${variantId} not found!`);
+        return;
+      }
+      
+      log(`Found variant: ${variant.name} with image: ${variant.image}`);
+      
+      // Add to cart with metadata
+      window.addToCart(3, 1, { variantId: variantId, variantName: variantName });
+      log(`Added to cart with metadata: ${JSON.stringify({ variantId, variantName })}`);
+      
+      // Re-render cart
+      renderCartContents();
+      updateCartCount();
+      
+      // Log cart contents
+      const cart = getCart();
+      log(`Cart now has ${cart.length} items`);
+      cart.forEach((item, index) => {
+        log(`  Item ${index + 1}: Product ID ${item.id}, Qty ${item.qty}, Variant: ${item.metadata?.variantName || 'none'}`);
+      });
+    }
+    
+    function addBookItem() {
+      log('Adding book (product ID 1)');
+      window.addToCart(1, 1, {});
+      renderCartContents();
+      updateCartCount();
+      
+      const cart = getCart();
+      log(`Cart now has ${cart.length} items`);
+    }
+    
+    function clearCart() {
+      log('Clearing cart...');
+      localStorage.removeItem('yaya_cart_v1');
+      renderCartContents();
+      updateCartCount();
+      log('Cart cleared');
+    }
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      log('Test page loaded');
+      log(`Found ${window.PRODUCTS.length} products`);
+      
+      const stickerProduct = window.PRODUCTS.find(p => p.id === 3);
+      if (stickerProduct) {
+        log(`Sticker product has ${stickerProduct.variants.length} variants`);
+      }
+      
+      renderCartContents();
+      updateCartCount();
+    });
+  </script>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+</body>
+</html>
