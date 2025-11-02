@@ -1,0 +1,40 @@
+# Files to exclude from production deployment
+# Test and diagnostic files
+
+# Test HTML files
+test-*.html
+diagnostic-*.html
+debug-*.html
+simple-test.html
+payment-diagnostic.html
+test-checkout-flow.html
+
+# Test JavaScript files
+test-system.js
+accessibility-test.js
+emailjs-debug.js
+
+# Old/backup files
+stripe-payments-old.js
+simple-server.js
+
+# Documentation (optional - include if needed)
+*.md
+!README.md
+
+# Development files
+server/e2e_*.js
+server/test_*.js
+
+# Setup scripts
+setup-google-email.sh
+
+# Git and dev tools
+.git/
+.gitignore
+node_modules/
+.env
+.DS_Store
+
+# Error logs
+error.txt

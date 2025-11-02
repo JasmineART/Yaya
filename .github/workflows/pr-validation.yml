@@ -1,0 +1,280 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  validate-pr:
+    name: Validate Pull Request
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout PR code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Validate HTML files
+      run: |
+        echo "🔍 Validating HTML syntax..."
+        node -e "
+        const fs = require('fs');
+        const htmlFiles = fs.readdirSync('.').filter(f => f.endsWith('.html') && !f.startsWith('test-'));
+        let errors = 0;
+        
+        htmlFiles.forEach(file => {
+          const content = fs.readFileSync(file, 'utf8');
+          
+          // Check DOCTYPE
+          if (!content.match(/<!doctype html>/i)) {
+            console.error('❌', file, '- Missing DOCTYPE');
+            errors++;
+          }
+          
+          // Check basic structure
+          if (!content.includes('<html')) {
+            console.error('❌', file, '- Missing <html> tag');
+            errors++;
+          }
+          
+          if (!content.includes('</html>')) {
+            console.error('❌', file, '- Missing </html> tag');
+            errors++;
+          }
+          
+          // Check for meta viewport (mobile responsive)
+          if (!content.includes('viewport')) {
+            console.warn('⚠️ ', file, '- Missing viewport meta tag');
+          }
+          
+          // Check for title
+          if (!content.includes('<title>')) {
+            console.error('❌', file, '- Missing <title> tag');
+            errors++;
+          }
+        });
+        
+        if (errors > 0) {
+          throw new Error('HTML validation failed with ' + errors + ' error(s)');
+        }
+        console.log('✅ All HTML files valid (' + htmlFiles.length + ' files checked)');
+        "
+    
+    - name: Validate JavaScript syntax
+      run: |
+        echo "🔍 Validating JavaScript syntax..."
+        node -e "
+        const fs = require('fs');
+        const jsFiles = fs.readdirSync('.')
+          .filter(f => f.endsWith('.js') && 
+                      !f.startsWith('test-') && 
+                      !f.includes('node_modules') &&
+                      !f.includes('.min.'));
+        
+        let errors = 0;
+        jsFiles.forEach(file => {
+          try {
+            const content = fs.readFileSync(file, 'utf8');
+            // Basic syntax validation
+            new Function(content);
+            console.log('✅', file);
+          } catch(e) {
+            console.error('❌', file, '-', e.message.split('\\n')[0]);
+            errors++;
+          }
+        });
+        
+        if (errors > 0) {
+          throw new Error('JavaScript validation failed with ' + errors + ' error(s)');
+        }
+        console.log('✅ All JavaScript files valid (' + jsFiles.length + ' files checked)');
+        "
+    
+    - name: Check for console.log statements
+      run: |
+        echo "🔍 Checking for debug console.log statements..."
+        node -e "
+        const fs = require('fs');
+        const jsFiles = ['app.js', 'products.js', 'stripe-payments.js', 'simple-email.js'];
+        let warnings = 0;
+        
+        jsFiles.forEach(file => {
+          if (!fs.existsSync(file)) return;
+          const content = fs.readFileSync(file, 'utf8');
+          const lines = content.split('\\n');
+          
+          lines.forEach((line, i) => {
+            if (line.includes('console.log') && !line.trim().startsWith('//')) {
+              console.warn('⚠️ ', file + ':' + (i+1), '- console.log found');
+              warnings++;
+            }
+          });
+        });
+        
+        if (warnings > 0) {
+          console.warn('⚠️  Found', warnings, 'console.log statement(s) - consider removing for production');
+        } else {
+          console.log('✅ No debug console.log statements found');
+        }
+        "
+    
+    - name: Validate product data structure
+      run: |
+        echo "🔍 Validating products.js..."
+        node -e "
+        const fs = require('fs');
+        const content = fs.readFileSync('products.js', 'utf8');
+        
+        // Check structure
+        if (!content.includes('PRODUCTS = [')) {
+          throw new Error('PRODUCTS array not found');
+        }
+        
+        if (!content.includes('formatPrice')) {
+          throw new Error('formatPrice function missing');
+        }
+        
+        if (!content.includes('renderProductsGrid')) {
+          throw new Error('renderProductsGrid function missing');
+        }
+        
+        // Check for required product fields
+        const requiredFields = ['id', 'title', 'price', 'description', 'images'];
+        requiredFields.forEach(field => {
+          if (!content.includes(field + ':')) {
+            throw new Error('Product field missing: ' + field);
+          }
+        });
+        
+        console.log('✅ Products data structure valid');
+        "
+    
+    - name: Check file sizes
+      run: |
+        echo "📊 Checking file sizes..."
+        node -e "
+        const fs = require('fs');
+        const limits = {
+          'app.js': 50 * 1024,
+          'styles.css': 60 * 1024,
+          'products.js': 30 * 1024
+        };
+        
+        let warnings = 0;
+        Object.entries(limits).forEach(([file, limit]) => {
+          const stats = fs.statSync(file);
+          const sizeKB = (stats.size / 1024).toFixed(1);
+          const limitKB = (limit / 1024).toFixed(0);
+          
+          if (stats.size > limit) {
+            console.warn('⚠️ ', file, sizeKB + 'KB exceeds recommended', limitKB + 'KB');
+            warnings++;
+          } else {
+            console.log('✅', file, sizeKB + 'KB /', limitKB + 'KB');
+          }
+        });
+        
+        if (warnings > 0) {
+          console.warn('⚠️  Consider optimizing large files for better performance');
+        }
+        "
+    
+    - name: Test build process
+      run: |
+        echo "🏗️  Testing build process..."
+        npm run build
+        echo "✅ Build successful"
+    
+    - name: Verify critical files
+      run: |
+        echo "🔍 Verifying critical files exist..."
+        node -e "
+        const fs = require('fs');
+        const critical = [
+          'index.html',
+          'shop.html', 
+          'cart.html',
+          'checkout.html',
+          'product.html',
+          'about.html',
+          'success.html',
+          'app.js',
+          'products.js',
+          'styles.css',
+          'firebase-config.js',
+          'simple-email.js'
+        ];
+        
+        let missing = [];
+        critical.forEach(file => {
+          if (!fs.existsSync(file)) {
+            missing.push(file);
+          }
+        });
+        
+        if (missing.length > 0) {
+          throw new Error('Critical files missing: ' + missing.join(', '));
+        }
+        
+        console.log('✅ All', critical.length, 'critical files present');
+        "
+    
+    - name: Check for sensitive data
+      run: |
+        echo "🔒 Checking for sensitive data..."
+        node -e "
+        const fs = require('fs');
+        const files = fs.readdirSync('.')
+          .filter(f => f.endsWith('.js') || f.endsWith('.html'));
+        
+        const patterns = [
+          { pattern: /sk_live_[a-zA-Z0-9]+/, name: 'Stripe secret key' },
+          { pattern: /password\s*[:=]\s*['\"][^'\"]+['\"]/i, name: 'Hardcoded password' },
+          { pattern: /api_secret|private_key|secret_key/i, name: 'Secret/Private key' }
+        ];
+        
+        let findings = 0;
+        files.forEach(file => {
+          const content = fs.readFileSync(file, 'utf8');
+          patterns.forEach(({pattern, name}) => {
+            if (pattern.test(content)) {
+              console.error('❌', file, '- Contains', name);
+              findings++;
+            }
+          });
+        });
+        
+        if (findings > 0) {
+          throw new Error('Sensitive data found in code - remove before merging!');
+        }
+        
+        console.log('✅ No sensitive data detected');
+        "
+    
+    - name: PR validation summary
+      if: success()
+      run: |
+        echo ""
+        echo "╔════════════════════════════════════════╗"
+        echo "║   ✅ PR Validation Successful! ✅     ║"
+        echo "╚════════════════════════════════════════╝"
+        echo ""
+        echo "All checks passed:"
+        echo "  ✅ HTML syntax valid"
+        echo "  ✅ JavaScript syntax valid"
+        echo "  ✅ Product data structure valid"
+        echo "  ✅ Build process successful"
+        echo "  ✅ Critical files present"
+        echo "  ✅ No sensitive data detected"
+        echo ""
+        echo "Safe to merge! 🎉"

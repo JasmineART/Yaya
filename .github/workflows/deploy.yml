@@ -5,6 +5,7 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:  # Allow manual triggers
 
 permissions:
   contents: read
@@ -16,7 +17,164 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Validation job - runs first to catch errors early
+  validate:
+    name: Validate Code Quality
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Validate HTML syntax
+      run: |
+        echo "🔍 Validating HTML files..."
+        node -e "
+        const fs = require('fs');
+        const path = require('path');
+        const htmlFiles = fs.readdirSync('.').filter(f => f.endsWith('.html') && !f.startsWith('test-'));
+        console.log('Validating', htmlFiles.length, 'HTML files:', htmlFiles.join(', '));
+        htmlFiles.forEach(file => {
+          const content = fs.readFileSync(file, 'utf8');
+          if (!content.includes('<!doctype html') && !content.includes('<!DOCTYPE html')) {
+            throw new Error(file + ' missing DOCTYPE declaration');
+          }
+          if (!content.includes('</html>')) {
+            throw new Error(file + ' missing closing html tag');
+          }
+        });
+        console.log('✅ All HTML files valid');
+        "
+    
+    - name: Validate JavaScript syntax
+      run: |
+        echo "🔍 Validating JavaScript files..."
+        node -e "
+        const fs = require('fs');
+        const jsFiles = fs.readdirSync('.').filter(f => f.endsWith('.js') && !f.startsWith('test-') && f !== 'build-static.js');
+        console.log('Checking', jsFiles.length, 'JS files');
+        jsFiles.forEach(file => {
+          try {
+            const content = fs.readFileSync(file, 'utf8');
+            new Function(content); // Basic syntax check
+            console.log('✅', file);
+          } catch(e) {
+            console.error('❌', file, ':', e.message);
+            throw e;
+          }
+        });
+        console.log('✅ All JavaScript files valid');
+        "
+    
+    - name: Validate products data
+      run: |
+        echo "🔍 Validating products.js data..."
+        node -e "
+        const fs = require('fs');
+        const content = fs.readFileSync('products.js', 'utf8');
+        
+        // Check for required product fields
+        if (!content.includes('PRODUCTS = [')) {
+          throw new Error('PRODUCTS array not found');
+        }
+        
+        // Check for price formatting
+        if (!content.includes('formatPrice')) {
+          throw new Error('formatPrice function missing');
+        }
+        
+        console.log('✅ Products data structure valid');
+        "
+    
+    - name: Check file sizes
+      run: |
+        echo "📊 Checking file sizes..."
+        node -e "
+        const fs = require('fs');
+        const maxSizes = {
+          'app.js': 50 * 1024,        // 50KB
+          'styles.css': 60 * 1024,     // 60KB
+          'products.js': 30 * 1024     // 30KB
+        };
+        
+        Object.entries(maxSizes).forEach(([file, maxSize]) => {
+          const stats = fs.statSync(file);
+          const sizeMB = (stats.size / 1024).toFixed(1);
+          const maxMB = (maxSize / 1024).toFixed(1);
+          console.log(file + ':', sizeMB + 'KB /' , maxMB + 'KB');
+          
+          if (stats.size > maxSize) {
+            console.warn('⚠️  WARNING:', file, 'is larger than recommended');
+          }
+        });
+        console.log('✅ File size check complete');
+        "
+
   build:
+    name: Build Production Site
+    needs: validate
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Remove test files
+      run: |
+        echo "🧹 Removing test and debug files..."
+        rm -f test-*.html diagnostic-*.html debug-*.html simple-test.html payment-diagnostic.html
+        rm -f test-system.js accessibility-test.js emailjs-debug.js
+        rm -f stripe-payments-old.js simple-server.js error.txt
+        rm -rf server/e2e_*.js server/test_*.js
+        echo "✅ Test files removed"
+      
+    - name: Build static site
+      run: |
+        echo "🏗️ Building production site..."
+        npm run build
+        echo "✅ Build complete"
+      
+    - name: Verify critical files exist
+      run: |
+        echo "🔍 Verifying critical files..."
+        node -e "
+        const fs = require('fs');
+        const required = ['index.html', 'shop.html', 'cart.html', 'checkout.html', 
+                         'app.js', 'products.js', 'styles.css', 'firebase-config.js'];
+        required.forEach(file => {
+          if (!fs.existsSync(file)) {
+            throw new Error('Critical file missing: ' + file);
+          }
+        });
+        console.log('✅ All critical files present');
+        "
+      
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+      
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: '.'
+
+  deploy:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -43,6 +201,7 @@ jobs:
         path: './dist'
 
   deploy:
+    name: Deploy to GitHub Pages
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -52,3 +211,55 @@ jobs:
     - name: Deploy to GitHub Pages
       id: deployment
       uses: actions/deploy-pages@v4
+      
+    - name: Deployment success
+      run: |
+        echo "🎉 Deployment successful!"
+        echo "Site URL: ${{ steps.deployment.outputs.page_url }}"
+
+  # Post-deployment smoke tests
+  smoke-test:
+    name: Post-Deployment Tests
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+    - name: Wait for deployment to propagate
+      run: sleep 30
+      
+    - name: Test homepage
+      run: |
+        echo "🧪 Testing homepage..."
+        STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://jasmineart.github.io/Yaya/)
+        if [ "$STATUS" != "200" ]; then
+          echo "❌ Homepage returned status $STATUS"
+          exit 1
+        fi
+        echo "✅ Homepage is accessible"
+    
+    - name: Test shop page
+      run: |
+        echo "🧪 Testing shop page..."
+        STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://jasmineart.github.io/Yaya/shop.html)
+        if [ "$STATUS" != "200" ]; then
+          echo "❌ Shop page returned status $STATUS"
+          exit 1
+        fi
+        echo "✅ Shop page is accessible"
+    
+    - name: Test critical assets
+      run: |
+        echo "🧪 Testing critical assets..."
+        for asset in app.js products.js styles.css; do
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://jasmineart.github.io/Yaya/$asset)
+          if [ "$STATUS" != "200" ]; then
+            echo "❌ $asset returned status $STATUS"
+            exit 1
+          fi
+          echo "✅ $asset is accessible"
+        done
+        
+    - name: All tests passed
+      run: |
+        echo "🎊 All smoke tests passed successfully!"
+        echo "Site is live and functional"

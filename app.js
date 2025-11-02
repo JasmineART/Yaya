@@ -106,12 +106,18 @@ function injectSparkleStyles() {
 
 // Magical sparkle stream animation - optimized for performance
 function createMagicalSparkles() {
+  // Skip sparkles on mobile devices for better performance
+  if (window.innerWidth < 768) {
+    console.log('✨ Sparkles disabled on mobile for performance');
+    return;
+  }
+  
   // Reduce sparkle count for better performance
   const screenWidthInches = window.innerWidth / 96;
   const targetSparkleCount = Math.floor(screenWidthInches * 50); // Reduced from 200
   
   // Lower max for better performance
-  const maxSparkles = 300; // Reduced from 1000
+  const maxSparkles = 75; // Further reduced for optimal performance
   const totalSparkles = Math.min(targetSparkleCount, maxSparkles);
   
   console.log('✨ Sparkle system starting...', {
@@ -169,7 +175,7 @@ function createMagicalSparkles() {
   
   requestAnimationFrame(createNextBatch);
   
-  // Maintain sparkle count - less frequent checks
+  // Maintain sparkle count - less frequent checks for better performance
   setInterval(() => {
     const currentSparkles = document.querySelectorAll('.sparkle').length;
     if (currentSparkles < totalSparkles * 0.7) {
@@ -180,7 +186,7 @@ function createMagicalSparkles() {
       }
       document.body.appendChild(fragment);
     }
-  }, 5000); // Check every 5 seconds instead of 3
+  }, 10000); // Check every 10 seconds for better performance
   
   console.log('✨ Sparkle generation optimized');
 }

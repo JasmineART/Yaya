@@ -8,7 +8,9 @@
     "dev": "NODE_ENV=development node optimized-server.js",
     "server": "cd server && node index.js",
     "build": "node build-static.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "validate": "node validate-deploy.js",
+    "predeploy": "npm run validate && npm run build",
+    "test": "node validate-deploy.js"
   },
   "keywords": [],
   "author": "",

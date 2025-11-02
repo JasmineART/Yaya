@@ -132,7 +132,7 @@ function renderProductDetail(){
           <label class="variant-option" style="cursor: pointer; position: relative; display: block;">
             <input type="radio" name="variant" value="${v.id}" data-name="${escapeHtml(v.name)}" style="position: absolute; opacity: 0;" required />
             <div class="variant-card" style="border: 3px solid rgba(255,255,255,0.3); border-radius: 12px; padding: 0.75rem; transition: all 0.3s ease; background: rgba(255,255,255,0.05); height: 100%; transform: translateY(0);">
-              <img src="${v.image}" alt="${escapeHtml(v.name)}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 0.75rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+              <img src="${v.image}" alt="${escapeHtml(v.name)}" loading="lazy" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 0.75rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
               <p style="font-size: 0.9rem; text-align: center; margin: 0; font-weight: 600; line-height: 1.3;">${escapeHtml(v.name)}</p>
             </div>
           </label>
