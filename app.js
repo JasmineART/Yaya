@@ -2,11 +2,11 @@
 const STORAGE_KEY = 'yaya_cart_v1';
 const DISCOUNT_STORAGE_KEY = 'yaya_discount_v1';
 
-// Discount codes: percentage discounts and flat dollar amounts
+// Discount codes: percentage discounts, flat dollar amounts, and BOGO deals
 const DISCOUNTS = { 
-  'SUN10': { type: 'percentage', value: 0.10, description: '10% off' },
-  'FAIRY5': { type: 'flat', value: 5.00, description: '$5 off' },
-  'MAGIC15': { type: 'percentage', value: 0.15, description: '15% off', minOrder: 75.00 }
+  'PASTEL': { type: 'bogo_half', description: 'Buy one, get 2nd item 50% off' },
+  'SUNCATCHER': { type: 'percentage', value: 0.15, description: '15% off entire cart' },
+  'WHIMSY': { type: 'percentage', value: 0.25, description: '25% off entire cart' }
 };
 
 // Email functions will be available globally from simple-email.js script
@@ -477,7 +477,7 @@ function renderCartContents(){
   let total = subtotal;
   
   if (appliedDiscount && appliedDiscount.code) {
-    const discountResult = calculateDiscount(subtotal, appliedDiscount.code);
+    const discountResult = calculateDiscount(subtotal, appliedDiscount.code, items);
     if (discountResult.valid) {
       total = subtotal - discountResult.amount;
       discountHTML = `
@@ -522,7 +522,7 @@ function clearAppliedDiscount() {
   localStorage.removeItem(DISCOUNT_STORAGE_KEY);
 }
 
-function calculateDiscount(subtotal, discountCode) {
+function calculateDiscount(subtotal, discountCode, cartItems = null) {
   const discount = DISCOUNTS[discountCode];
   if (!discount) return { valid: false, amount: 0, message: 'Invalid discount code' };
   
@@ -536,10 +536,48 @@ function calculateDiscount(subtotal, discountCode) {
   }
   
   let discountAmount = 0;
+  
   if (discount.type === 'percentage') {
     discountAmount = subtotal * discount.value;
   } else if (discount.type === 'flat') {
     discountAmount = Math.min(discount.value, subtotal); // Don't exceed subtotal
+  } else if (discount.type === 'bogo_half') {
+    // PASTEL: Buy one, get second item at 50% off (applies to lower-priced item)
+    if (!cartItems || cartItems.length < 2) {
+      return {
+        valid: false,
+        amount: 0,
+        message: 'Add at least 2 items to cart to use this discount'
+      };
+    }
+    
+    // Get all individual items (expand quantities)
+    const allItems = [];
+    cartItems.forEach(item => {
+      const product = window.PRODUCTS ? window.PRODUCTS.find(p => p.id === item.id) : null;
+      if (product) {
+        for (let i = 0; i < item.qty; i++) {
+          allItems.push(product.price);
+        }
+      }
+    });
+    
+    if (allItems.length < 2) {
+      return {
+        valid: false,
+        amount: 0,
+        message: 'Add at least 2 items to cart to use this discount'
+      };
+    }
+    
+    // Sort prices descending (highest first)
+    allItems.sort((a, b) => b - a);
+    
+    // Apply 50% off to every second item (2nd, 4th, 6th, etc.)
+    // These are the lower-priced items in each pair
+    for (let i = 1; i < allItems.length; i += 2) {
+      discountAmount += allItems[i] * 0.5;
+    }
   }
   
   return { 
@@ -652,7 +690,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       return p ? s + (p.price * it.qty) : s;
     },0);
     
-    const discountResult = calculateDiscount(subtotal, code);
+    const discountResult = calculateDiscount(subtotal, code, items);
     
     if (discountResult.valid) {
       saveAppliedDiscount({ code: code, appliedAt: Date.now() });
@@ -808,7 +846,7 @@ function renderOrderSummary(){
   let discountedSubtotal = subtotal;
   
   if (appliedDiscount && appliedDiscount.code) {
-    const discountResult = calculateDiscount(subtotal, appliedDiscount.code);
+    const discountResult = calculateDiscount(subtotal, appliedDiscount.code, items);
     if (discountResult.valid) {
       discountedSubtotal = subtotal - discountResult.amount;
       discountHTML = `
