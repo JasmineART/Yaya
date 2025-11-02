@@ -176,7 +176,7 @@ function renderProductDetail(){
         ${p.sku ? `<p class="product-meta" style="font-size: 1rem; margin: 0.5rem 0;">SKU: <strong>${p.sku}</strong></p>` : ''}
         ${variantSelector}
         <p class="product-price" style="font-size: 2.5rem; font-weight: 700; margin: 1.5rem 0; color: #fff;">${formatPrice(p.price)}</p>
-        <p class="product-perks" style="font-size: 1rem; line-height: 1.6; opacity: 0.95; margin-bottom: 1.5rem;">🎁 Gift wrapping available at checkout | 📦 Ships within 2-3 business days</p>
+        <p class="product-perks" style="font-size: 1rem; line-height: 1.6; opacity: 0.95; margin-bottom: 1.5rem;">📦 Ships within 2-3 business days</p>
         <div class="cta-row" style="display: flex; gap: 1rem; margin-bottom: 2rem;">
           <button class="btn primary" id="add-to-cart" style="flex: 1; font-size: 1.1rem; padding: 1rem 2rem;">✨ Add to Cart</button>
           <a class="btn ghost" href="shop.html" style="font-size: 1.1rem; padding: 1rem 2rem;">← Back to Shop</a>

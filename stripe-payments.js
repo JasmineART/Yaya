@@ -45,8 +45,8 @@ async function createStripeCheckout(cartItems, customerInfo) {
 
     // Calculate totals and apply discounts
     let subtotal = cartItems.reduce((sum, item) => sum + (parseFloat(item.price) * (item.quantity || item.qty || 1)), 0);
-    let total = subtotal;
     let discountAmount = 0;
+    let discountedSubtotal = subtotal;
     
     // Check for applied discount
     const appliedDiscount = window.getAppliedDiscount ? window.getAppliedDiscount() : null;
@@ -54,12 +54,18 @@ async function createStripeCheckout(cartItems, customerInfo) {
       const discountResult = window.calculateDiscount(subtotal, appliedDiscount.code);
       if (discountResult.valid) {
         discountAmount = discountResult.amount;
-        total = subtotal - discountAmount;
-        console.log('💰 Discount applied:', { code: appliedDiscount.code, amount: discountAmount, newTotal: total });
+        discountedSubtotal = subtotal - discountAmount;
+        console.log('💰 Discount applied:', { code: appliedDiscount.code, amount: discountAmount, newSubtotal: discountedSubtotal });
       }
     }
 
-    console.log('🛒 Processing checkout:', { total, discount: discountAmount, items: cartItems.length });
+    // Add shipping and tax
+    const shipping = 9.99;
+    const taxRate = 0.085; // 8.5%
+    const tax = discountedSubtotal * taxRate;
+    const total = discountedSubtotal + shipping + tax;
+
+    console.log('🛒 Processing checkout:', { subtotal, discountedSubtotal, shipping, tax, total, items: cartItems.length });
 
     // Check if server URL is configured
     const serverUrl = window.YAYA_CONFIG?.serverUrl;
@@ -86,6 +92,10 @@ async function createStripeCheckout(cartItems, customerInfo) {
             customer: customerInfo,
             discountAmount: discountAmount,
             discountCode: appliedDiscount?.code || '',
+            shipping: shipping,
+            tax: tax,
+            taxRate: taxRate,
+            subtotal: subtotal,
             total: total,
             successUrl: `${window.location.origin}/success.html?session_id={CHECKOUT_SESSION_ID}`,
             cancelUrl: `${window.location.origin}/cart.html`
@@ -126,6 +136,9 @@ async function createStripeCheckout(cartItems, customerInfo) {
         subtotal: subtotal,
         discountAmount: discountAmount,
         discountCode: appliedDiscount?.code || '',
+        shipping: shipping,
+        tax: tax,
+        taxRate: taxRate,
         total: total,
         timestamp: Date.now()
       };

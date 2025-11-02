@@ -139,7 +139,7 @@ app.get('/_health', (req, res) => {
 app.post('/create-stripe-session', async (req,res)=>{
   if(!stripe) return res.status(500).json({error:'Stripe not configured'});
   try{
-    const {items, customer, discountAmount, discountCode, total, successUrl, cancelUrl} = req.body;
+    const {items, customer, discountAmount, discountCode, shipping, tax, taxRate, subtotal, total, successUrl, cancelUrl} = req.body;
     
     if(!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({error:'Items array is required'});
@@ -182,6 +182,36 @@ app.post('/create-stripe-session', async (req,res)=>{
       });
     }
     
+    // Add shipping as a line item
+    if (shipping && shipping > 0) {
+      line_items.push({
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: 'Standard Shipping',
+            description: 'Ships within 2-3 business days'
+          },
+          unit_amount: Math.round(shipping * 100)
+        },
+        quantity: 1
+      });
+    }
+    
+    // Add tax as a line item
+    if (tax && tax > 0) {
+      line_items.push({
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: `Sales Tax (${taxRate ? (taxRate * 100).toFixed(1) : '8.5'}%)`,
+            description: 'State and local sales tax'
+          },
+          unit_amount: Math.round(tax * 100)
+        },
+        quantity: 1
+      });
+    }
+    
     // Create Stripe checkout session
     const sessionConfig = {
       payment_method_types: ['card'],
@@ -197,6 +227,9 @@ app.post('/create-stripe-session', async (req,res)=>{
         customer_name: customer?.name || 'Guest',
         discount_code: discountCode || '',
         discount_amount: discountAmount?.toString() || '0',
+        shipping_amount: shipping?.toString() || '0',
+        tax_amount: tax?.toString() || '0',
+        tax_rate: taxRate?.toString() || '0',
         order_source: 'yaya_website'
       }
     };
@@ -216,8 +249,11 @@ app.post('/create-stripe-session', async (req,res)=>{
           customer_email: customer?.email || '',
           customer_name: customer?.name || '',
           total_amount: total || 0,
+          subtotal_amount: subtotal || 0,
           discount_code: discountCode || '',
           discount_amount: discountAmount || 0,
+          shipping_amount: shipping || 0,
+          tax_amount: tax || 0,
           metadata: {items, customer},
           status: 'created',
           created_at: new Date().toISOString()
@@ -227,7 +263,7 @@ app.post('/create-stripe-session', async (req,res)=>{
       }
     }
     
-    console.log('✅ Stripe session created:', { sessionId: session.id, total, discountCode });
+    console.log('✅ Stripe session created:', { sessionId: session.id, subtotal, shipping, tax, total, discountCode });
     res.json({url: session.url, id: session.id});
     
   }catch(err){

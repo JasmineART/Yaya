@@ -775,12 +775,12 @@ function renderOrderSummary(){
   // Check for applied discount
   const appliedDiscount = getAppliedDiscount();
   let discountHTML = '';
-  let total = subtotal;
+  let discountedSubtotal = subtotal;
   
   if (appliedDiscount && appliedDiscount.code) {
     const discountResult = calculateDiscount(subtotal, appliedDiscount.code);
     if (discountResult.valid) {
-      total = subtotal - discountResult.amount;
+      discountedSubtotal = subtotal - discountResult.amount;
       discountHTML = `
         <div style="display: flex; justify-content: space-between; margin: 0.5rem 0; padding: 0.5rem; background: rgba(102, 126, 234, 0.2); border-radius: 6px; color: #4CAF50;">
           <span>Discount (${appliedDiscount.code})</span>
@@ -789,6 +789,16 @@ function renderOrderSummary(){
       `;
     }
   }
+  
+  // Add shipping ($9.99 standard)
+  const shipping = 9.99;
+  
+  // Calculate tax (8.5% on discounted subtotal)
+  const taxRate = 0.085;
+  const tax = discountedSubtotal * taxRate;
+  
+  // Calculate final total
+  const total = discountedSubtotal + shipping + tax;
   
   aside.innerHTML = `
     <h3><i class="fas fa-box"></i> Order Summary</h3>
@@ -799,6 +809,14 @@ function renderOrderSummary(){
       <span>${formatPrice(subtotal)}</span>
     </div>
     ${discountHTML}
+    <div style="display: flex; justify-content: space-between; margin: 0.5rem 0;">
+      <span>Shipping:</span>
+      <span>${formatPrice(shipping)}</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin: 0.5rem 0;">
+      <span>Tax (8.5%):</span>
+      <span>${formatPrice(tax)}</span>
+    </div>
     <div style="display: flex; justify-content: space-between; margin: 0.5rem 0; font-weight: 700; font-size: 1.1rem; padding-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.2);">
       <span>Total:</span>
       <span>${formatPrice(total)}</span>
