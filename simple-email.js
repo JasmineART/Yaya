@@ -7,10 +7,10 @@
 
 // EmailJS configuration - Complete setup
 const EMAILJS_CONFIG = {
-  serviceId: 'service_eodjffq',        // ✅ Your Gmail service ID
-  newsletterTemplateId: 'template_b6rgdel',  // ✅ Newsletter template ID
-  orderTemplateId: 'template_New_Order',     // ✅ Fixed: Added template_ prefix
-  userId: 'FWvhfYEosGwcS5rxq'          // ✅ Your User ID (Public Key)
+  serviceId: 'service_5sl3jkm',        // ✅ Your Gmail service ID (Updated 11/7/2025)
+  newsletterTemplateId: 'newsubs_kw32jj9',  // ✅ Newsletter template ID
+  orderTemplateId: 'orderconfirm_vz7exbv',     // ✅ Order confirmation template ID
+  userId: '_Y8GKbzV16a70S4PI'          // ✅ Your User ID (Public Key) - Updated 11/7/2025
 };
 
 /**

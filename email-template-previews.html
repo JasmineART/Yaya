@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EmailJS Email Template Previews</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+      margin: 0;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 40px;
+    }
+    .template-section {
+      margin-bottom: 60px;
+    }
+    .template-header {
+      background: #667eea;
+      color: white;
+      padding: 20px;
+      border-radius: 10px 10px 0 0;
+      margin-bottom: 0;
+    }
+    .template-header h2 {
+      margin: 0 0 10px 0;
+    }
+    .template-header p {
+      margin: 5px 0;
+      opacity: 0.9;
+    }
+    .email-preview {
+      background: white;
+      padding: 30px;
+      border: 1px solid #ddd;
+      border-top: none;
+      border-radius: 0 0 10px 10px;
+    }
+    .code-section {
+      background: #f8f8f8;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+    .code-section h4 {
+      margin-top: 0;
+      color: #333;
+    }
+    pre {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .variable-tag {
+      background: #ffe082;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: monospace;
+      font-size: 12px;
+      color: #333;
+    }
+    .instructions {
+      background: #e3f2fd;
+      border-left: 4px solid #2196F3;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+    .warning {
+      background: #fff3e0;
+      border-left: 4px solid #ff9800;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📧 EmailJS Email Template Previews</h1>
+    <p class="subtitle">Visual guide for setting up your Yaya Starchild email templates</p>
+
+    <div class="instructions">
+      <strong>📋 How to Use This Guide:</strong><br>
+      1. Copy the HTML code from each template section below<br>
+      2. Paste into EmailJS Dashboard → Email Templates → Content tab<br>
+      3. Configure the settings (From, To, Subject) as shown<br>
+      4. Save and test each template
+    </div>
+
+    <!-- NEWSLETTER TEMPLATE -->
+    <div class="template-section">
+      <div class="template-header">
+        <h2>📧 Template 1: Newsletter Signup Notification</h2>
+        <p><strong>Purpose:</strong> Notifies you when someone subscribes to your newsletter</p>
+        <p><strong>Sends to:</strong> faeriepoetics@gmail.com</p>
+        <p><strong>Triggered by:</strong> Newsletter form submissions on homepage, shop, about page</p>
+      </div>
+      
+      <div class="email-preview">
+        <h3>Template Configuration</h3>
+        <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+          <p style="margin: 5px 0;"><strong>Template Name:</strong> Newsletter Signup Notification</p>
+          <p style="margin: 5px 0;"><strong>From Name:</strong> Yaya Starchild Website</p>
+          <p style="margin: 5px 0;"><strong>From Email:</strong> <span class="variable-tag">{{from_name}}</span></p>
+          <p style="margin: 5px 0;"><strong>Reply To:</strong> <span class="variable-tag">{{reply_to}}</span></p>
+          <p style="margin: 5px 0;"><strong>Send To:</strong> <span class="variable-tag">{{to_email}}</span> ⚠️ Use variable, not hardcoded!</p>
+          <p style="margin: 5px 0;"><strong>Subject:</strong> 🌟 New Newsletter Subscriber</p>
+        </div>
+
+        <h3>Required Variables</h3>
+        <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+          <p style="margin: 5px 0;"><span class="variable-tag">{{to_email}}</span> - Your email (faeriepoetics@gmail.com)</p>
+          <p style="margin: 5px 0;"><span class="variable-tag">{{user_email}}</span> - Subscriber's email address</p>
+          <p style="margin: 5px 0;"><span class="variable-tag">{{page}}</span> - Page they subscribed from (e.g., "Homepage")</p>
+          <p style="margin: 5px 0;"><span class="variable-tag">{{timestamp}}</span> - Date and time of subscription</p>
+          <p style="margin: 5px 0;"><span class="variable-tag">{{from_name}}</span> - Sender name (website)</p>
+          <p style="margin: 5px 0;"><span class="variable-tag">{{reply_to}}</span> - Email to reply to (subscriber's email)</p>
+        </div>
+
+        <h3>Email Preview</h3>
+        <div style="max-width: 600px; margin: 20px auto; border: 2px solid #ddd; border-radius: 10px; overflow: hidden;">
+          <!-- ACTUAL EMAIL TEMPLATE -->
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #E89CC8 0%, #B88DD8 100%); color: white; border-radius: 15px;">
+            
+            <h1 style="text-align: center; color: white;">🌟 New Newsletter Subscriber!</h1>
+            
+            <div style="background: rgba(255, 255, 255, 0.2); padding: 20px; border-radius: 10px; margin: 20px 0;">
+              <h2 style="margin-top: 0; color: white;">Subscriber Details</h2>
+              <p style="font-size: 16px; line-height: 1.6;">
+                <strong>Email:</strong> test@example.com<br>
+                <strong>Subscribed from:</strong> Homepage<br>
+                <strong>Date:</strong> 11/7/2025 10:30 AM
+              </p>
+            </div>
+            
+            <div style="background: rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 10px; margin: 20px 0;">
+              <p style="margin: 0; font-size: 14px; opacity: 0.9;">
+                💡 <strong>Next Steps:</strong><br>
+                • Add this subscriber to your mailing list<br>
+                • Consider sending a welcome email<br>
+                • Update your subscriber count
+              </p>
+            </div>
+            
+            <p style="text-align: center; font-size: 12px; opacity: 0.8; margin-top: 30px;">
+              Sent from Yaya Starchild Website<br>
+              pastelpoetics.com
+            </p>
+          </div>
+        </div>
+
+        <div class="code-section">
+          <h4>📋 HTML Code to Copy (Paste in EmailJS Content Tab)</h4>
+          <pre><code>&lt;div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #E89CC8 0%, #B88DD8 100%); color: white; border-radius: 15px;"&gt;
+  
+  &lt;h1 style="text-align: center; color: white;"&gt;🌟 New Newsletter Subscriber!&lt;/h1&gt;
+  
+  &lt;div style="background: rgba(255, 255, 255, 0.2); padding: 20px; border-radius: 10px; margin: 20px 0;"&gt;
+    &lt;h2 style="margin-top: 0; color: white;"&gt;Subscriber Details&lt;/h2&gt;
+    &lt;p style="font-size: 16px; line-height: 1.6;"&gt;
+      &lt;strong&gt;Email:&lt;/strong&gt; {{user_email}}&lt;br&gt;
+      &lt;strong&gt;Subscribed from:&lt;/strong&gt; {{page}}&lt;br&gt;
+      &lt;strong&gt;Date:&lt;/strong&gt; {{timestamp}}
+    &lt;/p&gt;
+  &lt;/div&gt;
+  
+  &lt;div style="background: rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 10px; margin: 20px 0;"&gt;
+    &lt;p style="margin: 0; font-size: 14px; opacity: 0.9;"&gt;
+      💡 &lt;strong&gt;Next Steps:&lt;/strong&gt;&lt;br&gt;
+      • Add this subscriber to your mailing list&lt;br&gt;
+      • Consider sending a welcome email&lt;br&gt;
+      • Update your subscriber count
+    &lt;/p&gt;
+  &lt;/div&gt;
+  
+  &lt;p style="text-align: center; font-size: 12px; opacity: 0.8; margin-top: 30px;"&gt;
+    Sent from Yaya Starchild Website&lt;br&gt;
+    pastelpoetics.com
+  &lt;/p&gt;
+&lt;/div&gt;</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORDER TEMPLATE -->
+    <div class="template-section">
+      <div class="template-header">
+        <h2>🛍️ Template 2: Order Notification</h2>
+        <p><strong>Purpose:</strong> Notifies you when a customer places an order</p>
+        <p><strong>Sends to:</strong> faeriepoetics@gmail.com</p>
+        <p><strong>Triggered by:</strong> Successful Stripe payment completion</p>
+      </div>
+      
+      <div class="email-preview">
+        <h3>Template Configuration</h3>
+        <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+          <p style="margin: 5px 0;"><strong>Template Name:</strong> Order Notification</p>
+          <p style="margin: 5px 0;"><strong>From Name:</strong> Yaya Starchild Website</p>
+          <p style="margin: 5px 0;"><strong>From Email:</strong> <span class="variable-tag">{{from_name}}</span></p>
+          <p style="margin: 5px 0;"><strong>Reply To:</strong> <span class="variable-tag">{{reply_to}}</span></p>
+          <p style="margin: 5px 0;"><strong>Send To:</strong> <span class="variable-tag">{{to_email}}</span> ⚠️ Use variable, not hardcoded!</p>
+          <p style="margin: 5px 0;"><strong>Subject:</strong> 🛍️ New Order - $<span class="variable-tag">{{order_total}}</span></p>
+        </div>
+
+        <h3>Required Variables</h3>
+        <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+          <p style="margin: 5px 0;"><span class="variable-tag">{{to_email}}</span> - Your email (faeriepoetics@gmail.com)</p>
+          <p style="margin: 5px 0;"><span class="variable-tag">{{customer_name}}</span> - Customer's full name</p>
+          <p style="margin: 5px 0;"><span class="variable-tag">{{customer_email}}</span> - Customer's email address</p>
+          <p style="margin: 5px 0;"><span class="variable-tag">{{order_total}}</span> - Total order amount (e.g., "24.99")</p>
+          <p style="margin: 5px 0;"><span class="variable-tag">{{order_items}}</span> - List of items ordered</p>
+          <p style="margin: 5px 0;"><span class="variable-tag">{{shipping_address}}</span> - Full shipping address</p>
+          <p style="margin: 5px 0;"><span class="variable-tag">{{timestamp}}</span> - Date and time of order</p>
+          <p style="margin: 5px 0;"><span class="variable-tag">{{from_name}}</span> - Sender name (website)</p>
+          <p style="margin: 5px 0;"><span class="variable-tag">{{reply_to}}</span> - Customer's email for replies</p>
+        </div>
+
+        <h3>Email Preview</h3>
+        <div style="max-width: 600px; margin: 20px auto; border: 2px solid #ddd; border-radius: 10px; overflow: hidden;">
+          <!-- ACTUAL EMAIL TEMPLATE -->
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #E89CC8 0%, #B88DD8 100%); color: white; border-radius: 15px;">
+            
+            <h1 style="text-align: center; color: white;">🛍️ New Order Received!</h1>
+            
+            <div style="background: rgba(255, 255, 255, 0.2); padding: 20px; border-radius: 10px; margin: 20px 0;">
+              <h2 style="margin-top: 0; color: white;">Order Details</h2>
+              <p style="font-size: 18px; line-height: 1.8;">
+                <strong>Order Total:</strong> $24.99<br>
+                <strong>Date:</strong> 11/7/2025 10:30 AM
+              </p>
+            </div>
+            
+            <div style="background: rgba(255, 255, 255, 0.2); padding: 20px; border-radius: 10px; margin: 20px 0;">
+              <h2 style="margin-top: 0; color: white;">Customer Information</h2>
+              <p style="font-size: 16px; line-height: 1.8;">
+                <strong>Name:</strong> Jane Doe<br>
+                <strong>Email:</strong> jane@example.com
+              </p>
+            </div>
+            
+            <div style="background: rgba(255, 255, 255, 0.2); padding: 20px; border-radius: 10px; margin: 20px 0;">
+              <h2 style="margin-top: 0; color: white;">Items Ordered</h2>
+              <pre style="background: rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 8px; white-space: pre-wrap; font-size: 14px; line-height: 1.6;">Suncatcher Spirit (Signed) x1 - $24.99</pre>
+            </div>
+            
+            <div style="background: rgba(255, 255, 255, 0.2); padding: 20px; border-radius: 10px; margin: 20px 0;">
+              <h2 style="margin-top: 0; color: white;">Shipping Address</h2>
+              <pre style="background: rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 8px; white-space: pre-wrap; font-size: 14px; line-height: 1.6;">123 Main Street
+City, ST 12345
+United States</pre>
+            </div>
+            
+            <div style="background: rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 10px; margin: 20px 0;">
+              <p style="margin: 0; font-size: 14px; opacity: 0.9;">
+                💡 <strong>Next Steps:</strong><br>
+                • Process the order through Stripe dashboard<br>
+                • Prepare items for shipping<br>
+                • Send customer a shipping confirmation<br>
+                • Reply to customer at: jane@example.com
+              </p>
+            </div>
+            
+            <p style="text-align: center; font-size: 12px; opacity: 0.8; margin-top: 30px;">
+              Sent from Yaya Starchild Website<br>
+              pastelpoetics.com
+            </p>
+          </div>
+        </div>
+
+        <div class="code-section">
+          <h4>📋 HTML Code to Copy (Paste in EmailJS Content Tab)</h4>
+          <pre><code>&lt;div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #E89CC8 0%, #B88DD8 100%); color: white; border-radius: 15px;"&gt;
+  
+  &lt;h1 style="text-align: center; color: white;"&gt;🛍️ New Order Received!&lt;/h1&gt;
+  
+  &lt;div style="background: rgba(255, 255, 255, 0.2); padding: 20px; border-radius: 10px; margin: 20px 0;"&gt;
+    &lt;h2 style="margin-top: 0; color: white;"&gt;Order Details&lt;/h2&gt;
+    &lt;p style="font-size: 18px; line-height: 1.8;"&gt;
+      &lt;strong&gt;Order Total:&lt;/strong&gt; ${{order_total}}&lt;br&gt;
+      &lt;strong&gt;Date:&lt;/strong&gt; {{timestamp}}
+    &lt;/p&gt;
+  &lt;/div&gt;
+  
+  &lt;div style="background: rgba(255, 255, 255, 0.2); padding: 20px; border-radius: 10px; margin: 20px 0;"&gt;
+    &lt;h2 style="margin-top: 0; color: white;"&gt;Customer Information&lt;/h2&gt;
+    &lt;p style="font-size: 16px; line-height: 1.8;"&gt;
+      &lt;strong&gt;Name:&lt;/strong&gt; {{customer_name}}&lt;br&gt;
+      &lt;strong&gt;Email:&lt;/strong&gt; {{customer_email}}
+    &lt;/p&gt;
+  &lt;/div&gt;
+  
+  &lt;div style="background: rgba(255, 255, 255, 0.2); padding: 20px; border-radius: 10px; margin: 20px 0;"&gt;
+    &lt;h2 style="margin-top: 0; color: white;"&gt;Items Ordered&lt;/h2&gt;
+    &lt;pre style="background: rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 8px; white-space: pre-wrap; font-size: 14px; line-height: 1.6;"&gt;{{order_items}}&lt;/pre&gt;
+  &lt;/div&gt;
+  
+  &lt;div style="background: rgba(255, 255, 255, 0.2); padding: 20px; border-radius: 10px; margin: 20px 0;"&gt;
+    &lt;h2 style="margin-top: 0; color: white;"&gt;Shipping Address&lt;/h2&gt;
+    &lt;pre style="background: rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 8px; white-space: pre-wrap; font-size: 14px; line-height: 1.6;"&gt;{{shipping_address}}&lt;/pre&gt;
+  &lt;/div&gt;
+  
+  &lt;div style="background: rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 10px; margin: 20px 0;"&gt;
+    &lt;p style="margin: 0; font-size: 14px; opacity: 0.9;"&gt;
+      💡 &lt;strong&gt;Next Steps:&lt;/strong&gt;&lt;br&gt;
+      • Process the order through Stripe dashboard&lt;br&gt;
+      • Prepare items for shipping&lt;br&gt;
+      • Send customer a shipping confirmation&lt;br&gt;
+      • Reply to customer at: {{customer_email}}
+    &lt;/p&gt;
+  &lt;/div&gt;
+  
+  &lt;p style="text-align: center; font-size: 12px; opacity: 0.8; margin-top: 30px;"&gt;
+    Sent from Yaya Starchild Website&lt;br&gt;
+    pastelpoetics.com
+  &lt;/p&gt;
+&lt;/div&gt;</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="warning">
+      <strong>⚠️ IMPORTANT REMINDER:</strong><br><br>
+      When setting up templates in EmailJS:
+      <ul style="margin: 10px 0;">
+        <li>Always use <span class="variable-tag">{{to_email}}</span> in the "Send To" field, NOT a hardcoded email</li>
+        <li>Grant ALL permissions when connecting Gmail</li>
+        <li>Test each template after creating it</li>
+        <li>Copy the HTML exactly as shown (including all style attributes)</li>
+      </ul>
+    </div>
+
+    <div class="instructions" style="margin-top: 40px;">
+      <strong>✅ Next Steps:</strong><br>
+      1. Follow the setup guide: <code>/EMAILJS_COMPLETE_SETUP_GUIDE.md</code><br>
+      2. Use this page to copy the HTML templates<br>
+      3. Use the checklist: <code>/EMAILJS_SETUP_CHECKLIST.md</code><br>
+      4. Test with diagnostic tool: <code>/fix-gmail-scope.html</code>
+    </div>
+  </div>
+</body>
+</html>
