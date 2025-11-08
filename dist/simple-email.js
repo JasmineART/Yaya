@@ -7,10 +7,10 @@
 
 // EmailJS configuration - Complete setup
 const EMAILJS_CONFIG = {
-  serviceId: 'service_eodjffq',        // ✅ Your Gmail service ID
-  newsletterTemplateId: 'template_b6rgdel',  // ✅ Newsletter template ID
-  orderTemplateId: 'template_New_Order',     // ✅ Fixed: Added template_ prefix
-  userId: 'FWvhfYEosGwcS5rxq'          // ✅ Your User ID (Public Key)
+  serviceId: 'service_5sl3jkm',        // ✅ Your Gmail service ID (Updated 11/7/2025)
+  newsletterTemplateId: 'newsubs_kw32jj9',  // ✅ Newsletter template ID
+  orderTemplateId: 'orderconfirm_vz7exbv',     // ✅ Order confirmation template ID
+  userId: '_Y8GKbzV16a70S4PI'          // ✅ Your User ID (Public Key) - Updated 11/7/2025
 };
 
 /**
@@ -43,27 +43,35 @@ async function sendNotificationEmail(type, data) {
     
     switch (type) {
       case 'newsletter':
-        // Match your existing newsletter template structure
+        // Newsletter signup notification sent to faeriepoetics@gmail.com
         templateParams = {
+          to_email: 'faeriepoetics@gmail.com',
           user_email: data.email,
           page: data.source || 'Website', 
-          timestamp: templateParams.timestamp
+          timestamp: templateParams.timestamp,
+          from_name: 'Yaya Starchild Website',
+          reply_to: data.email  // Allow replying to the subscriber
         };
         templateId = EMAILJS_CONFIG.newsletterTemplateId;
+        console.log('📧 Sending newsletter signup notification to faeriepoetics@gmail.com');
         break;
 
       case 'order':
-        // Prepare order template parameters
+        // Order notification sent to faeriepoetics@gmail.com
         const itemsList = data.items.map(item => `${item.name} x${item.quantity} - $${item.price}`).join('\n');
         templateParams = {
+          to_email: 'faeriepoetics@gmail.com',
           customer_name: data.customerName,
           customer_email: data.customerEmail,
           order_total: data.total,
           order_items: itemsList,
           shipping_address: data.shippingAddress,
-          timestamp: templateParams.timestamp
+          timestamp: templateParams.timestamp,
+          from_name: 'Yaya Starchild Website',
+          reply_to: data.customerEmail  // Allow replying to customer
         };
         templateId = EMAILJS_CONFIG.orderTemplateId;
+        console.log('📧 Sending order notification to faeriepoetics@gmail.com');
         break;
 
       default:
@@ -93,13 +101,20 @@ async function sendNotificationEmail(type, data) {
 function loadEmailJS() {
   return new Promise((resolve, reject) => {
     if (typeof emailjs !== 'undefined') {
+      // EmailJS already loaded, initialize it
+      emailjs.init(EMAILJS_CONFIG.userId);
       resolve();
       return;
     }
 
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
-    script.onload = () => resolve();
+    script.onload = () => {
+      // Initialize EmailJS after loading
+      emailjs.init(EMAILJS_CONFIG.userId);
+      console.log('✅ EmailJS library loaded and initialized');
+      resolve();
+    };
     script.onerror = () => reject(new Error('Failed to load EmailJS'));
     document.head.appendChild(script);
   });
@@ -133,3 +148,13 @@ globalThis.sendCommentNotification = sendCommentNotification;
 globalThis.sendOrderNotification = sendOrderNotification;
 
 console.log('✅ EmailJS functions loaded globally');
+
+// Initialize EmailJS if library is already loaded
+if (typeof emailjs !== 'undefined') {
+  try {
+    emailjs.init(EMAILJS_CONFIG.userId);
+    console.log('✅ EmailJS initialized with User ID:', EMAILJS_CONFIG.userId);
+  } catch (error) {
+    console.warn('⚠️ EmailJS initialization warning:', error.message);
+  }
+}

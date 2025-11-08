@@ -2,11 +2,11 @@
 const STORAGE_KEY = 'yaya_cart_v1';
 const DISCOUNT_STORAGE_KEY = 'yaya_discount_v1';
 
-// Discount codes: percentage discounts and flat dollar amounts
+// Discount codes: percentage discounts, flat dollar amounts, and BOGO deals
 const DISCOUNTS = { 
-  'SUN10': { type: 'percentage', value: 0.10, description: '10% off' },
-  'FAIRY5': { type: 'flat', value: 5.00, description: '$5 off' },
-  'MAGIC15': { type: 'percentage', value: 0.15, description: '15% off', minOrder: 75.00 }
+  'PASTEL': { type: 'bogo_half', description: 'Buy one, get 2nd item 50% off' },
+  'SUNCATCHER': { type: 'percentage', value: 0.15, description: '15% off entire cart' },
+  'WHIMSY': { type: 'percentage', value: 0.25, description: '25% off entire cart' }
 };
 
 // Email functions will be available globally from simple-email.js script
@@ -106,12 +106,18 @@ function injectSparkleStyles() {
 
 // Magical sparkle stream animation - optimized for performance
 function createMagicalSparkles() {
+  // Skip sparkles on mobile devices for better performance
+  if (window.innerWidth < 768) {
+    console.log('✨ Sparkles disabled on mobile for performance');
+    return;
+  }
+  
   // Reduce sparkle count for better performance
   const screenWidthInches = window.innerWidth / 96;
   const targetSparkleCount = Math.floor(screenWidthInches * 50); // Reduced from 200
   
   // Lower max for better performance
-  const maxSparkles = 300; // Reduced from 1000
+  const maxSparkles = 75; // Further reduced for optimal performance
   const totalSparkles = Math.min(targetSparkleCount, maxSparkles);
   
   console.log('✨ Sparkle system starting...', {
@@ -169,7 +175,7 @@ function createMagicalSparkles() {
   
   requestAnimationFrame(createNextBatch);
   
-  // Maintain sparkle count - less frequent checks
+  // Maintain sparkle count - less frequent checks for better performance
   setInterval(() => {
     const currentSparkles = document.querySelectorAll('.sparkle').length;
     if (currentSparkles < totalSparkles * 0.7) {
@@ -180,7 +186,7 @@ function createMagicalSparkles() {
       }
       document.body.appendChild(fragment);
     }
-  }, 5000); // Check every 5 seconds instead of 3
+  }, 10000); // Check every 10 seconds for better performance
   
   console.log('✨ Sparkle generation optimized');
 }
@@ -349,6 +355,14 @@ function getCartItems() {
       productName = `${productName} - ${item.metadata.variantName}`;
     }
     
+    // Use variant-specific image if available
+    if (item.metadata && item.metadata.variantId && product.variants) {
+      const variant = product.variants.find(v => v.id === item.metadata.variantId);
+      if (variant && variant.image) {
+        productImage = variant.image;
+      }
+    }
+    
     return {
       id: item.uniqueKey || item.id,
       name: productName,
@@ -434,9 +448,18 @@ function renderCartContents(){
     const variantLabel = it.metadata && it.metadata.variantName ? ` - ${it.metadata.variantName}` : '';
     const productTitle = p.title || p.name || `Product ${p.id}`;
     
+    // Get the correct image - use variant image if available, otherwise use product's first image
+    let itemImage = p.images && p.images[0] ? p.images[0] : 'assets/logo-new.jpg';
+    if (it.metadata && it.metadata.variantId && p.variants) {
+      const variant = p.variants.find(v => v.id === it.metadata.variantId);
+      if (variant && variant.image) {
+        itemImage = variant.image;
+      }
+    }
+    
     return `
       <div class="cart-item" style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 12px; margin-bottom: 1rem;">
-        <img src="${p.images && p.images[0] ? p.images[0] : 'assets/logo-new.jpg'}" alt="${productTitle}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;"/>
+        <img src="${itemImage}" alt="${productTitle}${variantLabel}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;"/>
         <div style="flex: 1;">
           <strong>${productTitle}${variantLabel}</strong>
           <div style="color: rgba(255,255,255,0.8); font-size: 0.9rem;">${it.qty} × ${formatPrice(p.price)}</div>
@@ -460,7 +483,7 @@ function renderCartContents(){
   let total = subtotal;
   
   if (appliedDiscount && appliedDiscount.code) {
-    const discountResult = calculateDiscount(subtotal, appliedDiscount.code);
+    const discountResult = calculateDiscount(subtotal, appliedDiscount.code, items);
     if (discountResult.valid) {
       total = subtotal - discountResult.amount;
       discountHTML = `
@@ -505,7 +528,7 @@ function clearAppliedDiscount() {
   localStorage.removeItem(DISCOUNT_STORAGE_KEY);
 }
 
-function calculateDiscount(subtotal, discountCode) {
+function calculateDiscount(subtotal, discountCode, cartItems = null) {
   const discount = DISCOUNTS[discountCode];
   if (!discount) return { valid: false, amount: 0, message: 'Invalid discount code' };
   
@@ -519,10 +542,48 @@ function calculateDiscount(subtotal, discountCode) {
   }
   
   let discountAmount = 0;
+  
   if (discount.type === 'percentage') {
     discountAmount = subtotal * discount.value;
   } else if (discount.type === 'flat') {
     discountAmount = Math.min(discount.value, subtotal); // Don't exceed subtotal
+  } else if (discount.type === 'bogo_half') {
+    // PASTEL: Buy one, get second item at 50% off (applies to lower-priced item)
+    if (!cartItems || cartItems.length < 2) {
+      return {
+        valid: false,
+        amount: 0,
+        message: 'Add at least 2 items to cart to use this discount'
+      };
+    }
+    
+    // Get all individual items (expand quantities)
+    const allItems = [];
+    cartItems.forEach(item => {
+      const product = window.PRODUCTS ? window.PRODUCTS.find(p => p.id === item.id) : null;
+      if (product) {
+        for (let i = 0; i < item.qty; i++) {
+          allItems.push(product.price);
+        }
+      }
+    });
+    
+    if (allItems.length < 2) {
+      return {
+        valid: false,
+        amount: 0,
+        message: 'Add at least 2 items to cart to use this discount'
+      };
+    }
+    
+    // Sort prices descending (highest first)
+    allItems.sort((a, b) => b - a);
+    
+    // Apply 50% off to every second item (2nd, 4th, 6th, etc.)
+    // These are the lower-priced items in each pair
+    for (let i = 1; i < allItems.length; i += 2) {
+      discountAmount += allItems[i] * 0.5;
+    }
   }
   
   return { 
@@ -635,7 +696,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       return p ? s + (p.price * it.qty) : s;
     },0);
     
-    const discountResult = calculateDiscount(subtotal, code);
+    const discountResult = calculateDiscount(subtotal, code, items);
     
     if (discountResult.valid) {
       saveAppliedDiscount({ code: code, appliedAt: Date.now() });
@@ -761,9 +822,22 @@ function renderOrderSummary(){
     const variantLabel = it.metadata && it.metadata.variantName ? ` - ${it.metadata.variantName}` : '';
     const productTitle = p.title || p.name || `Product ${p.id}`;
     
-    return `<div style="display: flex; justify-content: space-between; margin: 0.5rem 0; padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 6px;">
-      <span>${productTitle}${variantLabel} × ${it.qty}</span>
-      <span>${formatPrice(p.price*it.qty)}</span>
+    // Get the correct image - use variant image if available, otherwise use product's first image
+    let itemImage = p.images && p.images[0] ? p.images[0] : 'assets/logo-new.jpg';
+    if (it.metadata && it.metadata.variantId && p.variants) {
+      const variant = p.variants.find(v => v.id === it.metadata.variantId);
+      if (variant && variant.image) {
+        itemImage = variant.image;
+      }
+    }
+    
+    return `<div style="display: flex; align-items: center; gap: 0.75rem; margin: 0.75rem 0; padding: 0.75rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+      <img src="${itemImage}" alt="${productTitle}${variantLabel}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; flex-shrink: 0;"/>
+      <div style="flex: 1; min-width: 0;">
+        <div style="font-weight: 600; font-size: 0.95rem; line-height: 1.3; margin-bottom: 0.25rem;">${productTitle}${variantLabel}</div>
+        <div style="font-size: 0.85rem; opacity: 0.8;">${it.qty} × ${formatPrice(p.price)}</div>
+      </div>
+      <div style="font-weight: 600; white-space: nowrap;">${formatPrice(p.price*it.qty)}</div>
     </div>`;
   }).filter(row => row !== '').join('');
   
@@ -775,12 +849,12 @@ function renderOrderSummary(){
   // Check for applied discount
   const appliedDiscount = getAppliedDiscount();
   let discountHTML = '';
-  let total = subtotal;
+  let discountedSubtotal = subtotal;
   
   if (appliedDiscount && appliedDiscount.code) {
-    const discountResult = calculateDiscount(subtotal, appliedDiscount.code);
+    const discountResult = calculateDiscount(subtotal, appliedDiscount.code, items);
     if (discountResult.valid) {
-      total = subtotal - discountResult.amount;
+      discountedSubtotal = subtotal - discountResult.amount;
       discountHTML = `
         <div style="display: flex; justify-content: space-between; margin: 0.5rem 0; padding: 0.5rem; background: rgba(102, 126, 234, 0.2); border-radius: 6px; color: #4CAF50;">
           <span>Discount (${appliedDiscount.code})</span>
@@ -789,6 +863,16 @@ function renderOrderSummary(){
       `;
     }
   }
+  
+  // Add shipping ($9.99 standard)
+  const shipping = 9.99;
+  
+  // Calculate tax (8.5% on discounted subtotal)
+  const taxRate = 0.085;
+  const tax = discountedSubtotal * taxRate;
+  
+  // Calculate final total
+  const total = discountedSubtotal + shipping + tax;
   
   aside.innerHTML = `
     <h3><i class="fas fa-box"></i> Order Summary</h3>
@@ -799,6 +883,14 @@ function renderOrderSummary(){
       <span>${formatPrice(subtotal)}</span>
     </div>
     ${discountHTML}
+    <div style="display: flex; justify-content: space-between; margin: 0.5rem 0;">
+      <span>Shipping:</span>
+      <span>${formatPrice(shipping)}</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin: 0.5rem 0;">
+      <span>Tax (8.5%):</span>
+      <span>${formatPrice(tax)}</span>
+    </div>
     <div style="display: flex; justify-content: space-between; margin: 0.5rem 0; font-weight: 700; font-size: 1.1rem; padding-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.2);">
       <span>Total:</span>
       <span>${formatPrice(total)}</span>
@@ -813,3 +905,7 @@ window.getCartItems = getCartItems;
 window.getCart = getCart;
 window.removeFromCart = removeFromCart;
 window.removeDiscount = removeDiscount;
+window.getAppliedDiscount = getAppliedDiscount;
+window.calculateDiscount = calculateDiscount;
+window.saveAppliedDiscount = saveAppliedDiscount;
+window.clearAppliedDiscount = clearAppliedDiscount;

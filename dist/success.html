@@ -54,13 +54,6 @@
                         </h4>
                         <p style="font-size: 0.95rem; margin: 0;">Orders processed within 1-2 business days with tracking info</p>
                     </div>
-                    
-                    <div style="background: rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 10px;">
-                        <h4 style="color: #ff6b6b; margin-bottom: 8px;">
-                            <i class="fas fa-gift"></i> Special Extras
-                        </h4>
-                        <p style="font-size: 0.95rem; margin: 0;">Every order includes a bookmark with an exclusive poem!</p>
-                    </div>
                 </div>
                 
                 <div id="order-details" style="background: rgba(255, 255, 255, 0.15); padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #4CAF50;">
@@ -92,20 +85,64 @@
         </div>
     </footer>
 
+    <!-- EmailJS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    
+    <!-- Simple Email Notifications -->
+    <script src="simple-email.js"></script>
+    
     <!-- Scripts -->
     <script defer src="app.js"></script>
     <script>
         // Extract session ID from URL and display it
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             const urlParams = new URLSearchParams(window.location.search);
             const sessionId = urlParams.get('session_id');
             
             if (sessionId) {
                 document.getElementById('session-id').textContent = sessionId;
                 
+                // Try to get order data from sessionStorage
+                const pendingOrder = sessionStorage.getItem('pendingOrder');
+                
+                if (pendingOrder) {
+                    try {
+                        const orderData = JSON.parse(pendingOrder);
+                        console.log('📦 Order data found:', orderData);
+                        
+                        // Send order notification email to faeriepoetics@gmail.com
+                        if (typeof sendOrderNotification === 'function' && orderData.customer) {
+                            const emailData = {
+                                customerName: orderData.customer.name || 'Guest',
+                                customerEmail: orderData.customer.email || '',
+                                total: orderData.total ? `$${orderData.total.toFixed(2)}` : 'N/A',
+                                items: orderData.items || [],
+                                shippingAddress: orderData.customer.address 
+                                    ? `${orderData.customer.address}, ${orderData.customer.city}, ${orderData.customer.state} ${orderData.customer.zip}`
+                                    : 'N/A'
+                            };
+                            
+                            console.log('📧 Sending order notification email...');
+                            const emailResult = await sendOrderNotification(emailData);
+                            
+                            if (emailResult && emailResult.success) {
+                                console.log('✅ Order notification sent to faeriepoetics@gmail.com');
+                            } else {
+                                console.warn('⚠️ Order notification failed:', emailResult?.error);
+                            }
+                        }
+                        
+                        // Clear the pending order from session storage
+                        sessionStorage.removeItem('pendingOrder');
+                    } catch (error) {
+                        console.error('Error processing order notification:', error);
+                    }
+                }
+                
                 // Clear cart after successful payment
                 if (typeof Storage !== 'undefined') {
                     localStorage.removeItem('yaya_cart_v1');
+                    localStorage.removeItem('yaya_discount_v1');
                     console.log('✅ Cart cleared after successful payment');
                 }
             } else {

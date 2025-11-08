@@ -80,7 +80,7 @@
         <p>64 pages of luminous incantations exploring love, loss, resilience, and present-moment magic. Featuring playful nursery rhymes, fairy-tale metaphors, mystical incantations, and whimsical illustrations that dance across each page. 🌟</p>
       </article>
       <article class="reveal">
-        <h4><i class="fas fa-heart"></i> 🧚‍♀️ For Dreamers & Hearts</h4>
+        <h4><i class="fas fa-heart"></i> 🧚‍♀️ For Dreamers and Lovers</h4>
         <p>Written by a queer artist from St. Louis, this fairy-blessed collection honors lived experiences with tenderness and whimsy. Perfect for readers who collect light, believe in magic, and find romance woven into life's simplicities. ✨</p>
       </article>
       <article class="reveal">
@@ -275,14 +275,14 @@
         {
           "@type": "Organization",
           "name": "Yaya Starchild",
-          "url": "http://example.com",
-          "logo": "http://example.com/assets/logo-new.jpg"
+          "url": "https://pastelpoetics.com",
+          "logo": "https://pastelpoetics.com/assets/logo-new.jpg"
         },
         {
           "@type": "WebSite",
-          "url": "http://example.com",
+          "url": "https://pastelpoetics.com",
           "name": "Yaya Starchild",
-          "potentialAction": {"@type":"SearchAction","target":"http://example.com/search?q={search_term_string}","query-input":"required name=search_term_string"}
+          "potentialAction": {"@type":"SearchAction","target":"https://pastelpoetics.com/search?q={search_term_string}","query-input":"required name=search_term_string"}
         },
         {
           "@type":"Book",
@@ -295,7 +295,10 @@
     }
     </script>
     
-    <!-- Simple Email Notifications (load before app.js) -->
+    <!-- EmailJS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    
+    <!-- Simple Email Notifications (load after EmailJS) -->
     <script src="simple-email.js"></script>
     
     <!-- Firebase Configuration -->
