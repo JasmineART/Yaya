@@ -189,9 +189,9 @@ app.post('/create-stripe-session', async (req,res)=>{
           currency: 'usd',
           product_data: {
             name: 'Standard Shipping',
-            description: 'Ships within 2-3 business days'
+            description: 'Processing time: 2 to 3 business days before shipping'
           },
-          unit_amount: Math.round(shipping * 100)
+              unit_amount: Math.round(shipping * 100)
         },
         quantity: 1
       });

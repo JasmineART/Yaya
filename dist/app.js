@@ -542,32 +542,35 @@ function calculateDiscount(subtotal, discountCode, cartItems = null) {
   }
   
   let discountAmount = 0;
-  
+
+  // helper to safely read quantity and price from cart item
+  const expandItems = (items) => {
+    const all = [];
+    (items || []).forEach(item => {
+      const qty = Number(item.qty || item.quantity || 1);
+      const product = window.PRODUCTS ? window.PRODUCTS.find(p => p.id === item.id) : null;
+      const price = Number(item.price ?? (product ? product.price : 0)) || 0;
+      for (let i = 0; i < qty; i++) all.push(price);
+    });
+    return all;
+  };
+
   if (discount.type === 'percentage') {
     discountAmount = subtotal * discount.value;
   } else if (discount.type === 'flat') {
     discountAmount = Math.min(discount.value, subtotal); // Don't exceed subtotal
   } else if (discount.type === 'bogo_half') {
     // PASTEL: Buy one, get second item at 50% off (applies to lower-priced item)
-    if (!cartItems || cartItems.length < 2) {
+    if (!cartItems) {
       return {
         valid: false,
         amount: 0,
         message: 'Add at least 2 items to cart to use this discount'
       };
     }
-    
-    // Get all individual items (expand quantities)
-    const allItems = [];
-    cartItems.forEach(item => {
-      const product = window.PRODUCTS ? window.PRODUCTS.find(p => p.id === item.id) : null;
-      if (product) {
-        for (let i = 0; i < item.qty; i++) {
-          allItems.push(product.price);
-        }
-      }
-    });
-    
+    // Expand cart items into individual prices (respect qty and item.price if present)
+    const allItems = expandItems(cartItems);
+
     if (allItems.length < 2) {
       return {
         valid: false,
@@ -586,6 +589,9 @@ function calculateDiscount(subtotal, discountCode, cartItems = null) {
     }
   }
   
+  // Round discount to cents
+  discountAmount = Math.round((discountAmount + Number.EPSILON) * 100) / 100;
+
   return { 
     valid: true, 
     amount: discountAmount, 

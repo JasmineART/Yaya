@@ -63,18 +63,19 @@ async function createStripeCheckout(cartItems, customerInfo) {
   // Use the discounted subtotal as the taxable/shippable base
   const calcBase = discountedSubtotal;
   const cfg = window.YAYA_CONFIG || {};
-      // taxRate: decimal (e.g. 0.085 for 8.5%). Accept either `taxRate` (decimal) or `taxPercent` (0-100).
-      const taxRate = (typeof cfg.taxRate !== 'undefined') ? Number(cfg.taxRate) : ((typeof cfg.taxPercent !== 'undefined') ? Number(cfg.taxPercent) / 100 : 0);
-      let tax = +(subtotal * (taxRate || 0));
-      tax = Math.round(tax * 100) / 100; // round to 2 decimals
-      // shipping in dollars. Accept `shipping` (dollars) or `shippingCents` (integer cents)
-      let shipping = 0;
-      if (typeof cfg.shipping !== 'undefined') shipping = Number(cfg.shipping);
-      else if (typeof cfg.shippingCents !== 'undefined') shipping = Number(cfg.shippingCents) / 100;
-      // free shipping over threshold (dollars)
-      if (typeof cfg.freeShippingOver !== 'undefined' && subtotal >= Number(cfg.freeShippingOver)) shipping = 0;
+    // taxRate: decimal (e.g. 0.085 for 8.5%). Accept either `taxRate` (decimal) or `taxPercent` (0-100).
+    const taxRate = (typeof cfg.taxRate !== 'undefined') ? Number(cfg.taxRate) : ((typeof cfg.taxPercent !== 'undefined') ? Number(cfg.taxPercent) / 100 : 0);
+    // Tax should be calculated on the discounted subtotal (calcBase)
+    let tax = +(calcBase * (taxRate || 0));
+    tax = Math.round(tax * 100) / 100; // round to 2 decimals
+    // shipping in dollars. Accept `shipping` (dollars) or `shippingCents` (integer cents)
+    let shipping = 0;
+    if (typeof cfg.shipping !== 'undefined') shipping = Number(cfg.shipping);
+    else if (typeof cfg.shippingCents !== 'undefined') shipping = Number(cfg.shippingCents) / 100;
+    // free shipping over threshold (dollars) - compare against discounted subtotal
+    if (typeof cfg.freeShippingOver !== 'undefined' && calcBase >= Number(cfg.freeShippingOver)) shipping = 0;
 
-      const total = +(Math.round((subtotal + shipping + tax) * 100) / 100);
+    const total = +(Math.round((calcBase + shipping + tax) * 100) / 100);
 
   console.log('🛒 Processing checkout:', { subtotal: calcBase, originalSubtotal: subtotal, discountedSubtotal, shipping, tax, total, items: cartItems.length });
 
