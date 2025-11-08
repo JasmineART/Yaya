@@ -1,13 +1,11 @@
 /**
- * Simple Stripe Payment Integration
- * Client-side only - no backend server needed
- * Perfect for small poetry business
+ * Stripe Payment Integration for Static Sites (GitHub Pages)
+ * Uses Stripe Payment Element for client-side payment processing
  */
 
 // Stripe configuration
 const STRIPE_CONFIG = {
-  // Prefer a key injected via `window.YAYA_CONFIG` for environment-specific deployments.
-  publishableKey: (window.YAYA_CONFIG && window.YAYA_CONFIG.stripePublishableKey) || 'pk_live_51SM7yMRMDdiM5E9AoXPdpUxWXxK3h2ZlOwy2hbqwp4o2BHAr2bM30LKSuNv8AdeMJV0l6nfhvIa2Hzxny8VI9GQx00dDiIoUZ6', // Live Stripe key (fallback)
+  publishableKey: (window.YAYA_CONFIG && window.YAYA_CONFIG.stripePublishableKey) || 'pk_live_51SM7yMRMDdiM5E9AoXPdpUxWXxK3h2ZlOwy2hbqwp4o2BHAr2bM30LKSuNv8AdeMJV0l6nfhvIa2Hzxny8VI9GQx00dDiIoUZ6',
   currency: 'usd',
   companyName: 'Yaya Starchild Poetry',
   companyDescription: 'Pastel Poetics & Magical Creations'
@@ -36,9 +34,8 @@ async function initializeStripe() {
 }
 
 /**
- * Create Stripe checkout session for cart items
- * @param {Array} cartItems - Items from cart
- * @param {Object} customerInfo - Customer details
+ * Create Stripe checkout
+ * Uses server if configured, otherwise shows payment options
  */
 async function createStripeCheckout(cartItems, customerInfo) {
   try {
@@ -46,54 +43,124 @@ async function createStripeCheckout(cartItems, customerInfo) {
       throw new Error('Stripe not initialized');
     }
 
-    // Build a compact items payload for the server-side session creation.
-    // Server expects `items` with `id` (int) and `qty` (int). We'll include price/title for convenience.
-    const serverItems = (cartItems || []).map((item, idx) => ({
-      id: Number(item.id) || (idx + 1),
-      qty: Number(item.quantity || item.qty) || 1,
-      price: Number(item.price) || 0,
-      title: item.name || item.title || `Item ${idx + 1}`
-    }));
-
-    const total = cartItems.reduce((sum, item) => sum + (parseFloat(item.price) * (item.quantity || item.qty || 1)), 0);
-    console.log('🛒 Creating checkout via server:', { serverItems, total, customer: customerInfo });
-
-    // Post to the server to create a Checkout Session (server/index.js -> /create-stripe-session)
-    const serverBase = (window.YAYA_CONFIG && window.YAYA_CONFIG.serverUrl) ? window.YAYA_CONFIG.serverUrl : '';
-    const resp = await fetch(`${serverBase}/create-stripe-session`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        items: serverItems,
-        successUrl: `${window.location.origin}/success.html?session_id={CHECKOUT_SESSION_ID}`,
-        cancelUrl: `${window.location.origin}/cart.html`
-      })
-    });
-
-    const json = await resp.json();
-    if (!resp.ok) {
-      const msg = (json && (json.error || (json.errors && json.errors.map(e=>e.msg).join(', ')))) || `Server error: ${resp.status}`;
-      throw new Error(msg);
+    // Calculate totals and apply discounts
+    let subtotal = cartItems.reduce((sum, item) => sum + (parseFloat(item.price) * (item.quantity || item.qty || 1)), 0);
+    let discountAmount = 0;
+    let discountedSubtotal = subtotal;
+    
+    // Check for applied discount
+    const appliedDiscount = window.getAppliedDiscount ? window.getAppliedDiscount() : null;
+    if (appliedDiscount && appliedDiscount.code && window.calculateDiscount) {
+      const discountResult = window.calculateDiscount(subtotal, appliedDiscount.code);
+      if (discountResult.valid) {
+        discountAmount = discountResult.amount;
+        discountedSubtotal = subtotal - discountAmount;
+        console.log('💰 Discount applied:', { code: appliedDiscount.code, amount: discountAmount, newSubtotal: discountedSubtotal });
+      }
     }
 
-    // Server returns { url, id }
-    if (json.url) {
-      // redirect directly to the hosted Checkout page
-      window.location = json.url;
-      return;
+  // Calculate shipping and tax (configurable via window.YAYA_CONFIG)
+  // Use the discounted subtotal as the taxable/shippable base
+  const calcBase = discountedSubtotal;
+  const cfg = window.YAYA_CONFIG || {};
+      // taxRate: decimal (e.g. 0.085 for 8.5%). Accept either `taxRate` (decimal) or `taxPercent` (0-100).
+      const taxRate = (typeof cfg.taxRate !== 'undefined') ? Number(cfg.taxRate) : ((typeof cfg.taxPercent !== 'undefined') ? Number(cfg.taxPercent) / 100 : 0);
+      let tax = +(subtotal * (taxRate || 0));
+      tax = Math.round(tax * 100) / 100; // round to 2 decimals
+      // shipping in dollars. Accept `shipping` (dollars) or `shippingCents` (integer cents)
+      let shipping = 0;
+      if (typeof cfg.shipping !== 'undefined') shipping = Number(cfg.shipping);
+      else if (typeof cfg.shippingCents !== 'undefined') shipping = Number(cfg.shippingCents) / 100;
+      // free shipping over threshold (dollars)
+      if (typeof cfg.freeShippingOver !== 'undefined' && subtotal >= Number(cfg.freeShippingOver)) shipping = 0;
+
+      const total = +(Math.round((subtotal + shipping + tax) * 100) / 100);
+
+  console.log('🛒 Processing checkout:', { subtotal: calcBase, originalSubtotal: subtotal, discountedSubtotal, shipping, tax, total, items: cartItems.length });
+
+    // Check if server URL is configured
+    const serverUrl = window.YAYA_CONFIG?.serverUrl;
+    
+    if (serverUrl) {
+      // Use server-side Stripe Checkout (full features)
+      console.log('📡 Using server-side checkout:', serverUrl);
+      
+      try {
+        const response = await fetch(`${serverUrl}/create-stripe-session`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            items: cartItems.map(item => ({
+              id: item.id,
+              name: item.name || item.title,
+              price: parseFloat(item.price),
+              quantity: item.quantity || item.qty || 1,
+              image: item.image,
+              description: item.description || ''
+            })),
+            customer: customerInfo,
+            discountAmount: discountAmount,
+            discountCode: appliedDiscount?.code || '',
+            shipping: shipping,
+            tax: tax,
+            taxRate: taxRate,
+            subtotal: calcBase,
+            total: total,
+            successUrl: `${window.location.origin}/success.html?session_id={CHECKOUT_SESSION_ID}`,
+            cancelUrl: `${window.location.origin}/cart.html`
+          })
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Server responded with ${response.status}: ${errorText}`);
+        }
+
+        const session = await response.json();
+        console.log('✅ Checkout session created:', session);
+
+        // Redirect to Stripe Checkout
+        if (session.url) {
+          console.log('🔗 Redirecting to Stripe Checkout...');
+          window.location.href = session.url;
+          return;
+        } else if (session.id) {
+          const { error } = await stripe.redirectToCheckout({ sessionId: session.id });
+          if (error) throw error;
+          return;
+        } else {
+          throw new Error('Server did not return checkout URL');
+        }
+      } catch (serverError) {
+        console.error('❌ Server checkout failed:', serverError);
+        throw new Error(`Server checkout failed: ${serverError.message}`);
+      }
+    } else {
+      // No server configured - show payment options page
+      console.log('⚠️ No server configured, redirecting to payment options...');
+      
+      const orderData = {
+        items: cartItems,
+        customer: customerInfo,
+        subtotal: subtotal,
+        discountAmount: discountAmount,
+        discountCode: appliedDiscount?.code || '',
+        shipping: shipping,
+        tax: tax,
+        taxRate: taxRate,
+        total: total,
+        timestamp: Date.now()
+      };
+      
+      sessionStorage.setItem('pendingOrder', JSON.stringify(orderData));
+      window.location.href = 'payment.html';
     }
-
-    if (!json.id) {
-      throw new Error('No Checkout Session id returned from server');
-    }
-
-    // Redirect using Stripe.js to the Checkout Session created on the server
-    const { error } = await stripe.redirectToCheckout({ sessionId: json.id });
-    if (error) throw error;
-
+    
   } catch (error) {
-    console.error('❌ Stripe checkout error:', error);
-    alert(`Payment error: ${error.message}`);
+    console.error('❌ Checkout error:', error);
+    alert(`Payment error: ${error.message}\n\nPlease try again or contact support.`);
     throw error;
   }
 }
@@ -104,7 +171,7 @@ async function createStripeCheckout(cartItems, customerInfo) {
 async function handleStripeCheckout() {
   try {
     // Get cart items
-    const cart = getCartItems(); // This function exists in your app.js
+    const cart = getCartItems();
     if (!cart || cart.length === 0) {
       alert('Your cart is empty!');
       return;
@@ -143,18 +210,23 @@ async function handleStripeCheckout() {
       checkoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
     }
 
-    // Send order notification email before payment
+    // Send order notification email (if available)
     if (window.sendOrderNotification) {
-      const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
-      const fullAddress = `${customerInfo.address}, ${customerInfo.city}, ${customerInfo.state} ${customerInfo.zip}`;
-      
-      await window.sendOrderNotification({
-        customerName: customerInfo.name,
-        customerEmail: customerInfo.email,
-        total: total.toFixed(2),
-        items: cart,
-        shippingAddress: fullAddress
-      });
+      try {
+        const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+        const fullAddress = `${customerInfo.address}, ${customerInfo.city}, ${customerInfo.state} ${customerInfo.zip}`;
+        
+        await window.sendOrderNotification({
+          customerName: customerInfo.name,
+          customerEmail: customerInfo.email,
+          total: total.toFixed(2),
+          items: cart,
+          shippingAddress: fullAddress
+        });
+      } catch (emailError) {
+        console.warn('Email notification failed:', emailError);
+        // Continue with checkout even if email fails
+      }
     }
 
     // Create Stripe checkout
@@ -167,7 +239,7 @@ async function handleStripeCheckout() {
     const checkoutBtn = document.getElementById('stripe-checkout-btn');
     if (checkoutBtn) {
       checkoutBtn.disabled = false;
-      checkoutBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> Complete Your Order';
+      checkoutBtn.innerHTML = '<i class="fas fa-credit-card"></i> Continue to Payment';
     }
   }
 }
@@ -186,4 +258,4 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-console.log('💳 Stripe payment system loaded');
+console.log('💳 Stripe payment system loaded (static site mode)');

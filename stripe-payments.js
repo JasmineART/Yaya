@@ -59,13 +59,24 @@ async function createStripeCheckout(cartItems, customerInfo) {
       }
     }
 
-    // Add shipping and tax
-    const shipping = 9.99;
-    const taxRate = 0.085; // 8.5%
-    const tax = discountedSubtotal * taxRate;
-    const total = discountedSubtotal + shipping + tax;
+  // Calculate shipping and tax (configurable via window.YAYA_CONFIG)
+  // Use the discounted subtotal as the taxable/shippable base
+  const calcBase = discountedSubtotal;
+  const cfg = window.YAYA_CONFIG || {};
+      // taxRate: decimal (e.g. 0.085 for 8.5%). Accept either `taxRate` (decimal) or `taxPercent` (0-100).
+      const taxRate = (typeof cfg.taxRate !== 'undefined') ? Number(cfg.taxRate) : ((typeof cfg.taxPercent !== 'undefined') ? Number(cfg.taxPercent) / 100 : 0);
+      let tax = +(subtotal * (taxRate || 0));
+      tax = Math.round(tax * 100) / 100; // round to 2 decimals
+      // shipping in dollars. Accept `shipping` (dollars) or `shippingCents` (integer cents)
+      let shipping = 0;
+      if (typeof cfg.shipping !== 'undefined') shipping = Number(cfg.shipping);
+      else if (typeof cfg.shippingCents !== 'undefined') shipping = Number(cfg.shippingCents) / 100;
+      // free shipping over threshold (dollars)
+      if (typeof cfg.freeShippingOver !== 'undefined' && subtotal >= Number(cfg.freeShippingOver)) shipping = 0;
 
-    console.log('🛒 Processing checkout:', { subtotal, discountedSubtotal, shipping, tax, total, items: cartItems.length });
+      const total = +(Math.round((subtotal + shipping + tax) * 100) / 100);
+
+  console.log('🛒 Processing checkout:', { subtotal: calcBase, originalSubtotal: subtotal, discountedSubtotal, shipping, tax, total, items: cartItems.length });
 
     // Check if server URL is configured
     const serverUrl = window.YAYA_CONFIG?.serverUrl;
@@ -95,7 +106,7 @@ async function createStripeCheckout(cartItems, customerInfo) {
             shipping: shipping,
             tax: tax,
             taxRate: taxRate,
-            subtotal: subtotal,
+            subtotal: calcBase,
             total: total,
             successUrl: `${window.location.origin}/success.html?session_id={CHECKOUT_SESSION_ID}`,
             cancelUrl: `${window.location.origin}/cart.html`
