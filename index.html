@@ -26,6 +26,10 @@
   <!-- Manifest disabled in dev to avoid CORS issues -->
   <!-- <link rel="manifest" href="/manifest.webmanifest"> -->
   <link rel="icon" href="/favicon.ico">
+    <!-- EmailJS Library - Load BEFORE app.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <!-- Simple Email Notifications - Load BEFORE app.js -->
+    <script defer src="simple-email.js"></script>
     <!-- Error monitoring system -->
     <script defer src="error-monitor.js"></script>
     <script defer src="cookie-consent.js"></script>
@@ -294,12 +298,6 @@
       ]
     }
     </script>
-    
-    <!-- EmailJS Library -->
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-    
-    <!-- Simple Email Notifications (load after EmailJS) -->
-    <script src="simple-email.js"></script>
     
     <!-- Firebase Configuration -->
     <script type="module" src="firebase-config.js"></script>

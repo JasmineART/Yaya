@@ -15,6 +15,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <!-- <link rel="manifest" href="/manifest.webmanifest"> -->
     <link rel="icon" href="/favicon.ico">
+    <!-- EmailJS Library - Load BEFORE app.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <!-- Simple Email Notifications - Load BEFORE app.js -->
+    <script defer src="simple-email.js"></script>
     <script src="error-monitor.js"></script>
     <script src="cookie-consent.js"></script>
     <script src="data-handler.js"></script>
@@ -86,12 +90,6 @@
       </div>
       <p class="copy">© 2025 Yaya Starchild • Pastel Poetics • Made with magic <i class="fas fa-wand-sparkles"></i> and stardust <i class="fas fa-star"></i></p>
     </footer>
-    
-    <!-- EmailJS Library -->
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-    
-    <!-- Simple Email Notifications -->
-    <script src="simple-email.js"></script>
     
     <!-- Firebase Configuration -->
     <script type="module" src="firebase-config.js"></script>
