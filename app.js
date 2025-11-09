@@ -599,7 +599,15 @@ function initNewsletterForm() {
       const originalText = submitBtn ? submitBtn.textContent : null;
       if (submitBtn) submitBtn.textContent = 'Sending…';
 
-      const emailResult = await sendNewsletterSignup(email, window.location.pathname);
+      // Check if sendNewsletterSignup function exists
+      if (typeof window.sendNewsletterSignup !== 'function') {
+        console.error('❌ sendNewsletterSignup function not found. EmailJS may not be loaded.');
+        alert('Subscription system temporarily unavailable. Please try again later.');
+        if (submitBtn && originalText) submitBtn.textContent = originalText;
+        return;
+      }
+
+      const emailResult = await window.sendNewsletterSignup(email, window.location.pathname);
 
       if (emailResult && emailResult.success) {
         alert('Thanks — you are subscribed! 📧 Notification sent.');
@@ -613,7 +621,8 @@ function initNewsletterForm() {
       if (submitBtn && originalText) submitBtn.textContent = originalText;
     } catch (err) {
       console.error('Newsletter submission error (EmailJS only):', err);
-      alert('Subscription failed due to an error. Please try again later.');
+      alert('Subscription system temporarily unavailable. Please try again later.');
+      if (submitBtn && originalText) submitBtn.textContent = originalText;
     }
   });
 }
