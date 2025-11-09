@@ -10,18 +10,26 @@
     "build": "node build-static.js",
     "validate": "node validate-deploy.js",
     "predeploy": "npm run validate && npm run build",
-    "test": "node validate-deploy.js"
+    "test": "jest --coverage"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/functions-framework": "^4.0.0",
+    "@google-cloud/secret-manager": "^6.1.1",
     "compression": "^1.8.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "express-rate-limit": "^8.1.0",
     "express-validator": "^7.3.0",
-    "helmet": "^8.1.0"
+    "googleapis": "^165.0.0",
+    "helmet": "^8.1.0",
+    "jest-environment-jsdom": "^30.2.0",
+    "nodemailer": "^7.0.10"
+  },
+  "devDependencies": {
+    "jest": "^29.6.1"
   }
 }
