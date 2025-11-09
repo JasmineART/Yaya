@@ -167,20 +167,9 @@ app.post('/create-stripe-session', async (req,res)=>{
       };
     });
     
-    // Add discount as a separate line item if applicable
-    if (discountAmount > 0 && discountCode) {
-      line_items.push({
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: `Discount (${discountCode})`,
-            description: `Applied discount code: ${discountCode}`
-          },
-          unit_amount: -Math.round(discountAmount * 100) // Negative amount for discount
-        },
-        quantity: 1
-      });
-    }
+    // Note: Stripe doesn't support negative line items
+    // Discounts are handled by reducing the subtotal before adding shipping/tax
+    // The discount info is stored in metadata for reference
     
     // Add shipping as a line item
     if (shipping && shipping > 0) {
