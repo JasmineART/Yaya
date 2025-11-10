@@ -42,15 +42,16 @@
         <!-- cart rendered by app.js -->
       </section>
       <div class="cart-actions reveal">
-        <label for="discount-code" class="sr-only">Discount code</label>
-  <input id="discount-code" placeholder="Enter discount code" aria-describedby="discount-help" />
-  <div id="discount-help" class="sr-only">Enter your discount or promotional code (contact support if unsure)</div>
-        <button id="apply-discount" class="btn ghost" aria-describedby="discount-status">
-          <i class="fas fa-tag" aria-hidden="true"></i> Apply Code
-        </button>
-        <a href="checkout.html" class="btn primary" role="button">
-          <i class="fas fa-credit-card" aria-hidden="true"></i> Proceed to Checkout
-        </a>
+          <!-- deployment-cache-bust: 2025-11-10T19:24:00Z -->
+          <label for="discount-code" class="sr-only">Discount code</label>
+          <input id="discount-code" placeholder="Enter discount code" aria-describedby="discount-help" />
+          <div id="discount-help" class="sr-only">If you have a discount code, enter it here. For privacy we no longer list sample codes publicly.</div>
+          <button id="apply-discount" class="btn ghost" aria-describedby="discount-status">
+            <i class="fas fa-tag" aria-hidden="true"></i> Apply Code
+          </button>
+          <a href="checkout.html" class="btn primary" role="button">
+            <i class="fas fa-credit-card" aria-hidden="true"></i> Proceed to Checkout
+          </a>
       </div>
       <div id="discount-status" class="live-region" aria-live="polite" aria-atomic="true"></div>
   <p style="margin-top:1.5rem; font-style:italic; text-align:center;" class="reveal"><i class="fas fa-clock"></i> Processing time: 2 to 3 business days before shipping</p>
