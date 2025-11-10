@@ -126,10 +126,9 @@ Health Check Response:
    - Use test card: `4242 4242 4242 4242`
    - Complete test purchase
 
-3. **Test Discount Codes:**
-   - At checkout, enter discount code
-   - Try: `SUN10` (10% off), `FAIRY5` ($5 off), `MAGIC15` (15% off on orders $75+)
-   - Verify discount applies correctly
+  3. **Test Discount Codes:**
+    - At checkout, enter a valid discount code provided by marketing or admin
+    - Verify discount applies correctly
 
 ---
 

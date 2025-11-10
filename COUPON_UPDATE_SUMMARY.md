@@ -123,8 +123,8 @@ const discountResult = calculateDiscount(subtotal, appliedDiscount.code, items);
 <div id="discount-help" class="sr-only">Available codes: SUN10 for 10% off, FAIRY5 for $5 off any order, MAGIC15 for 15% off orders over $75</div>
 
 <!-- NEW -->
-<input id="discount-code" placeholder="Enter magic code (PASTEL, SUNCATCHER, WHIMSY)" />
-<div id="discount-help" class="sr-only">Available codes: PASTEL for buy one get 2nd item 50% off, SUNCATCHER for 15% off entire cart, WHIMSY for 25% off entire cart</div>
+<input id="discount-code" placeholder="Enter discount code" />
+<div id="discount-help" class="sr-only">Enter your discount or promotional code (contact support if unsure)</div>
 ```
 
 ---
