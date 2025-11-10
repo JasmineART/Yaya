@@ -102,28 +102,56 @@ function loadEmailJS() {
   return new Promise((resolve, reject) => {
     if (typeof emailjs !== 'undefined') {
       // EmailJS already loaded, initialize it
-      emailjs.init(EMAILJS_CONFIG.userId);
-      resolve();
+      try {
+        emailjs.init(EMAILJS_CONFIG.userId);
+        console.log('✅ EmailJS already loaded and initialized');
+        resolve();
+      } catch (error) {
+        console.error('❌ EmailJS init error:', error);
+        reject(error);
+      }
       return;
     }
 
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
     script.onload = () => {
-      // Initialize EmailJS after loading
-      emailjs.init(EMAILJS_CONFIG.userId);
-      console.log('✅ EmailJS library loaded and initialized');
-      resolve();
+      try {
+        // Initialize EmailJS after loading
+        if (typeof emailjs === 'undefined') {
+          throw new Error('EmailJS library loaded but emailjs object not found');
+        }
+        emailjs.init(EMAILJS_CONFIG.userId);
+        console.log('✅ EmailJS library loaded and initialized');
+        resolve();
+      } catch (error) {
+        console.error('❌ EmailJS initialization error:', error);
+        reject(error);
+      }
     };
-    script.onerror = () => reject(new Error('Failed to load EmailJS'));
+    script.onerror = () => {
+      const error = new Error('Failed to load EmailJS library from CDN');
+      console.error('❌', error.message);
+      reject(error);
+    };
     document.head.appendChild(script);
   });
 }
 
 // Convenience functions
 async function sendNewsletterSignup(email, source = 'website') {
-  // Send email notification for new subscribers
-  return sendNotificationEmail('newsletter', { email, source });
+  try {
+    // Validate email first
+    if (!email || !email.includes('@')) {
+      return { success: false, error: 'Invalid email address' };
+    }
+    
+    // Send email notification for new subscribers
+    return await sendNotificationEmail('newsletter', { email, source });
+  } catch (error) {
+    console.error('❌ sendNewsletterSignup error:', error);
+    return { success: false, error: error.message || 'Unknown error' };
+  }
 }
 
 async function sendCommentNotification(name, text, email = '') {

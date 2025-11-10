@@ -59,49 +59,13 @@ function announceToScreenReader(message, priority = 'polite') {
 function manageFocus(element) {
   if (element && typeof element.focus === 'function') {
     element.focus();
-    
+
     // Scroll into view if needed
     element.scrollIntoView({
       behavior: 'smooth',
       block: 'center'
     });
   }
-}
-
-// Add custom animation with drift - do this first
-function injectSparkleStyles() {
-  // Check if already injected
-  if (document.getElementById('sparkle-animation-styles')) {
-    console.log('✨ Sparkle styles already injected');
-    return;
-  }
-  
-  const style = document.createElement('style');
-  style.id = 'sparkle-animation-styles';
-  style.textContent = `
-    @keyframes floatSparkle {
-      0% { 
-        transform: translateY(0) translateX(0) scale(0.5) rotate(0deg);
-        opacity: 0;
-      }
-      5% {
-        opacity: 0.6;
-      }
-      50% {
-        transform: translateY(-50vh) translateX(var(--drift, 0)) scale(1) rotate(180deg);
-        opacity: 0.8;
-      }
-      95% {
-        opacity: 0.6;
-      }
-      100% {
-        transform: translateY(-100vh) translateX(calc(var(--drift, 0) * 1.5)) scale(0.3) rotate(360deg);
-        opacity: 0;
-      }
-    }
-  `;
-  document.head.appendChild(style);
-  console.log('✨ Sparkle animation styles injected');
 }
 
 // Magical sparkle stream animation - optimized for performance
@@ -612,6 +576,60 @@ async function postToSupabase(path, body){
   }catch(e){return null}
 }
 
+// Newsletter initializer (exposed) - attaches submit handler for newsletter form
+function initNewsletterForm() {
+  const nf = document.getElementById('newsletter-form');
+  if (!nf) return;
+
+  // Avoid duplicate listeners by replacing the node
+  try {
+    const clone = nf.cloneNode(true);
+    nf.parentNode.replaceChild(clone, nf);
+  } catch (e) {
+    // ignore
+  }
+
+  const form = document.getElementById('newsletter-form');
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = document.getElementById('newsletter-email').value;
+
+    try {
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalText = submitBtn ? submitBtn.textContent : null;
+      if (submitBtn) submitBtn.textContent = 'Sending…';
+
+      // Check if sendNewsletterSignup function exists
+      if (typeof window.sendNewsletterSignup !== 'function') {
+        console.error('❌ sendNewsletterSignup function not found. EmailJS may not be loaded.');
+        alert('Subscription system temporarily unavailable. Please try again later.');
+        if (submitBtn && originalText) submitBtn.textContent = originalText;
+        return;
+      }
+
+      const emailResult = await window.sendNewsletterSignup(email, window.location.pathname);
+
+      if (emailResult && emailResult.success) {
+        alert('Thanks — you are subscribed! 📧 Notification sent.');
+        form.reset();
+        if (submitBtn && originalText) submitBtn.textContent = originalText;
+        return;
+      }
+
+      console.warn('EmailJS newsletter send failed', emailResult);
+      alert('Could not send subscription email via EmailJS. Please try again later.');
+      if (submitBtn && originalText) submitBtn.textContent = originalText;
+    } catch (err) {
+      console.error('Newsletter submission error (EmailJS only):', err);
+      alert('Subscription system temporarily unavailable. Please try again later.');
+      if (submitBtn && originalText) submitBtn.textContent = originalText;
+    }
+  });
+}
+
+// Expose for tests and manual init
+window.initNewsletterForm = initNewsletterForm;
+
 document.addEventListener('DOMContentLoaded',()=>{
   // Initialize accessibility features first
   initAccessibility();
@@ -620,43 +638,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   renderCartContents();
 
   // newsletter
-  const nf = document.getElementById('newsletter-form');
-  if(nf){
-    nf.addEventListener('submit',async e=>{
-      e.preventDefault();
-      const email = document.getElementById('newsletter-email').value;
-      
-      // Send notification email via EmailJS
-      const emailResult = await sendNewsletterSignup(email, window.location.pathname);
-      
-      // If EmailJS succeeded, show success message
-      if(emailResult && emailResult.success) {
-        alert('Thanks — you are subscribed! 📧 Notification sent.');
-        nf.reset();
-        return;
-      }
-      
-      // If server configured, try server endpoint
-      if(window.YAYA_CONFIG && window.YAYA_CONFIG.serverUrl){
-        try{
-          const resp = await fetch(window.YAYA_CONFIG.serverUrl + '/newsletter',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
-          const data = await resp.json();
-          if(data && data.ok) { alert('Thanks — you are subscribed! 📧'); nf.reset(); return; }
-        }catch(e){console.warn('server subscribe failed',e)}
-      }
-      
-      // Fallback to Supabase only (skip broken Formspree)
-      const saved = await postToSupabase('/rest/v1/newsletter', {email, created_at: new Date().toISOString()});
-      if(saved){
-        alert('Thanks — you are subscribed! 📧'); 
-        nf.reset(); 
-        return;
-      }
-      
-      // If all else fails
-      alert('Subscription system temporarily unavailable. Please try again later.')
-    });
-  }
+  initNewsletterForm();
 
   // comments
   const cf = document.getElementById('comment-form');

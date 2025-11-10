@@ -39,7 +39,19 @@ const { body, validationResult } = require('express-validator');
 const limiter = rateLimit({ windowMs: 60*1000, max: 60 });
 app.use(limiter);
 
-const stripeSecret = process.env.STRIPE_SECRET_LIVE_KEY || process.env.STRIPE_SECRET_KEY || '';
+// Read Stripe secret from a few possible env names or a Docker/Render secret file
+const fs = require('fs');
+const _rawStripe = process.env.STRIPE_SECRET_LIVE_KEY || process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET || process.env.STRIPE_LIVE_SECRET || (() => {
+  try {
+    // Docker/Render secrets are sometimes mounted at /run/secrets/<name>
+    return fs.readFileSync('/run/secrets/stripe', 'utf8');
+  } catch (e) {
+    return '';
+  }
+})();
+
+// Sanitize the secret: trim whitespace and strip surrounding quotes (in case env was pasted with quotes)
+const stripeSecret = _rawStripe && typeof _rawStripe === 'string' ? _rawStripe.trim().replace(/^\"|\"$/g, '').replace(/^\'|\'$/g, '') : '';
 const stripe = stripeSecret ? Stripe(stripeSecret) : null;
 const supabaseUrl = process.env.SUPABASE_URL || '';
 const supabaseServiceRole = process.env.SUPABASE_SERVICE_ROLE || '';
@@ -48,13 +60,16 @@ const nodemailer = require('nodemailer');
 
 // Log server configuration on startup (no secrets)
 console.log('🔧 Server Configuration:');
-console.log('  Stripe:', stripe ? '✅ Configured' : '❌ NOT CONFIGURED');
-if (process.env.STRIPE_SECRET_LIVE_KEY) {
-  console.log('  STRIPE_SECRET_LIVE_KEY: ✅ Set (' + process.env.STRIPE_SECRET_LIVE_KEY.length + ' chars)');
-} else if (process.env.STRIPE_SECRET_KEY) {
-  console.log('  STRIPE_SECRET_KEY: ✅ Set (' + process.env.STRIPE_SECRET_KEY.length + ' chars)');
+if (stripe) {
+  const hint = stripeSecret && stripeSecret.length ? `${stripeSecret.slice(0, 8)}...${stripeSecret.slice(-8)}` : 'configured';
+  console.log('  Stripe: ✅ Configured (' + hint + ')');
 } else {
-  console.log('  ⚠️  No Stripe secret key found in environment');
+  console.log('  Stripe: ❌ NOT CONFIGURED');
+}
+if (stripeSecret) {
+  console.log('  STRIPE key: set (' + stripeSecret.length + ' chars)');
+} else {
+  console.log('  ⚠️  No Stripe secret key found in environment or /run/secrets/stripe');
 }
 console.log('  Supabase:', supabase ? '✅ Configured' : '⚠️  Not configured');
 console.log('  CORS Origins:', corsOptions.origin);
@@ -103,19 +118,21 @@ app.get('/', (req, res) => {
 
 // Health check endpoint with environment diagnostics (no secrets exposed)
 app.get('/_health', (req, res) => {
-  const hasStripeLive = !!process.env.STRIPE_SECRET_LIVE_KEY;
-  const hasStripeFallback = !!process.env.STRIPE_SECRET_KEY;
-  const stripeKeyLength = (process.env.STRIPE_SECRET_LIVE_KEY || process.env.STRIPE_SECRET_KEY || '').length;
-  
+  const has_STRIPE_SECRET_LIVE_KEY = !!process.env.STRIPE_SECRET_LIVE_KEY;
+  const has_STRIPE_SECRET_KEY = !!process.env.STRIPE_SECRET_KEY;
+  const has_other_stripe_env = !!(process.env.STRIPE_SECRET || process.env.STRIPE_LIVE_SECRET);
+  const key_length = stripeSecret ? stripeSecret.length : 0;
+
   res.json({
     ok: true,
     environment: {
       stripe: {
         configured: stripe !== null,
-        has_STRIPE_SECRET_LIVE_KEY: hasStripeLive,
-        has_STRIPE_SECRET_KEY: hasStripeFallback,
-        key_length: stripeKeyLength,
-        expected_length: 107
+        has_STRIPE_SECRET_LIVE_KEY,
+        has_STRIPE_SECRET_KEY,
+        has_other_stripe_env,
+        key_length,
+        expected_length: 'varies'
       },
       supabase: {
         configured: supabase !== null,
@@ -385,7 +402,6 @@ app.post('/webhook/stripe', express.raw({type:'application/json'}), (req,res)=>{
 });
 
 // Serve a simple order confirmation page
-const fs = require('fs');
 app.get('/order-confirmation/:id', async (req,res)=>{
   const id = req.params.id;
   try{
