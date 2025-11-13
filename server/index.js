@@ -175,8 +175,28 @@ app.post('/create-stripe-session', async (req,res)=>{
       return res.status(400).json({error:'Items array is required'});
     }
     
-    // Map items to line_items for Stripe
+    // Calculate the original subtotal from items
+    const calculatedSubtotal = items.reduce((sum, item) => {
+      return sum + ((item.price || 0) * (item.quantity || item.qty || 1));
+    }, 0);
+    
+    // If there's a discount, calculate the discount ratio to apply proportionally
+    let discountRatio = 1;
+    if (discountAmount && discountAmount > 0 && calculatedSubtotal > 0) {
+      discountRatio = (calculatedSubtotal - discountAmount) / calculatedSubtotal;
+      console.log('💰 Discount calculation:', {
+        calculatedSubtotal,
+        discountAmount,
+        discountRatio: discountRatio.toFixed(4),
+        finalSubtotal: (calculatedSubtotal * discountRatio).toFixed(2)
+      });
+    }
+    
+    // Map items to line_items for Stripe with discounted prices
     const line_items = items.map(item => {
+      const originalPrice = item.price || 0;
+      const discountedPrice = originalPrice * discountRatio; // Apply discount proportionally
+      
       const product_data = {
         name: item.name || item.title || 'Product',
         images: item.image ? [`${req.headers.origin || 'https://pastelpoetics.com'}/${item.image}`] : []
@@ -187,11 +207,16 @@ app.post('/create-stripe-session', async (req,res)=>{
         product_data.description = item.description;
       }
       
+      // Add discount indicator to product name if discount applied
+      if (discountAmount && discountAmount > 0 && discountCode) {
+        product_data.name = `${product_data.name} (${discountCode} applied)`;
+      }
+      
       return {
         price_data: {
           currency: 'usd',
           product_data,
-          unit_amount: Math.round((item.price || 0) * 100) // Convert to cents
+          unit_amount: Math.round(discountedPrice * 100) // Convert to cents with discount applied
         },
         quantity: item.quantity || item.qty || 1
       };
@@ -230,6 +255,18 @@ app.post('/create-stripe-session', async (req,res)=>{
         quantity: 1
       });
     }
+    
+    // Log line items being sent to Stripe
+    console.log('📋 Line items for Stripe:', line_items.map(li => ({
+      name: li.price_data.product_data.name,
+      amount: `$${(li.price_data.unit_amount / 100).toFixed(2)}`,
+      qty: li.quantity
+    })));
+    
+    const stripeTotal = line_items.reduce((sum, item) => {
+      return sum + (item.price_data.unit_amount * item.quantity);
+    }, 0) / 100;
+    console.log('💵 Stripe checkout total will be: $' + stripeTotal.toFixed(2));
     
     // Create Stripe checkout session
     const sessionConfig = {
