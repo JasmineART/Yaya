@@ -834,8 +834,33 @@ document.addEventListener('DOMContentLoaded',()=>{
       const items = getCart().map(it=>{
         const p = window.PRODUCTS.find(x=>x.id===it.id);
         if(!p) return null;
-        return {id: it.id, title: p.title, price: p.price, qty: it.qty};
+        return {id: it.id, title: p.title, price: p.price, qty: it.qty, name: p.title, quantity: it.qty, image: p.images && p.images[0]};
       }).filter(Boolean); // Remove null entries
+
+      // Calculate order totals
+      const subtotal = items.reduce((s,it)=>{
+        const p = window.PRODUCTS.find(x=>x.id===it.id);
+        return p ? s + (p.price * it.qty) : s;
+      },0);
+      
+      const appliedDiscount = getAppliedDiscount();
+      let discountAmount = 0;
+      let discountCode = '';
+      let discountedSubtotal = subtotal;
+      
+      if (appliedDiscount && appliedDiscount.code) {
+        const discountResult = calculateDiscount(subtotal, appliedDiscount.code, items);
+        if (discountResult.valid) {
+          discountAmount = discountResult.amount;
+          discountCode = appliedDiscount.code;
+          discountedSubtotal = subtotal - discountAmount;
+        }
+      }
+      
+      const shipping = 9.99;
+      const taxRate = 0.085;
+      const tax = discountedSubtotal * taxRate;
+      const total = discountedSubtotal + shipping + tax;
 
       // Save order attempt to Supabase if available
       const orderRecord = {name,email,items,created_at:new Date().toISOString()};
@@ -850,10 +875,26 @@ document.addEventListener('DOMContentLoaded',()=>{
         }
       }catch(e){console.warn('notify server failed',e)}
 
-      // Call server to create payment session
+      // Call server to create payment session with calculated totals
       try{
         if(pay==='stripe'){
-          const resp = await fetch((window.YAYA_CONFIG && window.YAYA_CONFIG.serverUrl ? window.YAYA_CONFIG.serverUrl : '') + '/create-stripe-session',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items,successUrl:location.origin + '/index.html',cancelUrl:location.origin + '/cart.html'})});
+          const resp = await fetch((window.YAYA_CONFIG && window.YAYA_CONFIG.serverUrl ? window.YAYA_CONFIG.serverUrl : '') + '/create-stripe-session',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({
+              items,
+              customer: {name, email},
+              discountAmount,
+              discountCode,
+              shipping,
+              tax,
+              taxRate,
+              subtotal,
+              total,
+              successUrl:location.origin + '/success.html?session_id={CHECKOUT_SESSION_ID}',
+              cancelUrl:location.origin + '/cart.html'
+            })
+          });
           const data = await resp.json();
           if(data.url) window.location.href = data.url; else throw new Error(data.error || 'No url');
         }else if(pay==='paypal'){
