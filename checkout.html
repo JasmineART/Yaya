@@ -16,7 +16,11 @@
     <script>
       window.YAYA_CONFIG = {
         serverUrl: 'https://yaya-1dc3.onrender.com',
-        stripePublishableKey: 'pk_live_51SM7yMRMDdiM5E9AoXPdpUxWXxK3h2ZlOwy2hbqwp4o2BHAr2bM30LKSuNv8AdeMJV0l6nfhvIa2Hzxny8VI9GQx00dDiIoUZ6'
+        stripePublishableKey: 'pk_live_51SM7yMRMDdiM5E9AoXPdpUxWXxK3h2ZlOwy2hbqwp4o2BHAr2bM30LKSuNv8AdeMJV0l6nfhvIa2Hzxny8VI9GQx00dDiIoUZ6',
+        // Shipping and tax configuration
+        shipping: 9.99,           // $9.99 flat rate shipping
+        taxRate: 0.085,           // 8.5% sales tax
+        freeShippingOver: 999999  // No free shipping threshold (set high)
       };
     </script>
     <!-- EmailJS Library - Load BEFORE app.js -->
