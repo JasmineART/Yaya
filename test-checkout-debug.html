@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout Debug Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-section {
+            border: 2px solid #333;
+            padding: 15px;
+            margin: 20px 0;
+            background: #f5f5f5;
+        }
+        .result {
+            background: white;
+            padding: 10px;
+            margin-top: 10px;
+            border-left: 4px solid #4CAF50;
+        }
+        .error {
+            border-left-color: #f44336;
+            background: #ffebee;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Checkout Flow Debug Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Configuration</h2>
+        <p><strong>Server URL:</strong> https://yaya-1dc3.onrender.com</p>
+        <p><strong>Test Scenario:</strong> Single book with shipping and tax</p>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 1: Basic Checkout (No Discount)</h2>
+        <button onclick="testBasicCheckout()">Run Test</button>
+        <div id="test1-result" class="result" style="display:none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Checkout with 15% Discount (SUNCATCHER)</h2>
+        <button onclick="testDiscountCheckout()">Run Test</button>
+        <div id="test2-result" class="result" style="display:none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Check Render Server Logs</h2>
+        <p>After running tests, check Render logs for:</p>
+        <ul>
+            <li>📦 Stripe session request received</li>
+            <li>🔍 Checking shipping and tax values</li>
+            <li>✅ Adding shipping line item</li>
+            <li>✅ Adding tax line item</li>
+            <li>📋 Line items for Stripe</li>
+            <li>💵 Stripe checkout total will be</li>
+        </ul>
+        <p><a href="https://dashboard.render.com/" target="_blank">Open Render Dashboard →</a></p>
+    </div>
+
+    <script>
+        async function testBasicCheckout() {
+            const resultDiv = document.getElementById('test1-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '⏳ Running test...';
+            
+            try {
+                // Single book: $28 base price
+                const items = [{
+                    id: 'book-1',
+                    name: 'Test Poetry Book',
+                    title: 'Test Poetry Book',
+                    price: 28.00,
+                    quantity: 1,
+                    qty: 1
+                }];
+                
+                const subtotal = 28.00;
+                const shipping = 9.99;
+                const taxRate = 0.085;
+                const tax = subtotal * taxRate; // $2.38
+                const total = subtotal + shipping + tax; // $40.37
+                
+                const payload = {
+                    items,
+                    customer: { name: 'Test User', email: 'test@example.com' },
+                    discountAmount: 0,
+                    discountCode: '',
+                    shipping,
+                    tax,
+                    taxRate,
+                    subtotal,
+                    total,
+                    successUrl: 'https://pastelpoetics.com/success.html?session_id={CHECKOUT_SESSION_ID}',
+                    cancelUrl: 'https://pastelpoetics.com/cart.html'
+                };
+                
+                console.log('📤 Test 1 Payload:', payload);
+                
+                const response = await fetch('https://yaya-1dc3.onrender.com/create-stripe-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+                console.log('📥 Test 1 Response:', data);
+                
+                if (data.url) {
+                    resultDiv.className = 'result';
+                    resultDiv.innerHTML = `
+                        <h3>✅ SUCCESS</h3>
+                        <p><strong>Expected Total:</strong> $${total.toFixed(2)}</p>
+                        <p><strong>Breakdown:</strong></p>
+                        <ul>
+                            <li>Book: $${subtotal.toFixed(2)}</li>
+                            <li>Shipping: $${shipping.toFixed(2)}</li>
+                            <li>Tax (8.5%): $${tax.toFixed(2)}</li>
+                        </ul>
+                        <p><a href="${data.url}" target="_blank">Open Stripe Checkout →</a></p>
+                        <p><em>Check if Stripe shows all three line items!</em></p>
+                        <details>
+                            <summary>View Response</summary>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    `;
+                } else {
+                    throw new Error(data.error || 'No checkout URL returned');
+                }
+                
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <h3>❌ ERROR</h3>
+                    <p>${error.message}</p>
+                    <pre>${error.stack}</pre>
+                `;
+                console.error('Test 1 Error:', error);
+            }
+        }
+
+        async function testDiscountCheckout() {
+            const resultDiv = document.getElementById('test2-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '⏳ Running test...';
+            
+            try {
+                // Single book with 15% discount
+                const items = [{
+                    id: 'book-1',
+                    name: 'Test Poetry Book',
+                    title: 'Test Poetry Book',
+                    price: 28.00,
+                    quantity: 1,
+                    qty: 1
+                }];
+                
+                const subtotal = 28.00;
+                const discountAmount = subtotal * 0.15; // $4.20
+                const discountedSubtotal = subtotal - discountAmount; // $23.80
+                const shipping = 9.99;
+                const taxRate = 0.085;
+                const tax = discountedSubtotal * taxRate; // $2.02
+                const total = discountedSubtotal + shipping + tax; // $35.81
+                
+                const payload = {
+                    items,
+                    customer: { name: 'Test User', email: 'test@example.com' },
+                    discountAmount,
+                    discountCode: 'SUNCATCHER',
+                    shipping,
+                    tax,
+                    taxRate,
+                    subtotal,
+                    total,
+                    successUrl: 'https://pastelpoetics.com/success.html?session_id={CHECKOUT_SESSION_ID}',
+                    cancelUrl: 'https://pastelpoetics.com/cart.html'
+                };
+                
+                console.log('📤 Test 2 Payload:', payload);
+                
+                const response = await fetch('https://yaya-1dc3.onrender.com/create-stripe-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+                console.log('📥 Test 2 Response:', data);
+                
+                if (data.url) {
+                    resultDiv.className = 'result';
+                    resultDiv.innerHTML = `
+                        <h3>✅ SUCCESS</h3>
+                        <p><strong>Expected Total:</strong> $${total.toFixed(2)}</p>
+                        <p><strong>Breakdown:</strong></p>
+                        <ul>
+                            <li>Book (original): $${subtotal.toFixed(2)}</li>
+                            <li>Discount (15%): -$${discountAmount.toFixed(2)}</li>
+                            <li>Discounted subtotal: $${discountedSubtotal.toFixed(2)}</li>
+                            <li>Shipping: $${shipping.toFixed(2)}</li>
+                            <li>Tax (8.5% on discounted): $${tax.toFixed(2)}</li>
+                        </ul>
+                        <p><a href="${data.url}" target="_blank">Open Stripe Checkout →</a></p>
+                        <p><em>Check if Stripe shows: discounted book price, shipping, and tax!</em></p>
+                        <details>
+                            <summary>View Response</summary>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    `;
+                } else {
+                    throw new Error(data.error || 'No checkout URL returned');
+                }
+                
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <h3>❌ ERROR</h3>
+                    <p>${error.message}</p>
+                    <pre>${error.stack}</pre>
+                `;
+                console.error('Test 2 Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
