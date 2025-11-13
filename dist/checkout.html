@@ -19,10 +19,16 @@
         stripePublishableKey: 'pk_live_51SM7yMRMDdiM5E9AoXPdpUxWXxK3h2ZlOwy2hbqwp4o2BHAr2bM30LKSuNv8AdeMJV0l6nfhvIa2Hzxny8VI9GQx00dDiIoUZ6'
       };
     </script>
+    <!-- EmailJS Library - Load BEFORE app.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <!-- Simple Email Notifications - Load BEFORE app.js -->
+    <script defer src="simple-email.js"></script>
     <script src="error-monitor.js"></script>
     <script src="cookie-consent.js"></script>
     <script src="data-handler.js"></script>
-    <script src="stripe-payments.js"></script>
+    <script defer src="stripe-payments.js"></script>
+    <script defer src="products.js"></script>
+    <script defer src="app.js"></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -112,11 +118,6 @@
       </div>
     </footer>
 
-    <!-- Simple Email Notifications (load before app.js) -->
-    <script src="simple-email.js"></script>
-    <script defer src="products.js"></script>
-    <script defer src="app.js"></script>
-    
     <!-- Firebase Configuration -->
     <script type="module" src="firebase-config.js"></script>
   </body>
