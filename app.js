@@ -452,8 +452,20 @@ function removeFromCart(uniqueKey) {
   console.log('🗑️ Removing item from cart:', uniqueKey);
   const items = getCart();
   console.log('📦 Cart before removal:', items);
-  const filteredItems = items.filter(item => (item.uniqueKey || item.id) !== uniqueKey);
+  
+  // Filter out the item - check both uniqueKey and id for compatibility
+  const filteredItems = items.filter(item => {
+    const itemKey = item.uniqueKey || item.id;
+    const match = itemKey === uniqueKey;
+    if (match) {
+      console.log('✅ Found matching item to remove:', item);
+    }
+    return !match;
+  });
+  
   console.log('📦 Cart after removal:', filteredItems);
+  console.log(`📊 Removed ${items.length - filteredItems.length} item(s)`);
+  
   saveCart(filteredItems);
   updateCartCount();
   renderCartContents();
