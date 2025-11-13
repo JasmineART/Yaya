@@ -211,7 +211,7 @@ jobs:
     - name: Test homepage
       run: |
         echo "🧪 Testing homepage..."
-        STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://jasmineart.github.io/Yaya/)
+        STATUS=$(curl -L -s -o /dev/null -w "%{http_code}" https://pastelpoetics.com/)
         if [ "$STATUS" != "200" ]; then
           echo "❌ Homepage returned status $STATUS"
           exit 1
@@ -221,7 +221,7 @@ jobs:
     - name: Test shop page
       run: |
         echo "🧪 Testing shop page..."
-        STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://jasmineart.github.io/Yaya/shop.html)
+        STATUS=$(curl -L -s -o /dev/null -w "%{http_code}" https://pastelpoetics.com/shop.html)
         if [ "$STATUS" != "200" ]; then
           echo "❌ Shop page returned status $STATUS"
           exit 1
@@ -232,7 +232,7 @@ jobs:
       run: |
         echo "🧪 Testing critical assets..."
         for asset in app.js products.js styles.css; do
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://jasmineart.github.io/Yaya/$asset)
+          STATUS=$(curl -L -s -o /dev/null -w "%{http_code}" https://pastelpoetics.com/$asset)
           if [ "$STATUS" != "200" ]; then
             echo "❌ $asset returned status $STATUS"
             exit 1
@@ -243,4 +243,4 @@ jobs:
     - name: All tests passed
       run: |
         echo "🎊 All smoke tests passed successfully!"
-        echo "Site is live and functional"
+        echo "Site is live and functional at https://pastelpoetics.com"
