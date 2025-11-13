@@ -449,16 +449,20 @@ function getCartItems() {
 function saveCart(items){localStorage.setItem(STORAGE_KEY,JSON.stringify(items));}
 
 function removeFromCart(uniqueKey) {
-  console.log('🗑️ Removing item from cart:', uniqueKey);
+  console.log('🗑️ Removing item from cart:', uniqueKey, typeof uniqueKey);
   const items = getCart();
   console.log('📦 Cart before removal:', items);
   
   // Filter out the item - check both uniqueKey and id for compatibility
+  // Handle type coercion: uniqueKey might be string, but id might be number
   const filteredItems = items.filter(item => {
     const itemKey = item.uniqueKey || item.id;
-    const match = itemKey === uniqueKey;
+    // Use == for loose equality to handle string/number mismatch
+    const match = itemKey == uniqueKey;
     if (match) {
-      console.log('✅ Found matching item to remove:', item);
+      console.log('✅ Found matching item to remove:', item, 'itemKey:', itemKey, typeof itemKey);
+    } else {
+      console.log('⏭️ Keeping item:', item, 'itemKey:', itemKey, typeof itemKey);
     }
     return !match;
   });
