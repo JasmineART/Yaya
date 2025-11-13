@@ -861,6 +861,16 @@ document.addEventListener('DOMContentLoaded',()=>{
       const taxRate = 0.085;
       const tax = discountedSubtotal * taxRate;
       const total = discountedSubtotal + shipping + tax;
+      
+      console.log('💳 Preparing Stripe checkout:', {
+        subtotal: subtotal.toFixed(2),
+        discountCode,
+        discountAmount: discountAmount.toFixed(2),
+        discountedSubtotal: discountedSubtotal.toFixed(2),
+        shipping: shipping.toFixed(2),
+        tax: tax.toFixed(2),
+        total: total.toFixed(2)
+      });
 
       // Save order attempt to Supabase if available
       const orderRecord = {name,email,items,created_at:new Date().toISOString()};
@@ -878,24 +888,29 @@ document.addEventListener('DOMContentLoaded',()=>{
       // Call server to create payment session with calculated totals
       try{
         if(pay==='stripe'){
+          const stripePayload = {
+            items,
+            customer: {name, email},
+            discountAmount,
+            discountCode,
+            shipping,
+            tax,
+            taxRate,
+            subtotal,
+            total,
+            successUrl:location.origin + '/success.html?session_id={CHECKOUT_SESSION_ID}',
+            cancelUrl:location.origin + '/cart.html'
+          };
+          
+          console.log('📤 Sending to Stripe API:', stripePayload);
+          
           const resp = await fetch((window.YAYA_CONFIG && window.YAYA_CONFIG.serverUrl ? window.YAYA_CONFIG.serverUrl : '') + '/create-stripe-session',{
             method:'POST',
             headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({
-              items,
-              customer: {name, email},
-              discountAmount,
-              discountCode,
-              shipping,
-              tax,
-              taxRate,
-              subtotal,
-              total,
-              successUrl:location.origin + '/success.html?session_id={CHECKOUT_SESSION_ID}',
-              cancelUrl:location.origin + '/cart.html'
-            })
+            body:JSON.stringify(stripePayload)
           });
           const data = await resp.json();
+          console.log('📥 Stripe API response:', data);
           if(data.url) window.location.href = data.url; else throw new Error(data.error || 'No url');
         }else if(pay==='paypal'){
           const resp = await fetch((window.YAYA_CONFIG && window.YAYA_CONFIG.serverUrl ? window.YAYA_CONFIG.serverUrl : '') + '/create-paypal-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items,returnUrl:location.origin + '/index.html',cancelUrl:location.origin + '/cart.html'})});

@@ -226,8 +226,18 @@ app.post('/create-stripe-session', async (req,res)=>{
     // Discounts are handled by reducing the subtotal before adding shipping/tax
     // The discount info is stored in metadata for reference
     
+    console.log('🔍 Checking shipping and tax values:', {
+      shipping,
+      shippingType: typeof shipping,
+      shippingGreaterThanZero: shipping > 0,
+      tax,
+      taxType: typeof tax,
+      taxGreaterThanZero: tax > 0
+    });
+    
     // Add shipping as a line item
     if (shipping && shipping > 0) {
+      console.log('✅ Adding shipping line item: $' + shipping);
       line_items.push({
         price_data: {
           currency: 'usd',
@@ -239,10 +249,13 @@ app.post('/create-stripe-session', async (req,res)=>{
         },
         quantity: 1
       });
+    } else {
+      console.log('❌ Shipping NOT added:', { shipping, condition: shipping && shipping > 0 });
     }
     
     // Add tax as a line item
     if (tax && tax > 0) {
+      console.log('✅ Adding tax line item: $' + tax);
       line_items.push({
         price_data: {
           currency: 'usd',
@@ -254,6 +267,8 @@ app.post('/create-stripe-session', async (req,res)=>{
         },
         quantity: 1
       });
+    } else {
+      console.log('❌ Tax NOT added:', { tax, condition: tax && tax > 0 });
     }
     
     // Log line items being sent to Stripe
