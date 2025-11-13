@@ -414,10 +414,8 @@ function initMobileNavigation() {
     toggleMenu();
   });
   
-  // Overlay click to close
-  overlay.addEventListener('click', () => {
-    toggleMenu(true);
-  });
+  // Overlay click removed to speed up navigation
+  // Users can click hamburger or press Escape to close
   
   // Navigation links - let them navigate naturally
   // Menu will close automatically when page unloads
