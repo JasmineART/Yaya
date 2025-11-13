@@ -20,43 +20,61 @@ const EMAILJS_CONFIG = {
  */
 async function sendNotificationEmail(type, data) {
   try {
-    // Only send emails for orders and newsletter signups
-    if (type !== 'newsletter' && type !== 'order') {
-      console.log(`📝 ${type} notifications disabled - only saving to database`);
-      return { success: true, skipped: true };
+    // Validate data exists
+    if (!data || typeof data !== 'object') {
+      console.warn(`⚠️  ${type} notification skipped - invalid data:`, data);
+      return { success: false, error: 'Invalid data provided' };
     }
 
-    // Load EmailJS if not already loaded
+    // Ensure EmailJS is loaded
     if (typeof emailjs === 'undefined') {
-      await loadEmailJS();
+      console.error('❌ EmailJS not loaded');
+      return { success: false, error: 'EmailJS library not loaded' };
     }
 
-    // Prepare template parameters based on type
+    // Prepare template parameters based on email type
     let templateParams = {
-      to_email: 'faeriepoetics@gmail.com',
-      from_name: 'Yaya Starchild Website',
-      reply_to: 'faeriepoetics@gmail.com',
-      timestamp: new Date().toLocaleString()
+      timestamp: new Date().toLocaleString('en-US', { 
+        timeZone: 'America/Los_Angeles',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
     };
-
     let templateId;
-    
-    switch (type) {
+
+    switch(type) {
       case 'newsletter':
-        // Newsletter signup notification sent to faeriepoetics@gmail.com
+        if (!data.email) {
+          console.warn('⚠️  Newsletter notification skipped - no email provided');
+          return { success: false, error: 'Email address required' };
+        }
+        
         templateParams = {
           to_email: 'faeriepoetics@gmail.com',
-          user_email: data.email,
-          page: data.source || 'Website', 
+          subscriber_email: data.email,
+          subscription_source: data.source || 'website',
           timestamp: templateParams.timestamp,
-          from_name: 'Yaya Starchild Website',
-          reply_to: data.email  // Allow replying to the subscriber
+          from_name: 'Yaya Starchild Website'
         };
         templateId = EMAILJS_CONFIG.newsletterTemplateId;
         console.log('📧 Sending newsletter signup notification to faeriepoetics@gmail.com');
         break;
 
       case 'order':
+        // Validate required order data
+        if (!data.items || !data.customerName || !data.customerEmail || !data.total) {
+          console.warn('⚠️  Order notification skipped - missing required fields:', {
+            hasItems: !!data.items,
+            hasCustomerName: !!data.customerName,
+            hasCustomerEmail: !!data.customerEmail,
+            hasTotal: !!data.total
+          });
+          return { success: false, error: 'Missing required order fields' };
+        }
+        
         // Order notification sent to faeriepoetics@gmail.com
         const itemsList = data.items.map(item => `${item.name} x${item.quantity} - $${item.price}`).join('\n');
         templateParams = {
@@ -75,7 +93,8 @@ async function sendNotificationEmail(type, data) {
         break;
 
       default:
-        throw new Error('Invalid email type for notifications');
+        console.warn(`⚠️  Unknown email type: ${type}`);
+        return { success: false, error: 'Invalid email type for notifications' };
     }
 
     // Send email via EmailJS using appropriate template

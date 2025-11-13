@@ -369,11 +369,14 @@ if (typeof window !== 'undefined') {
     showAllContent();
     revealOnScroll();
     
-    // Then add visual enhancements
-    injectSparkleStyles();
-    createMagicalSparkles();
-    createNeonCastle();
-    createSpotlights();
+    // Then add visual enhancements (with error handling)
+    try {
+      if (typeof createMagicalSparkles === 'function') createMagicalSparkles();
+      if (typeof createNeonCastle === 'function') createNeonCastle();
+      if (typeof createSpotlights === 'function') createSpotlights();
+    } catch(err) {
+      console.warn('Visual enhancements skipped:', err.message);
+    }
     
     console.log('✅ All systems initialized');
   });
