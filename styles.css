@@ -818,7 +818,7 @@ a:focus,button:focus,input:focus,textarea:focus{
   border: none;
   cursor: pointer;
   padding: 8px;
-  z-index: 200;
+  z-index: 100000;
   position: relative;
   transition: all 0.3s ease;
   border-radius: 8px;
@@ -1754,7 +1754,7 @@ textarea{
     align-items: flex-start;
     gap: 0;
     transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 1001;
+    z-index: 100002;
     overflow-y: auto;
   }
   
@@ -1775,6 +1775,10 @@ textarea{
     transition: all 0.3s ease;
     text-align: left;
     display: block;
+    position: relative;
+    z-index: 1;
+    pointer-events: auto;
+    cursor: pointer;
   }
   
   .nav a:hover,
@@ -1801,7 +1805,7 @@ textarea{
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.4s ease;
-    z-index: 1000;
+    z-index: 100001;
   }
   
   .nav-overlay.active {

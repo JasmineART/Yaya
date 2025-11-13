@@ -1,13 +1,84 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  
+  <!-- Homepage - Black Women Poetry, Queer Poetry -->
   <url>
-    <loc>https://pastelpoetics.com/index.html</loc>
+    <loc>https://pastelpoetics.com/</loc>
+    <lastmod>2025-11-13</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://pastelpoetics.com/assets/suncatcher-cover.jpg</image:loc>
+      <image:title>Suncatcher Spirit - Whimsical Poetry by Queer Black Woman Poet</image:title>
+      <image:caption>Poetry book cover featuring magical fairy illustration</image:caption>
+    </image:image>
   </url>
+  
+  <!-- Shop - Buy Poetry Books -->
   <url>
     <loc>https://pastelpoetics.com/shop.html</loc>
+    <lastmod>2025-11-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://pastelpoetics.com/assets/suncatcher-cover.jpg</image:loc>
+      <image:title>Shop Suncatcher Spirit Poetry Book</image:title>
+    </image:image>
   </url>
+  
+  <!-- About - Queer Black Woman Poet Biography -->
   <url>
     <loc>https://pastelpoetics.com/about.html</loc>
+    <lastmod>2025-11-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pastelpoetics.com/assets/AuthorPhoto.jpg</image:loc>
+      <image:title>Yaya Starchild - Queer Black Woman Poet from St. Louis</image:title>
+    </image:image>
   </url>
+  
+  <!-- Product Page - Poetry Book Details -->
+  <url>
+    <loc>https://pastelpoetics.com/product.html</loc>
+    <lastmod>2025-11-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://pastelpoetics.com/assets/suncatcher-cover.jpg</image:loc>
+      <image:title>Suncatcher Spirit - Contemporary Whimsical Poetry Book</image:title>
+    </image:image>
+  </url>
+  
+  <!-- Specific Products with IDs -->
+  <url>
+    <loc>https://pastelpoetics.com/product.html?id=1</loc>
+    <lastmod>2025-11-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://pastelpoetics.com/product.html?id=2</loc>
+    <lastmod>2025-11-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://pastelpoetics.com/product.html?id=3</loc>
+    <lastmod>2025-11-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- Policies -->
+  <url>
+    <loc>https://pastelpoetics.com/policies.html</loc>
+    <lastmod>2025-11-13</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  
 </urlset>
