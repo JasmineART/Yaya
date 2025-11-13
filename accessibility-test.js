@@ -71,7 +71,7 @@ test('Navigation has proper ARIA labels',
 test('Headings have proper hierarchy', 
   indexContent.includes('<h1>Yaya Starchild</h1>') && 
   indexContent.includes('<h2') && indexContent.includes('<h3') && 
-  !indexContent.includes('<h2') || indexContent.indexOf('<h1>') < indexContent.indexOf('<h2'), 
+  (!indexContent.includes('<h2') || indexContent.indexOf('<h1>') < indexContent.indexOf('<h2')), 
   'Proper heading order: h1 before h2, etc.'
 );
 
