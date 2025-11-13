@@ -2000,6 +2000,45 @@ input::placeholder, textarea::placeholder {
 
 /* Tablet styles (768px and up) */
 @media (min-width: 48rem) {
+  /* Hide hamburger on desktop */
+  .hamburger {
+    display: none !important;
+  }
+  
+  /* Show desktop navigation */
+  .nav {
+    position: static;
+    flex-direction: row;
+    height: auto;
+    width: auto;
+    background: transparent;
+    backdrop-filter: none;
+    box-shadow: none;
+    padding: 0;
+    gap: 1rem;
+    flex-wrap: nowrap;
+  }
+  
+  .nav a {
+    padding: 0.4rem 0.8rem;
+    margin-bottom: 0;
+    background: transparent;
+    border: none;
+    font-size: 1.1rem;
+    width: auto;
+  }
+  
+  .nav a:hover,
+  .nav a:focus-visible {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+    padding-left: 0.8rem;
+  }
+  
+  .nav a::after {
+    display: block; /* Show underline animation on desktop */
+  }
+  
   .container {
     padding: 0 2rem;
   }
@@ -2013,11 +2052,6 @@ input::placeholder, textarea::placeholder {
     justify-content: space-between;
     align-items: center;
     text-align: left;
-  }
-  
-  .nav {
-    gap: 1rem;
-    flex-wrap: nowrap;
   }
   
   .features {
