@@ -58,19 +58,23 @@ jobs:
       run: |
         echo "🔍 Validating JavaScript files..."
         node -e "
+        const { execSync } = require('child_process');
         const fs = require('fs');
         const jsFiles = fs.readdirSync('.').filter(f => f.endsWith('.js') && !f.startsWith('test-') && f !== 'build-static.js');
         console.log('Checking', jsFiles.length, 'JS files');
+        let failed = false;
         jsFiles.forEach(file => {
           try {
-            const content = fs.readFileSync(file, 'utf8');
-            new Function(content); // Basic syntax check
+            execSync(\`node -c \${file}\`, { stdio: 'pipe' });
             console.log('✅', file);
           } catch(e) {
-            console.error('❌', file, ':', e.message);
-            throw e;
+            console.error('❌', file, ':', 'Syntax error');
+            failed = true;
           }
         });
+        if (failed) {
+          throw new Error('JavaScript validation failed');
+        }
         console.log('✅ All JavaScript files valid');
         "
     
