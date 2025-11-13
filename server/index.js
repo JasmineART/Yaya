@@ -39,9 +39,10 @@ const { body, validationResult } = require('express-validator');
 const limiter = rateLimit({ windowMs: 60*1000, max: 60 });
 app.use(limiter);
 
-// Read Stripe secret from a few possible env names or a Docker/Render secret file
+// Read Stripe secret from environment variables
+// Priority order: SECRET_TEST_KEY (Render) > STRIPE_SECRET_KEY > STRIPE_SECRET_LIVE_KEY
 const fs = require('fs');
-const _rawStripe = process.env.STRIPE_SECRET_LIVE_KEY || process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET || process.env.STRIPE_LIVE_SECRET || (() => {
+const _rawStripe = process.env.SECRET_TEST_KEY || process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_LIVE_KEY || process.env.STRIPE_SECRET || process.env.STRIPE_LIVE_SECRET || (() => {
   try {
     // Docker/Render secrets are sometimes mounted at /run/secrets/<name>
     return fs.readFileSync('/run/secrets/stripe', 'utf8');
