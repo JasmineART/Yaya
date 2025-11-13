@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigation Debug</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        .debug-panel {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.9);
+            color: #0f0;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            max-width: 300px;
+            z-index: 9999;
+            border: 2px solid #0f0;
+        }
+        .debug-panel h3 {
+            margin: 0 0 0.5rem 0;
+            color: #ff0;
+        }
+        .debug-row {
+            margin: 0.25rem 0;
+        }
+        .ok { color: #0f0; }
+        .error { color: #f00; }
+        .warning { color: #ff0; }
+    </style>
+</head>
+<body>
+    <div class="debug-panel" id="debugPanel">
+        <h3>🔍 Nav Debug</h3>
+        <div id="debugContent">Loading...</div>
+    </div>
+
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="brand">
+        <a href="index.html">
+          <img src="assets/logo-new.jpg" alt="Yaya Starchild logo" class="logo"/>
+        </a>
+        <div>
+          <h1>Navigation Debug</h1>
+          <p class="tag">Testing navigation elements</p>
+        </div>
+      </div>
+      <button class="hamburger" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="main-nav">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+      </button>
+      <nav class="nav" id="main-nav" role="navigation" aria-label="Main navigation">
+        <a href="index.html">Home</a>
+        <a href="shop.html">Shop</a>
+        <a href="about.html">About the Author</a>
+        <a href="cart.html" id="nav-cart">Cart (<span id="nav-cart-count">0</span>)</a>
+      </nav>
+    </header>
+
+    <main style="padding: 100px 2rem;">
+        <h1>Navigation Debug Page</h1>
+        <p>Resize browser to see hamburger menu behavior</p>
+        <ul>
+            <li>Desktop (≥768px): Hamburger should be HIDDEN</li>
+            <li>Mobile (&lt;768px): Hamburger should be VISIBLE</li>
+        </ul>
+    </main>
+
+    <script>
+        function updateDebug() {
+            const debugContent = document.getElementById('debugContent');
+            const hamburger = document.querySelector('.hamburger');
+            const nav = document.querySelector('.nav');
+            const overlay = document.querySelector('.nav-overlay');
+            
+            const width = window.innerWidth;
+            const isMobile = width < 768;
+            
+            const hamburgerStyle = hamburger ? window.getComputedStyle(hamburger) : null;
+            const navStyle = nav ? window.getComputedStyle(nav) : null;
+            
+            let html = `<div class="debug-row">Width: ${width}px ${isMobile ? '(Mobile)' : '(Desktop)'}</div>`;
+            
+            html += `<div class="debug-row ${hamburger ? 'ok' : 'error'}">`;
+            html += `Hamburger: ${hamburger ? '✓ Found' : '✗ NOT FOUND'}</div>`;
+            
+            if (hamburger && hamburgerStyle) {
+                const display = hamburgerStyle.display;
+                const isVisible = display !== 'none';
+                const shouldBeVisible = isMobile;
+                const correct = isVisible === shouldBeVisible;
+                
+                html += `<div class="debug-row ${correct ? 'ok' : 'error'}">`;
+                html += `  Display: ${display} ${correct ? '✓' : '✗'}</div>`;
+                html += `<div class="debug-row">  Should be: ${shouldBeVisible ? 'visible' : 'hidden'}</div>`;
+            }
+            
+            html += `<div class="debug-row ${nav ? 'ok' : 'error'}">`;
+            html += `Nav: ${nav ? '✓ Found' : '✗ NOT FOUND'}</div>`;
+            
+            if (nav && navStyle) {
+                html += `<div class="debug-row">  Position: ${navStyle.position}</div>`;
+                html += `<div class="debug-row">  Right: ${navStyle.right}</div>`;
+                html += `<div class="debug-row">  Active: ${nav.classList.contains('active') ? 'Yes' : 'No'}</div>`;
+            }
+            
+            html += `<div class="debug-row ${overlay ? 'ok' : 'warning'}">`;
+            html += `Overlay: ${overlay ? '✓ Created' : '⚠ Not created yet'}</div>`;
+            
+            debugContent.innerHTML = html;
+        }
+        
+        // Update immediately
+        updateDebug();
+        
+        // Update on resize
+        window.addEventListener('resize', updateDebug);
+        
+        // Update every second
+        setInterval(updateDebug, 1000);
+        
+        // Log to console
+        console.log('🔍 Debug page loaded');
+        console.log('Hamburger element:', document.querySelector('.hamburger'));
+        console.log('Nav element:', document.querySelector('.nav'));
+    </script>
+    
+    <script src="app.js"></script>
+</body>
+</html>
