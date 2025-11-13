@@ -1,3 +1,50 @@
+# Robots.txt for Yaya Starchild Poetry - Black Women Poetry, Queer Poetry, Whimsical Poetry
+# Allow all search engines to crawl poetry content
+
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /checkout.html
+Disallow: /cart.html
+Disallow: /success.html
+Disallow: /test-*.html
+Disallow: /diagnostic-*.html
+Disallow: /payment-diagnostic.html
+Disallow: /fix-gmail-scope.html
+Disallow: /__tests__/
+Disallow: /coverage/
+Disallow: /server/
+
+# Sitemap location
 Sitemap: https://pastelpoetics.com/sitemap.xml
+
+# Bing crawler - explicitly allow all public pages
+User-agent: bingbot
+Allow: /
+Allow: /index.html
+Allow: /shop.html
+Allow: /about.html
+Allow: /product.html
+Allow: /policies.html
+Allow: /assets/
+Disallow: /checkout.html
+Disallow: /cart.html
+Disallow: /test-*.html
+
+# Microsoft Bing Preview
+User-agent: BingPreview
+Allow: /
+Allow: /assets/
+
+# Allow image indexing
+User-agent: Googlebot-Image
+Allow: /assets/
+
+# Social media crawlers
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
