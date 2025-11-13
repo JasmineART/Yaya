@@ -449,8 +449,11 @@ function getCartItems() {
 function saveCart(items){localStorage.setItem(STORAGE_KEY,JSON.stringify(items));}
 
 function removeFromCart(uniqueKey) {
+  console.log('🗑️ Removing item from cart:', uniqueKey);
   const items = getCart();
+  console.log('📦 Cart before removal:', items);
   const filteredItems = items.filter(item => (item.uniqueKey || item.id) !== uniqueKey);
+  console.log('📦 Cart after removal:', filteredItems);
   saveCart(filteredItems);
   updateCartCount();
   renderCartContents();
