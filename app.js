@@ -882,13 +882,14 @@ document.addEventListener('DOMContentLoaded',()=>{
   // newsletter
   initNewsletterForm();
 
-  // Show site disclaimer to visitors on entry (non-blocking reminder)
+  // Site disclaimer modal is available but not auto-shown
+  // Users can access it if needed via window.__showSiteDisclaimer()
   try {
     createDisclaimerModal();
-    if (sessionStorage.getItem('siteDisclaimerAccepted') !== 'true') {
-      // show the modal but do not block initialization
-      window.__showSiteDisclaimer();
-    }
+    // Disabled auto-show - uncomment if needed:
+    // if (sessionStorage.getItem('siteDisclaimerAccepted') !== 'true') {
+    //   window.__showSiteDisclaimer();
+    // }
   } catch (e) { /* ignore if modal cannot be created */ }
 
   // comments
@@ -959,7 +960,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(checkout){
     checkout.addEventListener('submit',async e=>{
       e.preventDefault();
-      try{ createDisclaimerModal(); if(window.__showSiteDisclaimer) window.__showSiteDisclaimer(); }catch(err){}
+      // Disclaimer check removed - modal available but not forced
       
       if(!window.PRODUCTS || window.PRODUCTS.length === 0) {
         alert('Products not loaded yet. Please wait a moment and try again.');

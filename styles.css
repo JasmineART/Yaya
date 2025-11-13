@@ -2169,14 +2169,20 @@ input::placeholder, textarea::placeholder {
 /* Site disclaimer modal */
 .site-disclaimer-overlay{
   position:fixed;
-  inset:0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
   display:flex;
   align-items:center;
   justify-content:center;
   background: rgba(3, 6, 20, 0.6);
   backdrop-filter: blur(6px);
-  z-index:99999;
+  z-index: 99999;
   padding: 2rem;
+  overflow-y: auto;
 }
 .site-disclaimer-modal{
   width:100%;
