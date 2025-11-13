@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Click Test</title>
+    <style>
+        body { margin: 0; font-family: Arial; }
+        .overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 100001;
+            pointer-events: none;
+        }
+        .overlay.active { pointer-events: auto; }
+        .menu {
+            position: fixed;
+            top: 0; right: -100%;
+            width: 280px; height: 100vh;
+            background: linear-gradient(135deg, rgba(102,126,234,0.98), rgba(118,75,162,0.98));
+            z-index: 100002;
+            padding: 5rem 2rem 2rem;
+            transition: right 0.4s;
+        }
+        .menu.active { right: 0; }
+        .menu a {
+            display: block;
+            color: white;
+            padding: 1rem;
+            background: rgba(255,255,255,0.1);
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            position: relative;
+            z-index: 1;
+            pointer-events: auto !important;
+        }
+        button { position: fixed; top: 20px; right: 20px; z-index: 100003; padding: 15px; }
+    </style>
+</head>
+<body>
+    <button onclick="toggle()">Toggle Menu</button>
+    <div class="overlay" id="overlay" onclick="toggle()"></div>
+    <nav class="menu" id="menu">
+        <a href="#" onclick="alert('Home clicked!'); return false;">Home</a>
+        <a href="#" onclick="alert('Shop clicked!'); return false;">Shop</a>
+        <a href="#" onclick="alert('About clicked!'); return false;">About</a>
+        <a href="#" onclick="alert('Cart clicked!'); return false;">Cart</a>
+    </nav>
+    <script>
+        function toggle() {
+            document.getElementById('overlay').classList.toggle('active');
+            document.getElementById('menu').classList.toggle('active');
+        }
+    </script>
+</body>
+</html>

@@ -1746,8 +1746,8 @@ textarea{
     width: 280px;
     max-width: 85vw;
     background: linear-gradient(135deg, 
-      rgba(102, 126, 234, 0.98) 0%,
-      rgba(118, 75, 162, 0.98) 100%);
+      rgba(159, 168, 255, 0.97) 0%,
+      rgba(186, 148, 238, 0.97) 100%);
     box-shadow: -5px 0 30px rgba(0, 0, 0, 0.3);
     padding: 5rem 2rem 2rem;
     flex-direction: column;
@@ -1768,22 +1768,26 @@ textarea{
     width: 100%;
     padding: 1rem 1.25rem;
     font-size: 1.2rem;
+    font-weight: 600;
     border-radius: 8px;
     margin-bottom: 0.5rem;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     transition: all 0.3s ease;
     text-align: left;
     display: block;
     cursor: pointer;
     touch-action: manipulation;
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   }
   
   .nav a:hover,
   .nav a:focus-visible {
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.4);
     transform: translateX(5px);
     padding-left: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   }
   
   .nav a::after {

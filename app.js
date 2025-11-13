@@ -419,11 +419,13 @@ function initMobileNavigation() {
     toggleMenu(true);
   });
   
-  // Close menu when clicking nav links
+  // Close menu when clicking nav links (but allow navigation)
   const navLinks = nav.querySelectorAll('a');
   navLinks.forEach(link => {
-    link.addEventListener('click', () => {
-      toggleMenu(true);
+    link.addEventListener('click', (e) => {
+      // Don't prevent default - allow navigation to happen
+      // Just close the menu with a small delay to allow navigation
+      setTimeout(() => toggleMenu(true), 100);
     });
   });
   
