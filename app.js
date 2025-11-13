@@ -473,30 +473,8 @@ function initMobileNavigation() {
   console.log('📱 Mobile navigation initialized');
 }
 
-// Initialize on load
+// Scroll event listeners for reveal animations
 if (typeof window !== 'undefined') {
-  window.addEventListener('DOMContentLoaded', () => {
-    console.log('🌟 DOM Content Loaded - initializing...');
-    
-    // Initialize mobile navigation
-    initMobileNavigation();
-    
-    // Show all content FIRST - no delays
-    showAllContent();
-    revealOnScroll();
-    
-    // Then add visual enhancements (with error handling)
-    try {
-      if (typeof createMagicalSparkles === 'function') createMagicalSparkles();
-      if (typeof createNeonCastle === 'function') createNeonCastle();
-      if (typeof createSpotlights === 'function') createSpotlights();
-    } catch(err) {
-      console.warn('Visual enhancements skipped:', err.message);
-    }
-    
-    console.log('✅ All systems initialized');
-  });
-  
   window.addEventListener('scroll', revealOnScroll);
   window.addEventListener('resize', revealOnScroll);
   
@@ -872,15 +850,34 @@ function initNewsletterForm() {
 // Expose for tests and manual init
 window.initNewsletterForm = initNewsletterForm;
 
+// ===== CONSOLIDATED INITIALIZATION =====
+// Single DOMContentLoaded listener to prevent duplicate initialization
 document.addEventListener('DOMContentLoaded',()=>{
+  console.log('🌟 DOM Content Loaded - initializing...');
+  
   // Initialize accessibility features first
   initAccessibility();
   
+  // Initialize mobile navigation
+  initMobileNavigation();
+  
+  // Cart and newsletter
   updateCartCount();
   renderCartContents();
-
-  // newsletter
   initNewsletterForm();
+
+  // Show all content FIRST - no delays
+  showAllContent();
+  revealOnScroll();
+  
+  // Then add visual enhancements (with error handling)
+  try {
+    if (typeof createMagicalSparkles === 'function') createMagicalSparkles();
+    if (typeof createNeonCastle === 'function') createNeonCastle();
+    if (typeof createSpotlights === 'function') createSpotlights();
+  } catch(err) {
+    console.warn('Visual enhancements skipped:', err.message);
+  }
 
   // Site disclaimer modal is available but not auto-shown
   // Users can access it if needed via window.__showSiteDisclaimer()
@@ -1065,6 +1062,8 @@ document.addEventListener('DOMContentLoaded',()=>{
     });
     renderOrderSummary();
   }
+  
+  console.log('✅ All systems initialized');
 });
 
 async function loadComments(){
