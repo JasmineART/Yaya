@@ -159,6 +159,18 @@ app.post('/create-stripe-session', async (req,res)=>{
   try{
     const {items, customer, discountAmount, discountCode, shipping, tax, taxRate, subtotal, total, successUrl, cancelUrl} = req.body;
     
+    // Debug logging
+    console.log('📦 Stripe session request received:', {
+      itemsCount: items?.length,
+      customer: customer?.name,
+      shipping,
+      tax,
+      subtotal,
+      total,
+      discountCode,
+      discountAmount
+    });
+    
     if(!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({error:'Items array is required'});
     }
