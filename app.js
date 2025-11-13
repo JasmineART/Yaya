@@ -419,13 +419,14 @@ function initMobileNavigation() {
     toggleMenu(true);
   });
   
-  // Close menu when clicking nav links (but allow navigation)
+  // Navigation links - let them navigate naturally
+  // Menu will close automatically when page unloads
   const navLinks = nav.querySelectorAll('a');
   navLinks.forEach(link => {
     link.addEventListener('click', (e) => {
-      // Don't prevent default - allow navigation to happen
-      // Just close the menu with a small delay to allow navigation
-      setTimeout(() => toggleMenu(true), 100);
+      // Let the link navigate normally - don't close menu manually
+      // The page navigation will handle cleanup
+      console.log('📱 Navigation link clicked:', link.getAttribute('href'));
     });
   });
   

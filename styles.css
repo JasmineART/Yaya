@@ -1746,8 +1746,9 @@ textarea{
     width: 280px;
     max-width: 85vw;
     background: linear-gradient(135deg, 
-      rgba(159, 168, 255, 0.97) 0%,
-      rgba(186, 148, 238, 0.97) 100%);
+      #E89CC8 0%,
+      #D899E6 50%,
+      #B88DD8 100%);
     box-shadow: -5px 0 30px rgba(0, 0, 0, 0.3);
     padding: 5rem 2rem 2rem;
     flex-direction: column;
