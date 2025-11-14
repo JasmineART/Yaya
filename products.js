@@ -6,22 +6,22 @@ let PRODUCTS = [];
   // Inline data for immediate rendering (no fetch delay)
   PRODUCTS = [
   {
-    "id": 999,
-    "title": "Test Poetry Collection",
-    "titleIcon": "fas fa-heart",
-    "price": 15.99,
-    "isbn": "979-8-TEST-001",
-    "description": "A test poetry collection to verify admin functionality works perfectly. This is a temporary product for testing purposes.",
+    "id": 1763090606241,
+    "title": "Admin Test Poetry Book",
+    "titleIcon": "fas fa-magic",
+    "price": 12.99,
+    "isbn": "979-8-TEST-241",
+    "description": "A test poetry book created through the admin portal to verify functionality. Contains whimsical verses about testing and debugging.",
     "reviews": [
       {
         "name": "Admin Tester",
         "rating": 5,
-        "text": "Perfect for testing the admin system!",
+        "text": "Perfect test book! The admin system works flawlessly.",
         "date": "2025-11-14"
       }
     ],
     "images": [
-      "assets/test-cover.jpg"
+      "assets/suncatcher-cover.jpg"
     ]
   }
 ];
