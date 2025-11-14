@@ -666,13 +666,15 @@
             <h3><i class="fas fa-home"></i> Homepage Content</h3>
             <div class="admin-form-group">
               <label for="site-tagline">Site Tagline</label>
-              <input type="text" id="site-tagline" value="Whimsical poet who hopes to leave you enchanted." />
+              <input type="text" id="site-tagline" placeholder="Current: Whimsical poet testing admin functionality! 🧪" />
+              <small style="color: rgba(44,62,80,0.7); font-size: 0.85rem;">This appears under the site title on the homepage</small>
             </div>
             <div class="admin-form-group">
-              <label for="hero-text">Hero Section Text</label>
-              <textarea id="hero-text">Discover luminous poetry that sparks wonder and celebrates the magic in everyday moments. Each verse invites you to pause, breathe, and find light in the spaces between heartbeats.</textarea>
+              <label for="site-hero-text">Hero Section Text</label>
+              <textarea id="site-hero-text" placeholder="Current hero text will load here..."></textarea>
+              <small style="color: rgba(44,62,80,0.7); font-size: 0.85rem;">Main description text on the homepage</small>
             </div>
-            <button onclick="updateContent('homepage')" class="admin-btn">
+            <button onclick="adminDashboard.updateContent('homepage')" class="admin-btn">
               <i class="fas fa-save"></i> Update Homepage
             </button>
           </div>
@@ -681,10 +683,16 @@
             <h3><i class="fas fa-user"></i> About Page Content</h3>
             <div class="admin-form-group">
               <label for="about-intro">About Introduction</label>
-              <textarea id="about-intro">At the age of eight, Yaya picked up a pen for solace and never looked back. Starting with short stories in her youth, she eventually landed upon poetry as her most treasured means of expression.</textarea>
+              <textarea id="about-intro" placeholder="About page introduction will load here..."></textarea>
+              <small style="color: rgba(44,62,80,0.7); font-size: 0.85rem;">Opening paragraph of the about page</small>
             </div>
-            <button onclick="updateContent('about')" class="admin-btn">
-              <i class="fas fa-save"></i> Update About
+            <div class="admin-form-group">
+              <label for="about-bio">Author Biography</label>
+              <textarea id="about-bio" placeholder="Full author biography will load here..."></textarea>
+              <small style="color: rgba(44,62,80,0.7); font-size: 0.85rem;">Main biography section on the about page</small>
+            </div>
+            <button onclick="adminDashboard.updateContent('about')" class="admin-btn">
+              <i class="fas fa-save"></i> Update About Page
             </button>
           </div>
         </div>

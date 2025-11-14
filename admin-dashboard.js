@@ -49,39 +49,85 @@ class AdminDashboard {
   
   loadCurrentData() {
     try {
-      // Load products from products.js
+      // Load products from products.js (3 current products)
       if (typeof PRODUCTS !== 'undefined') {
         this.currentData.products = [...PRODUCTS];
+      } else {
+        // Fallback product data based on current site
+        this.currentData.products = [
+          {
+            id: 1,
+            title: 'Suncatcher Spirit (Signed Edition)',
+            titleIcon: 'fas fa-crown',
+            price: 24.99,
+            isbn: '979-8-9999322-0-4',
+            description: 'The debut poetry collection by Yaya Starchild — 64 pages of luminous verses exploring love, loss, resilience, and present-moment magic. This signed copy includes a handwritten blessing and arrives wrapped in tissue paper, touched by magic.',
+            reviews: [{name:'Moon Sisters Book Club',rating:5,text:'A tender, luminous collection that feels both grounding and uplifting. One of those books you return to again and again.',date:'2025-10-27'}],
+            images: ['assets/suncatcher-cover.jpg']
+          },
+          {
+            id: 2,
+            title: 'Suncatcher Spirit (Paperback)',
+            titleIcon: 'fas fa-book',
+            price: 19.99,
+            isbn: '979-8-9999322-0-4',
+            description: 'Softcover paperback edition — 64 pages of poetry perfect for bedside reading, carrying in your bag, or gifting. Printed on cream-colored paper that feels gentle in your hands.',
+            reviews: [{name:'Adriana Auch',rating:5,text:'I highly recommend bringing this book into nature with you.',date:'2025-11-02'}],
+            images: ['assets/suncatcher-cover.jpg']
+          },
+          {
+            id: 3,
+            title: 'Suncatcher Spirit Sticker',
+            titleIcon: 'fas fa-sparkles',
+            price: 3.00,
+            description: 'Keep the whimsy of "Suncatcher Spirit" close with stickers of the book\'s 11 dazzling illustrations or front cover! Perfect for laptops and water bottles.',
+            requiresVariant: true,
+            images: ['assets/sticker_Dancing.jpg']
+          }
+        ];
       }
       
-      // Load coupons from app.js DISCOUNTS object
+      // Load current coupons from app.js (3 active coupons)
       if (typeof DISCOUNTS !== 'undefined') {
         this.currentData.coupons = {...DISCOUNTS};
-      }
-      
-      // Load content from localStorage or defaults
-      const savedContent = localStorage.getItem('adminSiteContent');
-      if (savedContent) {
-        this.currentData.content = JSON.parse(savedContent);
       } else {
-        this.currentData.content = {
-          tagline: "Whimsical poet who hopes to leave you enchanted.",
-          heroText: "Discover luminous poetry that sparks wonder and celebrates the magic in everyday moments. Each verse invites you to pause, breathe, and find light in the spaces between heartbeats.",
-          aboutIntro: "At the age of eight, Yaya picked up a pen for solace and never looked back. Starting with short stories in her youth, she eventually landed upon poetry as her most treasured means of expression."
+        // Current active coupons on the site
+        this.currentData.coupons = {
+          'PASTEL': {
+            type: 'bogo_half',
+            description: 'Buy one, get 2nd item 50% off',
+            active: true
+          },
+          'SUNCATCHER': {
+            type: 'percentage',
+            value: 0.15,
+            description: '15% off entire cart',
+            active: true
+          },
+          'WHIMSY': {
+            type: 'percentage',
+            value: 0.25,
+            description: '25% off entire cart',
+            active: true
+          }
         };
       }
       
-      // Load settings from localStorage
-      const savedSettings = localStorage.getItem('adminSettings');
-      if (savedSettings) {
-        this.currentData.settings = JSON.parse(savedSettings);
-      } else {
-        this.currentData.settings = {
-          username: 'AdminYaya',
-          password: 'poem_123',
-          lastUpdated: new Date().toISOString()
-        };
-      }
+      // Load actual current content from the site
+      this.currentData.content = {
+        tagline: "Whimsical poet testing admin functionality! 🧪",
+        heroText: "A marriage of higher-self discovery and inner-child love — a sprinkle of fairy dust to reacquaint yourself with your childlike wonder. This enchanted debut collection invites you into a magical realm where poetry dances with illustrations, and every page sparkles with whimsy.",
+        aboutIntro: "At the age of eight, Yaya picked up a pen for solace and never looked back. Starting with short stories in her youth, she eventually landed upon poetry as her most treasured means of expression.",
+        aboutBio: "Yaya is a queer artist from St. Louis, MO, whose poetry explores the romance and whimsy woven into life's intricacies and simplicities. Her verses touch on love, loss, resilience, and the magic found in the present moment."
+      };
+      
+      // Load settings
+      this.currentData.settings = {
+        username: 'AdminYaya',
+        password: 'poem_123',
+        lastUpdated: new Date().toISOString(),
+        siteVersion: '2.0.0'
+      };
       
     } catch (error) {
       console.error('Error loading current data:', error);
@@ -170,53 +216,87 @@ class AdminDashboard {
     if (!container) return;
     
     if (this.currentData.products.length === 0) {
-      container.innerHTML = '<p style="color: rgba(255,255,255,0.7);">No products found. Add your first product!</p>';
+      container.innerHTML = '<p style="color: rgba(44,62,80,0.7);">No products found. Add your first product!</p>';
       return;
     }
     
-    container.innerHTML = this.currentData.products.map(product => `
-      <div class="product-item">
-        <div class="product-info">
-          <h4><i class="${product.titleIcon || 'fas fa-box'}"></i> ${this.escapeHtml(product.title)}</h4>
-          <p>$${product.price} • ${product.description ? product.description.substring(0, 100) + '...' : 'No description'}</p>
+    container.innerHTML = this.currentData.products.map(product => {
+      const reviewCount = product.reviews ? product.reviews.length : 0;
+      const avgRating = reviewCount > 0 ? (product.reviews.reduce((sum, r) => sum + r.rating, 0) / reviewCount).toFixed(1) : 'N/A';
+      const hasVariants = product.requiresVariant && product.variants;
+      
+      return `
+        <div class="product-item" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: flex-start;">
+          <div class="product-info" style="flex: 1;">
+            <h4 style="color: #2c3e50; margin: 0 0 0.5rem 0; font-family: 'Cinzel', serif;"><i class="${product.titleIcon || 'fas fa-box'}"></i> ${this.escapeHtml(product.title)}</h4>
+            <div style="margin-bottom: 0.5rem;">
+              <strong style="color: var(--pink); font-size: 1.1rem;">$${product.price.toFixed(2)}</strong>
+              ${product.isbn ? `<span style="color: rgba(44,62,80,0.6); margin-left: 1rem; font-size: 0.9rem;">ISBN: ${product.isbn}</span>` : ''}
+            </div>
+            <p style="color: rgba(44,62,80,0.8); margin: 0.5rem 0; line-height: 1.4;">${product.description ? (product.description.length > 120 ? product.description.substring(0, 120) + '...' : product.description) : 'No description'}</p>
+            <div style="display: flex; gap: 1rem; margin-top: 0.5rem; font-size: 0.9rem;">
+              <span style="color: rgba(44,62,80,0.7);"><i class="fas fa-star"></i> ${avgRating} (${reviewCount} reviews)</span>
+              ${hasVariants ? `<span style="color: rgba(44,62,80,0.7);"><i class="fas fa-palette"></i> ${product.variants.length} variants</span>` : ''}
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-left: 1rem;">
+            <button onclick="adminDashboard.editProduct(${product.id})" class="admin-btn secondary">Edit</button>
+            <button onclick="adminDashboard.deleteProduct(${product.id})" class="admin-btn danger">Delete</button>
+          </div>
         </div>
-        <div>
-          <button onclick="adminDashboard.editProduct(${product.id})" class="admin-btn secondary">Edit</button>
-          <button onclick="adminDashboard.deleteProduct(${product.id})" class="admin-btn danger">Delete</button>
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   }
   
   loadCouponsList() {
     const container = document.getElementById('coupon-list');
     if (!container) return;
     
-    const coupons = Object.entries(this.currentData.coupons);
+    const coupons = Object.keys(this.currentData.coupons);
     if (coupons.length === 0) {
-      container.innerHTML = '<p style="color: rgba(255,255,255,0.7);">No coupons found. Add your first coupon!</p>';
+      container.innerHTML = '<p style="color: rgba(44,62,80,0.7);">No active coupons. Create your first coupon!</p>';
       return;
     }
     
-    container.innerHTML = coupons.map(([code, data]) => `
-      <div class="coupon-item">
-        <div class="coupon-info">
-          <span class="coupon-code">${code}</span>
-          <span style="color: var(--white);">${data.description}</span>
-          <span style="color: rgba(255,255,255,0.7);">${this.formatCouponValue(data)}</span>
+    container.innerHTML = coupons.map(code => {
+      const coupon = this.currentData.coupons[code];
+      const discountText = coupon.type === 'percentage' 
+        ? `${Math.round(coupon.value * 100)}% off`
+        : coupon.type === 'bogo_half'
+        ? 'BOGO 50% off'
+        : coupon.type === 'flat'
+        ? `$${coupon.value} off`
+        : 'Special offer';
+      
+      const isActive = coupon.active !== false;
+      
+      return `
+        <div class="coupon-item" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 1rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+          <div class="coupon-info">
+            <h4 style="color: #2c3e50; margin: 0 0 0.25rem 0; font-family: 'Cinzel', serif;"><i class="fas fa-tag"></i> ${this.escapeHtml(code)}</h4>
+            <p style="color: rgba(44,62,80,0.8); margin: 0; font-size: 0.9rem;">${this.escapeHtml(coupon.description || 'No description')}</p>
+            <small style="color: var(--pink); font-weight: 600;">${discountText} ${isActive ? '✅ Active' : '❌ Inactive'}</small>
+          </div>
+          <div>
+            <button onclick="adminDashboard.editCoupon('${code}')" class="admin-btn secondary" style="margin-right: 0.5rem;">Edit</button>
+            <button onclick="adminDashboard.deleteCoupon('${code}')" class="admin-btn danger">Delete</button>
+          </div>
         </div>
-        <div>
-          <button onclick="adminDashboard.deleteCoupon('${code}')" class="admin-btn danger">Delete</button>
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   }
   
   loadContentForms() {
-    // Load current content into forms
-    document.getElementById('site-tagline').value = this.currentData.content.tagline || '';
-    document.getElementById('hero-text').value = this.currentData.content.heroText || '';
-    document.getElementById('about-intro').value = this.currentData.content.aboutIntro || '';
+    // Populate with actual current site content
+    const taglineField = document.getElementById('site-tagline');
+    const heroTextField = document.getElementById('site-hero-text');
+    const aboutIntroField = document.getElementById('about-intro');
+    const aboutBioField = document.getElementById('about-bio');
+    
+    if (taglineField) taglineField.value = this.currentData.content.tagline || 'Whimsical poet who hopes to leave you enchanted.';
+    if (heroTextField) heroTextField.value = this.currentData.content.heroText || 'A marriage of higher-self discovery and inner-child love';
+    if (aboutIntroField) aboutIntroField.value = this.currentData.content.aboutIntro || 'At the age of eight, Yaya picked up a pen for solace and never looked back.';
+    if (aboutBioField) aboutBioField.value = this.currentData.content.aboutBio || 'Yaya is a queer artist from St. Louis, MO, whose poetry explores the romance and whimsy woven into life\'s intricacies and simplicities.';
   }
   
   formatCouponValue(coupon) {
@@ -271,40 +351,47 @@ class AdminDashboard {
   }
   
   addCoupon() {
-    const code = document.getElementById('coupon-code').value.toUpperCase();
+    const code = document.getElementById('coupon-code').value.trim().toUpperCase();
     const type = document.getElementById('coupon-type').value;
     const value = parseFloat(document.getElementById('coupon-value').value);
-    const description = document.getElementById('coupon-description').value;
+    const description = document.getElementById('coupon-description').value.trim();
     
-    if (!code || !type || !description) {
-      this.showStatus('error', 'Please fill in all required fields', 'coupons');
+    if (!code) {
+      this.showStatus('error', 'Coupon code is required', 'coupons');
       return;
     }
     
-    if ((type === 'percentage' || type === 'flat') && (isNaN(value) || value <= 0)) {
-      this.showStatus('error', 'Please enter a valid discount value', 'coupons');
+    if (type === 'percentage' && (isNaN(value) || value <= 0 || value > 100)) {
+      this.showStatus('error', 'Percentage must be between 1 and 100', 'coupons');
       return;
     }
     
-    if (this.currentData.coupons[code]) {
-      this.showStatus('error', `Coupon code "${code}" already exists`, 'coupons');
+    if (type === 'flat' && (isNaN(value) || value <= 0)) {
+      this.showStatus('error', 'Dollar amount must be greater than 0', 'coupons');
       return;
     }
     
-    const newCoupon = { type, description };
-    if (type !== 'bogo_half') {
-      newCoupon.value = type === 'percentage' ? value / 100 : value;
-    }
+    const isExisting = this.currentData.coupons[code];
     
-    this.currentData.coupons[code] = newCoupon;
-    this.markChanges();
+    this.currentData.coupons[code] = {
+      type,
+      value: type === 'bogo_half' ? undefined : (type === 'percentage' ? value / 100 : value),
+      description,
+      active: true,
+      created: this.currentData.coupons[code]?.created || new Date().toISOString(),
+      updated: new Date().toISOString()
+    };
+    
+    this.hasChanges = true;
+    this.updateChangeStatus();
     this.loadCouponsList();
     this.loadOverview();
     
     // Clear form
     document.getElementById('add-coupon-form').reset();
     
-    this.showStatus('success', `Coupon "${code}" added successfully!`, 'coupons');
+    const action = isExisting ? 'updated' : 'created';
+    this.showStatus('success', `Coupon "${code}" ${action} successfully`, 'coupons');
   }
   
   deleteProduct(id) {
@@ -381,9 +468,36 @@ class AdminDashboard {
     this.showStatus('success', 'Credentials updated successfully!', 'settings');
   }
   
+  updateContent(section) {
+    if (section === 'homepage') {
+      const tagline = document.getElementById('site-tagline').value.trim();
+      const heroText = document.getElementById('site-hero-text').value.trim();
+      
+      if (tagline) this.currentData.content.tagline = tagline;
+      if (heroText) this.currentData.content.heroText = heroText;
+      
+      this.showStatus('success', 'Homepage content updated successfully', 'content');
+    } else if (section === 'about') {
+      const aboutIntro = document.getElementById('about-intro').value.trim();
+      const aboutBio = document.getElementById('about-bio').value.trim();
+      
+      if (aboutIntro) this.currentData.content.aboutIntro = aboutIntro;
+      if (aboutBio) this.currentData.content.aboutBio = aboutBio;
+      
+      this.showStatus('success', 'About page content updated successfully', 'content');
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('adminSiteContent', JSON.stringify(this.currentData.content));
+    
+    this.hasChanges = true;
+    this.updateChangeStatus();
+    this.loadOverview();
+  }
+
   markChanges() {
     this.hasChanges = true;
-    document.getElementById('save-site-btn').classList.add('show');
+    this.updateChangeStatus();
   }
   
   saveSite() {

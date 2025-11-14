@@ -180,13 +180,26 @@ class AdminAPI {
   
   extractProductsFromJS(content) {
     try {
-      // Extract PRODUCTS array from JavaScript
+      console.log('Extracting products from content...');
+      console.log('Content preview:', content.substring(0, 300));
+      
+      // Extract PRODUCTS array from the loadProducts function
       const match = content.match(/PRODUCTS\s*=\s*(\[[\s\S]*?\]);/);
+      console.log('Regex match found:', !!match);
+      
       if (match) {
-        return eval(match[1]); // In production, use a proper JS parser
+        console.log('Matched content:', match[1].substring(0, 200));
+        // Create a safe execution context
+        const vm = require('vm');
+        const context = {};
+        const script = new vm.Script(`products = ${match[1]}`);
+        script.runInNewContext(context);
+        console.log('Extracted products count:', context.products ? context.products.length : 0);
+        return context.products;
       }
     } catch (error) {
       console.error('Error extracting products:', error);
+      console.log('Raw content preview:', content.substring(0, 500));
     }
     return [];
   }
@@ -196,7 +209,12 @@ class AdminAPI {
       // Extract DISCOUNTS object from JavaScript
       const match = content.match(/const\s+DISCOUNTS\s*=\s*(\{[\s\S]*?\});/);
       if (match) {
-        return eval(`(${match[1]})`); // In production, use a proper JS parser
+        // Create a safe execution context
+        const vm = require('vm');
+        const context = {};
+        const script = new vm.Script(`discounts = ${match[1]}`);
+        script.runInNewContext(context);
+        return context.discounts;
       }
     } catch (error) {
       console.error('Error extracting coupons:', error);
@@ -215,8 +233,23 @@ class AdminAPI {
         content.tagline = taglineMatch[1];
       }
       
-      // Extract hero text (this is more complex, depends on your HTML structure)
-      // Add more extraction logic as needed
+      // Extract hero text from index.html 
+      const heroMatch = indexContent.match(/<h1[^>]*>(.*?)<\/h1>/);
+      if (heroMatch) {
+        content.heroText = heroMatch[1].replace(/<[^>]*>/g, '').trim(); // Remove any HTML tags
+      }
+      
+      // Extract about content from about.html
+      const aboutContent = await fs.readFile('about.html', 'utf8');
+      const aboutIntroMatch = aboutContent.match(/<div class="about-intro"[^>]*>\s*<p>(.*?)<\/p>/s);
+      if (aboutIntroMatch) {
+        content.aboutIntro = aboutIntroMatch[1].trim();
+      }
+      
+      const aboutBioMatch = aboutContent.match(/<div class="bio-section"[^>]*>[\s\S]*?<p>(.*?)<\/p>/);
+      if (aboutBioMatch) {
+        content.aboutBio = aboutBioMatch[1].trim();
+      }
       
     } catch (error) {
       console.error('Error extracting content:', error);
