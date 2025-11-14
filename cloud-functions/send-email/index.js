@@ -83,38 +83,6 @@ async function getGmailTransporter() {
  */
 function getEmailTemplate(type, data) {
   const templates = {
-    newsletter: {
-      subject: '✨ New Newsletter Subscriber',
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-            .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
-            .info { background: white; padding: 15px; margin: 10px 0; border-left: 4px solid #667eea; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>✨ New Newsletter Subscriber</h1>
-            </div>
-            <div class="content">
-              <div class="info">
-                <p><strong>Email:</strong> ${data.email}</p>
-                <p><strong>Source:</strong> ${data.source || 'Website'}</p>
-                <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
-              </div>
-              <p>Add this subscriber to your mailing list!</p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `
-    },
     
     comment: {
       subject: `💬 New Comment from ${data.name}`,

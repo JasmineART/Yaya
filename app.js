@@ -797,63 +797,23 @@ async function postToSupabase(path, body){
   }catch(e){return null}
 }
 
-// Newsletter initializer (exposed) - monitors EmailOctopus form submissions
+// Newsletter initializer (exposed) - basic EmailOctopus form setup
 function initNewsletterForm() {
-  console.log('🌟 Initializing EmailOctopus newsletter monitoring...');
+  console.log('🌟 Initializing EmailOctopus newsletter form...');
   
-  // Set up interval to check for EmailOctopus form and monitor submissions
+  // Simple setup to ensure EmailOctopus forms work properly
   let monitorInterval = setInterval(() => {
     const emailOctopusForm = document.querySelector('form[data-form="e717b62a-7d10-11f0-b467-0f9ecebb753c"]');
     
     if (emailOctopusForm) {
-      console.log('✅ EmailOctopus form found, setting up monitoring');
+      console.log('✅ EmailOctopus form found - basic setup complete');
       clearInterval(monitorInterval);
       
-      // Monitor form submissions to send EmailJS notifications
-      emailOctopusForm.addEventListener('submit', async (e) => {
-        // Get the email from the form
-        const emailInput = emailOctopusForm.querySelector('input[type="email"]');
-        const email = emailInput ? emailInput.value : null;
-        
-        if (email && typeof window.sendNewsletterSignup === 'function') {
-          console.log('📧 EmailOctopus form submitted, sending EmailJS notification...');
-          
-          // Small delay to let EmailOctopus process first
-          setTimeout(async () => {
-            try {
-              const emailResult = await window.sendNewsletterSignup(email, window.location.pathname);
-              if (emailResult && emailResult.success) {
-                console.log('✅ EmailJS notification sent successfully');
-              } else {
-                console.warn('⚠️ EmailJS notification failed:', emailResult);
-              }
-            } catch (error) {
-              console.error('❌ Error sending EmailJS notification:', error);
-            }
-          }, 500);
-        }
-      });
-      
-      // Also monitor for successful submissions via EmailOctopus callbacks
+      // Set up optional success callback for logging
       window.EmailOctopusCallback = window.EmailOctopusCallback || {};
-      window.EmailOctopusCallback.onSuccess = async function(formId) {
+      window.EmailOctopusCallback.onSuccess = function(formId) {
         if (formId === 'e717b62a-7d10-11f0-b467-0f9ecebb753c') {
           console.log('✅ EmailOctopus subscription successful');
-          
-          // Try to get email from form data or recent submission
-          const emailInput = document.querySelector('form[data-form="' + formId + '"] input[type="email"]');
-          const email = emailInput ? emailInput.value : null;
-          
-          if (email && typeof window.sendNewsletterSignup === 'function') {
-            try {
-              const emailResult = await window.sendNewsletterSignup(email, window.location.pathname);
-              if (emailResult && emailResult.success) {
-                console.log('✅ EmailJS notification sent via callback');
-              }
-            } catch (error) {
-              console.error('❌ Error in EmailOctopus callback:', error);
-            }
-          }
         }
       };
     }

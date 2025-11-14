@@ -807,6 +807,55 @@ a:focus,button:focus,input:focus,textarea:focus{
   left:0;
 }
 
+/* ===== HAMBURGER MENU ===== */
+.hamburger {
+  display: none; /* Hidden by default, shown on mobile */
+  flex-direction: column;
+  justify-content: space-around;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  z-index: 100000;
+  position: relative;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+}
+
+.hamburger:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.hamburger:focus-visible {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 2px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.hamburger-line {
+  width: 24px;
+  height: 3px;
+  background: var(--white);
+  border-radius: 3px;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+}
+
+/* Hamburger animation when open */
+.hamburger.active .hamburger-line:nth-child(1) {
+  transform: translateY(8px) rotate(45deg);
+}
+
+.hamburger.active .hamburger-line:nth-child(2) {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.hamburger.active .hamburger-line:nth-child(3) {
+  transform: translateY(-8px) rotate(-45deg);
+}
 
 .hero{
   display:flex;
@@ -1654,51 +1703,140 @@ textarea{
 
 /* ===== MOBILE-FIRST RESPONSIVE DESIGN ===== */
 
-/* Base mobile styles (applied to all screen sizes) */
-.container {
-  width: 100%;
-  max-width: var(--content-max-width);
-  margin: 0 auto;
-  padding: 0 1rem;
+/* Base mobile styles (applied to all screen sizes up to 768px) */
+@media (max-width: 47.9375rem) {
+  /* Show hamburger menu on mobile */
+  .hamburger {
+    display: flex;
+  }
+  
+  /* Mobile navigation - hidden by default */
+  .site-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    position: relative;
+  }
+  
+  .brand {
+    flex-direction: row;
+    gap: 0.75rem;
+  }
+  
+  .brand h1 {
+    font-size: 1.3rem;
+  }
+  
+  .logo {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .tag {
+    font-size: 0.8rem;
+  }
+  
+  /* Mobile navigation menu */
+  .nav {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    height: 100vh;
+    width: 280px;
+    max-width: 85vw;
+    background: linear-gradient(135deg, 
+      #E89CC8 0%,
+      #D899E6 50%,
+      #B88DD8 100%);
+    box-shadow: -5px 0 30px rgba(0, 0, 0, 0.3);
+    padding: 5rem 2rem 2rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100002;
+    overflow-y: auto;
+  }
+  
+  /* Mobile menu open state */
+  .nav.active {
+    right: 0;
+  }
+  
+  /* Mobile nav links */
+  .nav a {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    background: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    transition: all 0.3s ease;
+    text-align: left;
+    display: block;
+    cursor: pointer;
+    touch-action: manipulation;
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+  
+  .nav a:hover,
+  .nav a:focus-visible {
+    background: rgba(255, 255, 255, 0.4);
+    transform: translateX(5px);
+    padding-left: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  .nav a::after {
+    display: none; /* Remove underline animation on mobile */
+  }
+  
+  /* Mobile overlay when menu is open - transparent for readability */
+  .nav-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+    z-index: 100001;
+  }
+  
+  .nav-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
-.hero {
-  flex-direction: column;
-  padding: 1.5rem 0;
-  gap: 2rem;
-  text-align: center;
-}
-
-.site-header {
-  flex-direction: column;
-  gap: 1.5rem;
-  padding: 1rem;
-  text-align: center;
-}
-
-.nav {
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: center;
-}
-
-.nav a {
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  background: rgba(255,255,255,0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.2);
-  min-width: 80px;
-  text-align: center;
-  text-decoration: none;
-}
-
-.features {
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-}
-
-.footer-grid {
+/* Container and layout adjustments for mobile */
+@media (max-width: 47.9375rem) {
+  .container {
+    width: 100%;
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+  
+  .hero {
+    flex-direction: column;
+    padding: 1.5rem 0;
+    gap: 2rem;
+    text-align: center;
+  }
+  
+  .features {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .footer-grid {
   grid-template-columns: 1fr;
   gap: 1.5rem;
   text-align: center;
@@ -1865,6 +2003,45 @@ input::placeholder, textarea::placeholder {
 
 /* Tablet styles (768px and up) */
 @media (min-width: 48rem) {
+  /* Hide hamburger on desktop */
+  .hamburger {
+    display: none !important;
+  }
+  
+  /* Show desktop navigation */
+  .nav {
+    position: static;
+    flex-direction: row;
+    height: auto;
+    width: auto;
+    background: transparent;
+    backdrop-filter: none;
+    box-shadow: none;
+    padding: 0;
+    gap: 1rem;
+    flex-wrap: nowrap;
+  }
+  
+  .nav a {
+    padding: 0.4rem 0.8rem;
+    margin-bottom: 0;
+    background: transparent;
+    border: none;
+    font-size: 1.1rem;
+    width: auto;
+  }
+  
+  .nav a:hover,
+  .nav a:focus-visible {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+    padding-left: 0.8rem;
+  }
+  
+  .nav a::after {
+    display: block; /* Show underline animation on desktop */
+  }
+  
   .container {
     padding: 0 2rem;
   }
@@ -1878,11 +2055,6 @@ input::placeholder, textarea::placeholder {
     justify-content: space-between;
     align-items: center;
     text-align: left;
-  }
-  
-  .nav {
-    gap: 1rem;
-    flex-wrap: nowrap;
   }
   
   .features {
@@ -1998,14 +2170,20 @@ input::placeholder, textarea::placeholder {
 /* Site disclaimer modal */
 .site-disclaimer-overlay{
   position:fixed;
-  inset:0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
   display:flex;
   align-items:center;
   justify-content:center;
   background: rgba(3, 6, 20, 0.6);
   backdrop-filter: blur(6px);
-  z-index:99999;
+  z-index: 99999;
   padding: 2rem;
+  overflow-y: auto;
 }
 .site-disclaimer-modal{
   width:100%;
@@ -2142,5 +2320,111 @@ a{
 ::-webkit-scrollbar-thumb:hover{
   background:rgba(255,255,255,0.5);
   background-clip:content-box;
+}
+
+/* EmailOctopus Form Integration Styles */
+#emailoctopus-form-container {
+  margin-top: 0.5rem;
+}
+
+/* Style EmailOctopus forms to match existing design */
+#emailoctopus-form-container form {
+  display: flex;
+  gap: 0.8rem;
+  align-items: stretch;
+}
+
+#emailoctopus-form-container input[type="email"] {
+  flex: 1;
+  padding: 0.8rem 1rem;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 25px;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  color: white;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+#emailoctopus-form-container input[type="email"]::placeholder {
+  color: rgba(255,255,255,0.7);
+}
+
+#emailoctopus-form-container input[type="email"]:focus {
+  outline: none;
+  border-color: rgba(255,255,255,0.6);
+  box-shadow: 0 0 20px rgba(230, 181, 255, 0.4);
+}
+
+#emailoctopus-form-container button,
+#emailoctopus-form-container input[type="submit"] {
+  padding: 0.8rem 1.5rem;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-radius: 25px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+  backdrop-filter: blur(10px);
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+  animation: fairyGlow 2s ease-in-out infinite;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15), 
+             0 0 20px rgba(230, 181, 255, 0.4),
+             0 0 30px rgba(255, 181, 216, 0.3);
+}
+
+#emailoctopus-form-container button:hover,
+#emailoctopus-form-container input[type="submit"]:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(0,0,0,0.2), 
+             0 0 35px rgba(230, 181, 255, 0.7),
+             0 0 50px rgba(255, 181, 216, 0.6),
+             0 0 70px rgba(181, 229, 255, 0.4);
+  border-color: rgba(255,255,255,0.6);
+  animation: fairyGlowHover 1s ease-in-out infinite;
+}
+
+/* Hide EmailOctopus branding/links if present */
+#emailoctopus-form-container .emailoctopus-form-branding,
+#emailoctopus-form-container .powered-by {
+  display: none !important;
+}
+
+/* Success/error message styling */
+#emailoctopus-form-container .success-message,
+#emailoctopus-form-container .error-message {
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 15px;
+  font-size: 0.9rem;
+}
+
+#emailoctopus-form-container .success-message {
+  background: rgba(76, 175, 80, 0.2);
+  border: 1px solid rgba(76, 175, 80, 0.4);
+  color: #4CAF50;
+}
+
+#emailoctopus-form-container .error-message {
+  background: rgba(244, 67, 54, 0.2);
+  border: 1px solid rgba(244, 67, 54, 0.4);
+  color: #f44336;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 47.9375rem) {
+  #emailoctopus-form-container form {
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  
+  #emailoctopus-form-container input[type="email"],
+  #emailoctopus-form-container button,
+  #emailoctopus-form-container input[type="submit"] {
+    width: 100%;
+  }
 }
 

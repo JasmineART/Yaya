@@ -66,10 +66,10 @@ This directory contains a secure Google Cloud Function for sending emails from t
 ### From Frontend
 
 ```javascript
-import { sendNewsletterSignup } from './google-email-client.js';
+import { sendCommentNotification, sendOrderNotification } from './google-email-client.js';
 
-// Newsletter signup
-const result = await sendNewsletterSignup('user@example.com', 'homepage');
+// Comment notification
+const result = await sendCommentNotification('John Doe', 'Great product!', 'john@example.com');
 
 if (result.success) {
   console.log('Email sent!');
@@ -78,15 +78,7 @@ if (result.success) {
 
 ### Email Types
 
-1. **Newsletter Signup**
-   ```javascript
-   sendEmailViaCloud('newsletter', {
-     email: 'user@example.com',
-     source: 'homepage'
-   });
-   ```
-
-2. **Comment Notification**
+1. **Comment Notification**
    ```javascript
    sendEmailViaCloud('comment', {
      name: 'John Doe',
@@ -119,7 +111,7 @@ npx @google-cloud/functions-framework --target=sendEmail --port=8080
 # Send test request
 curl -X POST http://localhost:8080 \
   -H "Content-Type: application/json" \
-  -d '{"type":"newsletter","data":{"email":"test@example.com"}}'
+  -d '{"type":"comment","data":{"name":"Test User","text":"Test comment","email":"test@example.com"}}'
 ```
 
 ### Browser Testing
@@ -130,8 +122,8 @@ const response = await fetch('YOUR_CLOUD_FUNCTION_URL', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    type: 'newsletter',
-    data: { email: 'test@example.com', source: 'test' }
+    type: 'comment',
+    data: { name: 'Test User', text: 'Test comment', email: 'test@example.com' }
   })
 });
 

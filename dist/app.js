@@ -360,24 +360,122 @@ function showAllContent() {
   allElements.forEach(el => el.classList.add('active'));
 }
 
-// Initialize on load
-if (typeof window !== 'undefined') {
-  window.addEventListener('DOMContentLoaded', () => {
-    console.log('🌟 DOM Content Loaded - initializing...');
+// ===== MOBILE NAVIGATION =====
+function initMobileNavigation() {
+  const hamburger = document.querySelector('.hamburger');
+  const nav = document.querySelector('.nav');
+  
+  if (!hamburger || !nav) {
+    console.log('ℹ️ Mobile navigation elements not found');
+    return;
+  }
+  
+  // Create overlay for mobile menu
+  let overlay = document.querySelector('.nav-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.className = 'nav-overlay';
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(overlay);
+  }
+  
+  // Toggle menu function
+  function toggleMenu(forceClose = false) {
+    const isOpen = nav.classList.contains('active');
     
-    // Show all content FIRST - no delays
-    showAllContent();
-    revealOnScroll();
-    
-    // Then add visual enhancements
-    injectSparkleStyles();
-    createMagicalSparkles();
-    createNeonCastle();
-    createSpotlights();
-    
-    console.log('✅ All systems initialized');
+    if (forceClose || isOpen) {
+      // Close menu
+      nav.classList.remove('active');
+      hamburger.classList.remove('active');
+      overlay.classList.remove('active');
+      hamburger.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = ''; // Re-enable scrolling
+      console.log('📱 Mobile menu closed');
+    } else {
+      // Open menu
+      nav.classList.add('active');
+      hamburger.classList.add('active');
+      overlay.classList.add('active');
+      hamburger.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden'; // Prevent scrolling
+      console.log('📱 Mobile menu opened');
+      
+      // Focus first nav link for accessibility
+      const firstLink = nav.querySelector('a');
+      if (firstLink) {
+        setTimeout(() => firstLink.focus(), 100);
+      }
+    }
+  }
+  
+  // Hamburger button click
+  hamburger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleMenu();
   });
   
+  // Overlay click removed to speed up navigation
+  // Users can click hamburger or press Escape to close
+  
+  // Navigation links - let them navigate naturally
+  // Menu will close automatically when page unloads
+  const navLinks = nav.querySelectorAll('a');
+  navLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+      // Let the link navigate normally - don't close menu manually
+      // The page navigation will handle cleanup
+      console.log('📱 Navigation link clicked:', link.getAttribute('href'));
+    });
+  });
+  
+  // Close menu on escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && nav.classList.contains('active')) {
+      toggleMenu(true);
+      hamburger.focus(); // Return focus to hamburger button
+    }
+  });
+  
+  // Close menu when resizing to desktop
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (window.innerWidth > 768 && nav.classList.contains('active')) {
+        toggleMenu(true);
+        console.log('📱 Mobile menu closed due to resize');
+      }
+    }, 250);
+  });
+  
+  // Trap focus within menu when open
+  nav.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab' && nav.classList.contains('active')) {
+      const focusableElements = nav.querySelectorAll('a[href]');
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      
+      if (e.shiftKey) {
+        // Shift + Tab
+        if (document.activeElement === firstElement) {
+          e.preventDefault();
+          lastElement.focus();
+        }
+      } else {
+        // Tab
+        if (document.activeElement === lastElement) {
+          e.preventDefault();
+          firstElement.focus();
+        }
+      }
+    }
+  });
+  
+  console.log('📱 Mobile navigation initialized');
+}
+
+// Scroll event listeners for reveal animations
+if (typeof window !== 'undefined') {
   window.addEventListener('scroll', revealOnScroll);
   window.addEventListener('resize', revealOnScroll);
   
@@ -446,8 +544,27 @@ function getCartItems() {
 function saveCart(items){localStorage.setItem(STORAGE_KEY,JSON.stringify(items));}
 
 function removeFromCart(uniqueKey) {
+  console.log('🗑️ Removing item from cart:', uniqueKey, typeof uniqueKey);
   const items = getCart();
-  const filteredItems = items.filter(item => (item.uniqueKey || item.id) !== uniqueKey);
+  console.log('📦 Cart before removal:', items);
+  
+  // Filter out the item - check both uniqueKey and id for compatibility
+  // Handle type coercion: uniqueKey might be string, but id might be number
+  const filteredItems = items.filter(item => {
+    const itemKey = item.uniqueKey || item.id;
+    // Use == for loose equality to handle string/number mismatch
+    const match = itemKey == uniqueKey;
+    if (match) {
+      console.log('✅ Found matching item to remove:', item, 'itemKey:', itemKey, typeof itemKey);
+    } else {
+      console.log('⏭️ Keeping item:', item, 'itemKey:', itemKey, typeof itemKey);
+    }
+    return !match;
+  });
+  
+  console.log('📦 Cart after removal:', filteredItems);
+  console.log(`📊 Removed ${items.length - filteredItems.length} item(s)`);
+  
   saveCart(filteredItems);
   updateCartCount();
   renderCartContents();
@@ -680,77 +797,117 @@ async function postToSupabase(path, body){
   }catch(e){return null}
 }
 
-// Newsletter initializer (exposed) - attaches submit handler for newsletter form
+// Newsletter initializer (exposed) - monitors EmailOctopus form submissions
 function initNewsletterForm() {
-  const nf = document.getElementById('newsletter-form');
-  if (!nf) return;
-
-  // Avoid duplicate listeners by replacing the node
-  try {
-    const clone = nf.cloneNode(true);
-    nf.parentNode.replaceChild(clone, nf);
-  } catch (e) {
-    // ignore
-  }
-
-  const form = document.getElementById('newsletter-form');
-  form.addEventListener('submit', async e => {
-    e.preventDefault();
-    const email = document.getElementById('newsletter-email').value;
-
-    try {
-      const submitBtn = form.querySelector('button[type="submit"]');
-      const originalText = submitBtn ? submitBtn.textContent : null;
-      if (submitBtn) submitBtn.textContent = 'Sending…';
-
-      // Check if sendNewsletterSignup function exists
-      if (typeof window.sendNewsletterSignup !== 'function') {
-        console.error('❌ sendNewsletterSignup function not found. EmailJS may not be loaded.');
-        alert('Subscription system temporarily unavailable. Please try again later.');
-        if (submitBtn && originalText) submitBtn.textContent = originalText;
-        return;
-      }
-
-      const emailResult = await window.sendNewsletterSignup(email, window.location.pathname);
-
-      if (emailResult && emailResult.success) {
-        alert('Thanks — you are subscribed! 📧 Notification sent.');
-        form.reset();
-        if (submitBtn && originalText) submitBtn.textContent = originalText;
-        return;
-      }
-
-      console.warn('EmailJS newsletter send failed', emailResult);
-      alert('Could not send subscription email via EmailJS. Please try again later.');
-      if (submitBtn && originalText) submitBtn.textContent = originalText;
-    } catch (err) {
-      console.error('Newsletter submission error (EmailJS only):', err);
-      alert('Subscription system temporarily unavailable. Please try again later.');
-      if (submitBtn && originalText) submitBtn.textContent = originalText;
+  console.log('🌟 Initializing EmailOctopus newsletter monitoring...');
+  
+  // Set up interval to check for EmailOctopus form and monitor submissions
+  let monitorInterval = setInterval(() => {
+    const emailOctopusForm = document.querySelector('form[data-form="e717b62a-7d10-11f0-b467-0f9ecebb753c"]');
+    
+    if (emailOctopusForm) {
+      console.log('✅ EmailOctopus form found, setting up monitoring');
+      clearInterval(monitorInterval);
+      
+      // Monitor form submissions to send EmailJS notifications
+      emailOctopusForm.addEventListener('submit', async (e) => {
+        // Get the email from the form
+        const emailInput = emailOctopusForm.querySelector('input[type="email"]');
+        const email = emailInput ? emailInput.value : null;
+        
+        if (email && typeof window.sendNewsletterSignup === 'function') {
+          console.log('📧 EmailOctopus form submitted, sending EmailJS notification...');
+          
+          // Small delay to let EmailOctopus process first
+          setTimeout(async () => {
+            try {
+              const emailResult = await window.sendNewsletterSignup(email, window.location.pathname);
+              if (emailResult && emailResult.success) {
+                console.log('✅ EmailJS notification sent successfully');
+              } else {
+                console.warn('⚠️ EmailJS notification failed:', emailResult);
+              }
+            } catch (error) {
+              console.error('❌ Error sending EmailJS notification:', error);
+            }
+          }, 500);
+        }
+      });
+      
+      // Also monitor for successful submissions via EmailOctopus callbacks
+      window.EmailOctopusCallback = window.EmailOctopusCallback || {};
+      window.EmailOctopusCallback.onSuccess = async function(formId) {
+        if (formId === 'e717b62a-7d10-11f0-b467-0f9ecebb753c') {
+          console.log('✅ EmailOctopus subscription successful');
+          
+          // Try to get email from form data or recent submission
+          const emailInput = document.querySelector('form[data-form="' + formId + '"] input[type="email"]');
+          const email = emailInput ? emailInput.value : null;
+          
+          if (email && typeof window.sendNewsletterSignup === 'function') {
+            try {
+              const emailResult = await window.sendNewsletterSignup(email, window.location.pathname);
+              if (emailResult && emailResult.success) {
+                console.log('✅ EmailJS notification sent via callback');
+              }
+            } catch (error) {
+              console.error('❌ Error in EmailOctopus callback:', error);
+            }
+          }
+        }
+      };
     }
-  });
+  }, 1000);
+  
+  // Clear interval after 30 seconds to avoid infinite checking
+  setTimeout(() => {
+    if (monitorInterval) {
+      clearInterval(monitorInterval);
+      console.log('⏰ EmailOctopus form monitoring timeout - form may not have loaded');
+    }
+  }, 30000);
 }
 
 // Expose for tests and manual init
 window.initNewsletterForm = initNewsletterForm;
 
+// ===== CONSOLIDATED INITIALIZATION =====
+// Single DOMContentLoaded listener to prevent duplicate initialization
 document.addEventListener('DOMContentLoaded',()=>{
+  console.log('🌟 DOM Content Loaded - initializing...');
+  
   // Initialize accessibility features first
   initAccessibility();
   
+  // Initialize mobile navigation
+  initMobileNavigation();
+  
+  // Cart and newsletter
   updateCartCount();
   renderCartContents();
-
-  // newsletter
   initNewsletterForm();
 
-  // Show site disclaimer to visitors on entry (non-blocking reminder)
+  // Show all content FIRST - no delays
+  showAllContent();
+  revealOnScroll();
+  
+  // Then add visual enhancements (with error handling)
+  try {
+    if (typeof createMagicalSparkles === 'function') createMagicalSparkles();
+    if (typeof createNeonCastle === 'function') createNeonCastle();
+    if (typeof createSpotlights === 'function') createSpotlights();
+  } catch(err) {
+    console.warn('Visual enhancements skipped:', err.message);
+  }
+
+  // Site disclaimer modal is available but not auto-shown
+  // Users can access it if needed via window.__showSiteDisclaimer()
   try {
     createDisclaimerModal();
-    if (sessionStorage.getItem('siteDisclaimerAccepted') !== 'true') {
-      // show the modal but do not block initialization
-      window.__showSiteDisclaimer();
-    }
+    // Disabled auto-show - uncomment if needed:
+    // if (sessionStorage.getItem('siteDisclaimerAccepted') !== 'true') {
+    //   window.__showSiteDisclaimer();
+    // }
   } catch (e) { /* ignore if modal cannot be created */ }
 
   // comments
@@ -821,7 +978,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(checkout){
     checkout.addEventListener('submit',async e=>{
       e.preventDefault();
-      try{ createDisclaimerModal(); if(window.__showSiteDisclaimer) window.__showSiteDisclaimer(); }catch(err){}
+      // Disclaimer check removed - modal available but not forced
       
       if(!window.PRODUCTS || window.PRODUCTS.length === 0) {
         alert('Products not loaded yet. Please wait a moment and try again.');
@@ -834,8 +991,43 @@ document.addEventListener('DOMContentLoaded',()=>{
       const items = getCart().map(it=>{
         const p = window.PRODUCTS.find(x=>x.id===it.id);
         if(!p) return null;
-        return {id: it.id, title: p.title, price: p.price, qty: it.qty};
+        return {id: it.id, title: p.title, price: p.price, qty: it.qty, name: p.title, quantity: it.qty, image: p.images && p.images[0]};
       }).filter(Boolean); // Remove null entries
+
+      // Calculate order totals
+      const subtotal = items.reduce((s,it)=>{
+        const p = window.PRODUCTS.find(x=>x.id===it.id);
+        return p ? s + (p.price * it.qty) : s;
+      },0);
+      
+      const appliedDiscount = getAppliedDiscount();
+      let discountAmount = 0;
+      let discountCode = '';
+      let discountedSubtotal = subtotal;
+      
+      if (appliedDiscount && appliedDiscount.code) {
+        const discountResult = calculateDiscount(subtotal, appliedDiscount.code, items);
+        if (discountResult.valid) {
+          discountAmount = discountResult.amount;
+          discountCode = appliedDiscount.code;
+          discountedSubtotal = subtotal - discountAmount;
+        }
+      }
+      
+      const shipping = 9.99;
+      const taxRate = 0.085;
+      const tax = discountedSubtotal * taxRate;
+      const total = discountedSubtotal + shipping + tax;
+      
+      console.log('💳 Preparing Stripe checkout:', {
+        subtotal: subtotal.toFixed(2),
+        discountCode,
+        discountAmount: discountAmount.toFixed(2),
+        discountedSubtotal: discountedSubtotal.toFixed(2),
+        shipping: shipping.toFixed(2),
+        tax: tax.toFixed(2),
+        total: total.toFixed(2)
+      });
 
       // Save order attempt to Supabase if available
       const orderRecord = {name,email,items,created_at:new Date().toISOString()};
@@ -850,11 +1042,32 @@ document.addEventListener('DOMContentLoaded',()=>{
         }
       }catch(e){console.warn('notify server failed',e)}
 
-      // Call server to create payment session
+      // Call server to create payment session with calculated totals
       try{
         if(pay==='stripe'){
-          const resp = await fetch((window.YAYA_CONFIG && window.YAYA_CONFIG.serverUrl ? window.YAYA_CONFIG.serverUrl : '') + '/create-stripe-session',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items,successUrl:location.origin + '/index.html',cancelUrl:location.origin + '/cart.html'})});
+          const stripePayload = {
+            items,
+            customer: {name, email},
+            discountAmount,
+            discountCode,
+            shipping,
+            tax,
+            taxRate,
+            subtotal,
+            total,
+            successUrl:location.origin + '/success.html?session_id={CHECKOUT_SESSION_ID}',
+            cancelUrl:location.origin + '/cart.html'
+          };
+          
+          console.log('📤 Sending to Stripe API:', stripePayload);
+          
+          const resp = await fetch((window.YAYA_CONFIG && window.YAYA_CONFIG.serverUrl ? window.YAYA_CONFIG.serverUrl : '') + '/create-stripe-session',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify(stripePayload)
+          });
           const data = await resp.json();
+          console.log('📥 Stripe API response:', data);
           if(data.url) window.location.href = data.url; else throw new Error(data.error || 'No url');
         }else if(pay==='paypal'){
           const resp = await fetch((window.YAYA_CONFIG && window.YAYA_CONFIG.serverUrl ? window.YAYA_CONFIG.serverUrl : '') + '/create-paypal-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items,returnUrl:location.origin + '/index.html',cancelUrl:location.origin + '/cart.html'})});
@@ -870,6 +1083,8 @@ document.addEventListener('DOMContentLoaded',()=>{
     });
     renderOrderSummary();
   }
+  
+  console.log('✅ All systems initialized');
 });
 
 async function loadComments(){

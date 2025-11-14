@@ -8,18 +8,19 @@
 // EmailJS configuration - Complete setup
 const EMAILJS_CONFIG = {
   serviceId: 'service_5sl3jkm',        // ✅ Your Gmail service ID (Updated 11/7/2025)
-  newsletterTemplateId: 'newsubs_kw32jj9',  // ✅ Newsletter template ID
   orderTemplateId: 'orderconfirm_vz7exbv',     // ✅ Order confirmation template ID
   userId: '_Y8GKbzV16a70S4PI'          // ✅ Your User ID (Public Key) - Updated 11/7/2025
 };
 
 /**
- * Send notification email (only for orders and newsletter signups)
- * @param {string} type - Email type: 'newsletter' or 'order'
+ * Send notification email (only for orders)
+ * @param {string} type - Email type: 'order'
  * @param {object} data - Email data
  */
 async function sendNotificationEmail(type, data) {
   try {
+    console.log(`📧 sendNotificationEmail called:`, { type, data });
+    
     // Validate data exists
     if (!data || typeof data !== 'object') {
       console.warn(`⚠️  ${type} notification skipped - invalid data:`, data);
@@ -28,9 +29,12 @@ async function sendNotificationEmail(type, data) {
 
     // Ensure EmailJS is loaded
     if (typeof emailjs === 'undefined') {
-      console.error('❌ EmailJS not loaded');
+      console.error('❌ EmailJS not loaded - checking if library exists in window');
+      console.log('Available email functions:', Object.keys(window).filter(key => key.toLowerCase().includes('email')));
       return { success: false, error: 'EmailJS library not loaded' };
     }
+    
+    console.log('✅ EmailJS library is available');
 
     // Prepare template parameters based on email type
     let templateParams = {
@@ -46,24 +50,6 @@ async function sendNotificationEmail(type, data) {
     let templateId;
 
     switch(type) {
-      case 'newsletter':
-        if (!data.email) {
-          console.warn('⚠️  Newsletter notification skipped - no email provided');
-          return { success: false, error: 'Email address required' };
-        }
-        
-        templateParams = {
-          to_email: 'faeriepoetics@gmail.com',
-          user_email: data.email,
-          page: data.source || 'website',
-          timestamp: templateParams.timestamp,
-          from_name: 'Yaya Starchild Website',
-          reply_to: data.email
-        };
-        templateId = EMAILJS_CONFIG.newsletterTemplateId;
-        console.log('📧 Sending newsletter signup notification to faeriepoetics@gmail.com');
-        break;
-
       case 'order':
         // Validate required order data
         if (!data.items || !data.customerName || !data.customerEmail || !data.total) {
@@ -99,6 +85,13 @@ async function sendNotificationEmail(type, data) {
     }
 
     // Send email via EmailJS using appropriate template
+    console.log('📤 About to send email via EmailJS with:', {
+      serviceId: EMAILJS_CONFIG.serviceId,
+      templateId: templateId,
+      templateParams: templateParams,
+      userId: EMAILJS_CONFIG.userId
+    });
+    
     const response = await emailjs.send(
       EMAILJS_CONFIG.serviceId,
       templateId,
@@ -107,7 +100,8 @@ async function sendNotificationEmail(type, data) {
     );
 
     console.log(`✅ ${type} notification sent successfully:`, response);
-    return { success: true, messageId: response.text };
+    console.log('📧 Full EmailJS response:', JSON.stringify(response, null, 2));
+    return { success: true, messageId: response.text, fullResponse: response };
 
   } catch (error) {
     console.error(`❌ ${type} notification error:`, error);
@@ -159,21 +153,6 @@ function loadEmailJS() {
 }
 
 // Convenience functions
-async function sendNewsletterSignup(email, source = 'website') {
-  try {
-    // Validate email first
-    if (!email || !email.includes('@')) {
-      return { success: false, error: 'Invalid email address' };
-    }
-    
-    // Send email notification for new subscribers
-    return await sendNotificationEmail('newsletter', { email, source });
-  } catch (error) {
-    console.error('❌ sendNewsletterSignup error:', error);
-    return { success: false, error: error.message || 'Unknown error' };
-  }
-}
-
 async function sendCommentNotification(name, text, email = '') {
   // Comments only go to database - no email notifications
   console.log('📝 Comment received - saving to Firebase only (no email)');
@@ -186,12 +165,10 @@ async function sendOrderNotification(orderData) {
 }
 
 // Make functions available globally for all scripts
-window.sendNewsletterSignup = sendNewsletterSignup;
 window.sendCommentNotification = sendCommentNotification;
 window.sendOrderNotification = sendOrderNotification;
 
 // Also make them available as global functions (no window prefix needed)
-globalThis.sendNewsletterSignup = sendNewsletterSignup;
 globalThis.sendCommentNotification = sendCommentNotification;
 globalThis.sendOrderNotification = sendOrderNotification;
 
