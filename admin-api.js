@@ -3,6 +3,7 @@ const express = require('express');
 const fs = require('fs').promises;
 const path = require('path');
 const { execSync } = require('child_process');
+const multer = require('multer');
 
 class AdminAPI {
   constructor() {
@@ -14,6 +15,44 @@ class AdminAPI {
   setupMiddleware() {
     this.app.use(express.json());
     this.app.use(express.static('.'));
+    
+    // Configure multer for file uploads
+    const storage = multer.diskStorage({
+      destination: async (req, file, cb) => {
+        const uploadDir = path.join(__dirname, 'assets', 'products');
+        try {
+          await fs.mkdir(uploadDir, { recursive: true });
+          cb(null, uploadDir);
+        } catch (error) {
+          cb(error);
+        }
+      },
+      filename: (req, file, cb) => {
+        const timestamp = Date.now();
+        const randomId = Math.random().toString(36).substring(2, 15);
+        const fileExtension = path.extname(file.originalname).toLowerCase();
+        const fileName = `product_${timestamp}_${randomId}${fileExtension}`;
+        cb(null, fileName);
+      }
+    });
+    
+    const fileFilter = (req, file, cb) => {
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Invalid file type. Only JPG, PNG, and WebP are allowed.'), false);
+      }
+    };
+    
+    this.upload = multer({ 
+      storage: storage,
+      fileFilter: fileFilter,
+      limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB limit
+        files: 5 // Maximum 5 files
+      }
+    });
     
     // CORS for admin access
     this.app.use((req, res, next) => {
@@ -58,6 +97,32 @@ class AdminAPI {
           });
         }
       } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    // Upload product photos
+    this.app.post('/api/admin/upload', authenticate, this.upload.array('photos', 5), async (req, res) => {
+      try {
+        if (!req.files || req.files.length === 0) {
+          return res.status(400).json({ error: 'No files uploaded' });
+        }
+        
+        const uploadedFiles = req.files.map(file => ({
+          filename: file.filename,
+          originalName: file.originalname,
+          size: file.size,
+          path: `assets/products/${file.filename}`,
+          url: `/assets/products/${file.filename}`
+        }));
+        
+        res.json({ 
+          success: true, 
+          message: `${uploadedFiles.length} photos uploaded successfully`,
+          files: uploadedFiles
+        });
+      } catch (error) {
+        console.error('Upload error:', error);
         res.status(500).json({ error: error.message });
       }
     });

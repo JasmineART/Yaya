@@ -306,11 +306,125 @@
         gap: 0.5rem;
       }
       
-      .admin-status {
+            .admin-status {
         padding: 1rem;
         border-radius: 8px;
         margin-bottom: 1rem;
         display: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+      }
+      
+      /* Photo Upload Styles */
+      .photo-upload-container {
+        margin-top: 0.5rem;
+      }
+      
+      .upload-area {
+        border: 3px dashed rgba(44,62,80,0.3);
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        background: rgba(255,255,255,0.05);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-bottom: 1rem;
+      }
+      
+      .upload-area:hover {
+        border-color: var(--pink);
+        background: rgba(232,156,200,0.1);
+        transform: translateY(-2px);
+      }
+      
+      .upload-area.dragover {
+        border-color: var(--pink);
+        background: rgba(232,156,200,0.15);
+        transform: scale(1.02);
+      }
+      
+      .upload-prompt {
+        color: #2c3e50;
+        pointer-events: none;
+      }
+      
+      .uploaded-photos {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+      
+      .uploaded-photo {
+        position: relative;
+        aspect-ratio: 1;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 2px solid rgba(44,62,80,0.2);
+        background: rgba(255,255,255,0.1);
+      }
+      
+      .uploaded-photo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      
+      .photo-remove {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: rgba(231,76,60,0.9);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: all 0.2s ease;
+      }
+      
+      .photo-remove:hover {
+        background: #e74c3c;
+        transform: scale(1.1);
+      }
+      
+      .photo-main-badge {
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        background: rgba(46,204,113,0.9);
+        color: white;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 600;
+      }
+      
+      .upload-progress {
+        margin-top: 1rem;
+        padding: 0.75rem;
+        background: rgba(52,152,219,0.1);
+        border: 1px solid rgba(52,152,219,0.3);
+        border-radius: 8px;
+        display: none;
+      }
+      
+      .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: rgba(52,152,219,0.2);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 0.5rem;
+      }
+      
+      .progress-fill {
+        height: 100%;
+        background: #3498db;
+        transition: width 0.3s ease;
+        width: 0%;
       }
       
       .admin-status.success {
@@ -319,10 +433,20 @@
         color: #4CAF50;
       }
       
-      .admin-status.error {
-        background: rgba(255, 107, 107, 0.1);
-        border: 1px solid rgba(255, 107, 107, 0.3);
-        color: #ff6b6b;
+            .admin-status.error {
+        background: rgba(231, 76, 60, 0.15);
+        border: 1px solid rgba(231, 76, 60, 0.3);
+        color: #e74c3c;
+      }
+      
+      .upload-error {
+        background: rgba(231, 76, 60, 0.1);
+        border: 1px solid rgba(231, 76, 60, 0.3);
+        color: #e74c3c;
+        padding: 0.75rem;
+        border-radius: 8px;
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
       }
       
       .product-list {
@@ -597,8 +721,18 @@
                 <input type="text" id="product-isbn" placeholder="979-8-9999322-0-4" />
               </div>
               <div class="admin-form-group">
-                <label for="product-image">Image Path</label>
-                <input type="text" id="product-image" placeholder="assets/product-image.jpg" required />
+                <label for="product-images">Product Photos (up to 5)</label>
+                <div class="photo-upload-container">
+                  <div class="upload-area" id="upload-area">
+                    <div class="upload-prompt">
+                      <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.6;"></i>
+                      <p style="margin: 0 0 0.5rem 0; font-weight: 600;">Drop photos here or click to browse</p>
+                      <p style="margin: 0; font-size: 0.9rem; opacity: 0.8;">Supports JPG, PNG, WebP • Max 5MB each • Up to 5 photos</p>
+                    </div>
+                    <input type="file" id="product-images" multiple accept="image/*" style="display: none;" />
+                  </div>
+                  <div class="uploaded-photos" id="uploaded-photos"></div>
+                </div>
               </div>
               <button type="submit" class="admin-btn">
                 <i class="fas fa-plus"></i> Add Product

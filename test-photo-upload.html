@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Photo Upload Test - Yaya Starchild</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        body {
+            font-family: 'Cormorant Garamond', serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius);
+            border: 1px solid rgba(255,255,255,0.25);
+            padding: 2rem;
+        }
+        .test-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .feature-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .feature-card h3 {
+            color: #FFD166;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .feature-card ul {
+            color: rgba(255,255,255,0.9);
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+        .feature-card li {
+            margin-bottom: 0.5rem;
+        }
+        .test-link {
+            display: inline-block;
+            background: var(--pink);
+            color: white;
+            text-decoration: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            margin: 0.5rem 1rem 0.5rem 0;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .test-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(232, 156, 200, 0.4);
+        }
+        .instructions {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            color: rgba(255,255,255,0.9);
+        }
+        .instructions h4 {
+            color: #3498db;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .status-success {
+            background: rgba(46, 204, 113, 0.2);
+            border: 1px solid #2ecc71;
+            color: #2ecc71;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1><i class="fas fa-camera"></i> Admin Photo Upload Test</h1>
+            <p style="font-size: 1.2rem; opacity: 0.9;">Multi-photo upload with drag & drop for product slideshow</p>
+            <div class="status-success">
+                <i class="fas fa-check-circle"></i>
+                Photo Upload Functionality Successfully Implemented
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h4><i class="fas fa-clipboard-list"></i> Testing Instructions</h4>
+            <p><strong>Follow these steps to test the new photo upload functionality:</strong></p>
+            <ol style="padding-left: 1.5rem;">
+                <li>Go to the admin dashboard and click the <strong>Products</strong> tab</li>
+                <li>In the "Add New Product" section, scroll to the photo upload area</li>
+                <li>Test drag & drop by dragging image files to the upload zone</li>
+                <li>Test click-to-browse by clicking the upload area</li>
+                <li>Upload multiple photos (up to 5) and verify slideshow preview</li>
+                <li>Test photo removal by clicking the X button on uploaded photos</li>
+                <li>Fill out product details and submit to test complete workflow</li>
+                <li>Verify the new product displays all uploaded photos in slideshow</li>
+            </ol>
+        </div>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h3><i class="fas fa-cloud-upload-alt"></i> Upload Features</h3>
+                <ul>
+                    <li><strong>Drag & Drop Interface</strong> - Intuitive file handling</li>
+                    <li><strong>Click to Browse</strong> - Traditional file picker</li>
+                    <li><strong>Multiple Files</strong> - Up to 5 photos per product</li>
+                    <li><strong>Real-time Preview</strong> - See photos before upload</li>
+                    <li><strong>Progress Feedback</strong> - Upload status indicators</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h3><i class="fas fa-shield-alt"></i> Validation & Security</h3>
+                <ul>
+                    <li><strong>File Type Validation</strong> - JPG, PNG, WebP only</li>
+                    <li><strong>Size Limits</strong> - Maximum 5MB per file</li>
+                    <li><strong>Quantity Limits</strong> - Maximum 5 photos</li>
+                    <li><strong>Error Handling</strong> - Clear error messages</li>
+                    <li><strong>Safe Processing</strong> - Secure file handling</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h3><i class="fas fa-images"></i> Photo Management</h3>
+                <ul>
+                    <li><strong>Main Photo Badge</strong> - First photo marked as main</li>
+                    <li><strong>Remove Photos</strong> - Individual photo deletion</li>
+                    <li><strong>Reorder Support</strong> - Drag to reorder (planned)</li>
+                    <li><strong>Thumbnail Preview</strong> - Grid view of all photos</li>
+                    <li><strong>Slideshow Integration</strong> - Automatic slideshow creation</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h3><i class="fas fa-desktop"></i> User Experience</h3>
+                <ul>
+                    <li><strong>Visual Feedback</strong> - Hover and drag states</li>
+                    <li><strong>Progress Indicators</strong> - Upload progress bars</li>
+                    <li><strong>Responsive Design</strong> - Mobile-friendly interface</li>
+                    <li><strong>Accessible Controls</strong> - Keyboard navigation support</li>
+                    <li><strong>Clear Instructions</strong> - Helpful user guidance</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="feature-card">
+            <h3><i class="fas fa-cogs"></i> Technical Implementation</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                <div>
+                    <h5 style="color: #FFD166; margin-bottom: 0.5rem;">📁 File Handling</h5>
+                    <ul style="font-size: 0.9rem;">
+                        <li>FileReader API for preview generation</li>
+                        <li>FormData for secure file upload</li>
+                        <li>Blob URL management for memory efficiency</li>
+                        <li>MIME type validation for security</li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 style="color: #FFD166; margin-bottom: 0.5rem;">🎨 UI Components</h5>
+                    <ul style="font-size: 0.9rem;">
+                        <li>Drag & drop visual feedback</li>
+                        <li>Dynamic progress bars</li>
+                        <li>Responsive thumbnail grid</li>
+                        <li>Interactive photo removal buttons</li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 style="color: #FFD166; margin-bottom: 0.5rem;">⚡ Performance</h5>
+                    <ul style="font-size: 0.9rem;">
+                        <li>Lazy loading for large images</li>
+                        <li>Efficient DOM manipulation</li>
+                        <li>Memory cleanup after upload</li>
+                        <li>Optimized file processing</li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 style="color: #FFD166; margin-bottom: 0.5rem;">🔧 Integration</h5>
+                    <ul style="font-size: 0.9rem;">
+                        <li>Seamless admin dashboard integration</li>
+                        <li>Product slideshow compatibility</li>
+                        <li>Undo/redo functionality support</li>
+                        <li>Error handling with user feedback</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 2rem; padding-top: 2rem; border-top: 2px solid rgba(255,255,255,0.2);">
+            <h3 style="color: #FFD166; margin-bottom: 1rem;"><i class="fas fa-rocket"></i> Ready for Testing</h3>
+            <p style="color: rgba(255,255,255,0.9); margin-bottom: 1.5rem;">
+                The admin dashboard now supports complete photo upload workflow for product management.
+                Test all features thoroughly to ensure smooth client experience.
+            </p>
+            
+            <a href="admin-dashboard.html" class="test-link">
+                <i class="fas fa-user-shield"></i> Test Admin Dashboard
+            </a>
+            <a href="shop.html" class="test-link">
+                <i class="fas fa-store"></i> View Shop
+            </a>
+            <a href="index.html" class="test-link">
+                <i class="fas fa-home"></i> Home Page
+            </a>
+        </div>
+        
+        <div class="instructions" style="margin-top: 2rem;">
+            <h4><i class="fas fa-exclamation-triangle"></i> Important Notes</h4>
+            <ul style="padding-left: 1.5rem;">
+                <li><strong>File Storage:</strong> Currently using local asset paths. For production, integrate with cloud storage (AWS S3, Cloudinary, etc.)</li>
+                <li><strong>Image Optimization:</strong> Consider adding automatic image resizing and optimization</li>
+                <li><strong>Backup Strategy:</strong> Implement proper backup for uploaded images</li>
+                <li><strong>CDN Integration:</strong> Use CDN for faster image delivery to customers</li>
+                <li><strong>Alt Text:</strong> Add alt text support for accessibility</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Add some interactive feedback
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📸 Admin Photo Upload Test Page Loaded');
+            console.log('🚀 Photo upload functionality ready for testing');
+            
+            // Add click tracking for test links
+            document.querySelectorAll('.test-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const testType = this.textContent.includes('Admin') ? 'Admin Dashboard' : 
+                                   this.textContent.includes('Shop') ? 'Shop Page' : 'Home Page';
+                    console.log(`🧪 Testing: ${testType} photo upload integration`);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

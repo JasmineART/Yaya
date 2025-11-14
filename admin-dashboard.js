@@ -16,6 +16,9 @@ class AdminDashboard {
     this.redoStack = [];
     this.maxHistorySize = 50;
     
+    // Photo upload
+    this.uploadedFiles = [];
+    
     this.init();
   }
   
@@ -170,6 +173,191 @@ class AdminDashboard {
         element.addEventListener('input', () => this.markChanges());
       }
     });
+    
+    // Photo upload functionality
+    this.setupPhotoUpload();
+  }
+  
+  setupPhotoUpload() {
+    const uploadArea = document.getElementById('upload-area');
+    const fileInput = document.getElementById('product-images');
+    const uploadedPhotos = document.getElementById('uploaded-photos');
+    
+    if (!uploadArea || !fileInput) return;
+    
+    this.uploadedFiles = [];
+    
+    // Click to browse
+    uploadArea.addEventListener('click', () => {
+      fileInput.click();
+    });
+    
+    // File selection
+    fileInput.addEventListener('change', (e) => {
+      this.handleFileSelection(e.target.files);
+    });
+    
+    // Drag and drop
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+    
+    uploadArea.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      this.handleFileSelection(e.dataTransfer.files);
+    });
+  }
+  
+  handleFileSelection(files) {
+    const maxFiles = 5;
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    
+    // Check if adding these files would exceed the limit
+    if (this.uploadedFiles.length + files.length > maxFiles) {
+      this.showUploadError(`Maximum ${maxFiles} photos allowed. You can upload ${maxFiles - this.uploadedFiles.length} more.`);
+      return;
+    }
+    
+    Array.from(files).forEach((file, index) => {
+      // Validate file type
+      if (!allowedTypes.includes(file.type)) {
+        this.showUploadError(`${file.name} is not a supported image format. Please use JPG, PNG, or WebP.`);
+        return;
+      }
+      
+      // Validate file size
+      if (file.size > maxSize) {
+        this.showUploadError(`${file.name} is too large. Maximum size is 5MB.`);
+        return;
+      }
+      
+      // Add to uploaded files
+      const fileData = {
+        id: Date.now() + index,
+        file: file,
+        name: file.name,
+        size: file.size,
+        url: null
+      };
+      
+      this.uploadedFiles.push(fileData);
+      this.previewPhoto(fileData);
+    });
+    
+    this.updateUploadUI();
+  }
+  
+  previewPhoto(fileData) {
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+      fileData.url = e.target.result;
+      this.renderPhotoPreview(fileData);
+    };
+    
+    reader.readAsDataURL(fileData.file);
+  }
+  
+  renderPhotoPreview(fileData) {
+    const uploadedPhotos = document.getElementById('uploaded-photos');
+    if (!uploadedPhotos) return;
+    
+    const isMain = this.uploadedFiles.length === 1;
+    
+    const photoDiv = document.createElement('div');
+    photoDiv.className = 'uploaded-photo';
+    photoDiv.dataset.fileId = fileData.id;
+    
+    photoDiv.innerHTML = `
+      <img src="${fileData.url}" alt="${fileData.name}" />
+      ${isMain ? '<div class="photo-main-badge">Main</div>' : ''}
+      <button type="button" class="photo-remove" onclick="admin.removePhoto(${fileData.id})" title="Remove photo">
+        <i class="fas fa-times"></i>
+      </button>
+    `;
+    
+    uploadedPhotos.appendChild(photoDiv);
+  }
+  
+  removePhoto(fileId) {
+    // Remove from uploaded files array
+    this.uploadedFiles = this.uploadedFiles.filter(f => f.id !== fileId);
+    
+    // Remove from DOM
+    const photoElement = document.querySelector(`[data-file-id="${fileId}"]`);
+    if (photoElement) {
+      photoElement.remove();
+    }
+    
+    // Update main badge for first photo
+    this.updateMainPhotoBadge();
+    this.updateUploadUI();
+  }
+  
+  updateMainPhotoBadge() {
+    // Remove all main badges
+    document.querySelectorAll('.photo-main-badge').forEach(badge => badge.remove());
+    
+    // Add main badge to first photo
+    if (this.uploadedFiles.length > 0) {
+      const firstPhoto = document.querySelector(`[data-file-id="${this.uploadedFiles[0].id}"]`);
+      if (firstPhoto) {
+        const badge = document.createElement('div');
+        badge.className = 'photo-main-badge';
+        badge.textContent = 'Main';
+        firstPhoto.appendChild(badge);
+      }
+    }
+  }
+  
+  updateUploadUI() {
+    const uploadArea = document.getElementById('upload-area');
+    const uploadPrompt = uploadArea.querySelector('.upload-prompt p');
+    
+    if (this.uploadedFiles.length >= 5) {
+      uploadArea.style.display = 'none';
+    } else {
+      uploadArea.style.display = 'block';
+      if (uploadPrompt) {
+        uploadPrompt.textContent = this.uploadedFiles.length > 0 
+          ? `Add more photos (${this.uploadedFiles.length}/5)` 
+          : 'Drop photos here or click to browse';
+      }
+    }
+    
+    // Clear any previous error messages
+    this.clearUploadError();
+  }
+  
+  showUploadError(message) {
+    let errorDiv = document.querySelector('.upload-error');
+    if (!errorDiv) {
+      errorDiv = document.createElement('div');
+      errorDiv.className = 'upload-error';
+      document.querySelector('.photo-upload-container').appendChild(errorDiv);
+    }
+    
+    errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+      this.clearUploadError();
+    }, 5000);
+  }
+  
+  clearUploadError() {
+    const errorDiv = document.querySelector('.upload-error');
+    if (errorDiv) {
+      errorDiv.remove();
+    }
   }
   
   loadOverview() {
@@ -320,45 +508,57 @@ class AdminDashboard {
     }
   }
   
-  addProduct() {
-    const title = document.getElementById('product-title').value;
-    const price = parseFloat(document.getElementById('product-price').value);
-    const description = document.getElementById('product-description').value;
-    const icon = document.getElementById('product-icon').value || 'fas fa-box';
-    const isbn = document.getElementById('product-isbn').value;
-    const image = document.getElementById('product-image').value;
-    
-    if (!title || !price || !description || !image) {
-      this.showStatus('error', 'Please fill in all required fields', 'products');
-      return;
+  async addProduct() {
+    try {
+      const title = document.getElementById('product-title').value;
+      const price = parseFloat(document.getElementById('product-price').value);
+      const description = document.getElementById('product-description').value;
+      const icon = document.getElementById('product-icon').value || 'fas fa-box';
+      const isbn = document.getElementById('product-isbn').value;
+      
+      // Validate required fields
+      if (!title || !price || !description) {
+        throw new Error('Product title, price, and description are required');
+      }
+      
+      // Validate photos
+      if (this.uploadedFiles.length === 0) {
+        throw new Error('At least one product photo is required');
+      }
+      
+      // Save state before making changes
+      this.saveState(`Add Product: ${title}`);
+      
+      // Process uploaded photos
+      const imageUrls = await this.uploadPhotos();
+      
+      const newProduct = {
+        id: Math.max(...this.currentData.products.map(p => p.id || 0)) + 1,
+        title,
+        titleIcon: icon,
+        price,
+        description,
+        images: imageUrls,
+        reviews: []
+      };
+      
+      if (isbn) {
+        newProduct.isbn = isbn;
+      }
+      
+      this.currentData.products.push(newProduct);
+      this.markChanges();
+      this.loadProductsList();
+      this.loadOverview();
+      
+      // Clear form and uploaded photos
+      document.getElementById('add-product-form').reset();
+      this.clearUploadedPhotos();
+      
+      this.showStatus('success', `Product "${title}" added successfully with ${imageUrls.length} photos!`, 'products');
+    } catch (error) {
+      this.showStatus('error', error.message, 'products');
     }
-    
-    // Save state before making changes
-    this.saveState(`Add Product: ${title}`);
-    
-    const newProduct = {
-      id: Math.max(...this.currentData.products.map(p => p.id || 0)) + 1,
-      title,
-      titleIcon: icon,
-      price,
-      description,
-      images: [image],
-      reviews: []
-    };
-    
-    if (isbn) {
-      newProduct.isbn = isbn;
-    }
-    
-    this.currentData.products.push(newProduct);
-    this.markChanges();
-    this.loadProductsList();
-    this.loadOverview();
-    
-    // Clear form
-    document.getElementById('add-product-form').reset();
-    
-    this.showStatus('success', `Product "${title}" added successfully!`, 'products');
   }
   
   addCoupon() {
@@ -429,6 +629,112 @@ class AdminDashboard {
     } catch (error) {
       this.showStatus('error', error.message, 'products');
     }
+  }
+  
+  async uploadPhotos() {
+    const imageUrls = [];
+    
+    try {
+      // Show upload progress
+      this.showUploadProgress('Preparing upload...');
+      
+      // Create FormData for file upload
+      const formData = new FormData();
+      
+      this.uploadedFiles.forEach((fileData, index) => {
+        formData.append('photos', fileData.file);
+        this.updateUploadProgress((index / this.uploadedFiles.length) * 30, `Preparing ${fileData.name}...`);
+      });
+      
+      // Upload to server
+      this.updateUploadProgress(40, 'Uploading to server...');
+      
+      const response = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.getAuthToken()}`
+        },
+        body: formData
+      });
+      
+      this.updateUploadProgress(80, 'Processing upload...');
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Upload failed');
+      }
+      
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Upload failed');
+      }
+      
+      // Extract image paths from server response
+      result.files.forEach(file => {
+        imageUrls.push(file.path);
+      });
+      
+      this.updateUploadProgress(100, `Upload complete! ${imageUrls.length} photos uploaded.`);
+      
+      // Hide progress after a brief delay
+      setTimeout(() => {
+        this.hideUploadProgress();
+      }, 1000);
+      
+      return imageUrls;
+      
+    } catch (error) {
+      this.hideUploadProgress();
+      console.error('Photo upload error:', error);
+      throw new Error(`Photo upload failed: ${error.message}`);
+    }
+  }
+  
+  showUploadProgress(message) {
+    let progressDiv = document.querySelector('.upload-progress');
+    if (!progressDiv) {
+      progressDiv = document.createElement('div');
+      progressDiv.className = 'upload-progress';
+      progressDiv.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <span class="progress-text">${message}</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill"></div>
+        </div>
+      `;
+      document.querySelector('.photo-upload-container').appendChild(progressDiv);
+    }
+    progressDiv.style.display = 'block';
+  }
+  
+  updateUploadProgress(percentage, message) {
+    const progressDiv = document.querySelector('.upload-progress');
+    if (progressDiv) {
+      const progressText = progressDiv.querySelector('.progress-text');
+      const progressFill = progressDiv.querySelector('.progress-fill');
+      
+      if (progressText) progressText.textContent = message;
+      if (progressFill) progressFill.style.width = `${percentage}%`;
+    }
+  }
+  
+  hideUploadProgress() {
+    const progressDiv = document.querySelector('.upload-progress');
+    if (progressDiv) {
+      progressDiv.style.display = 'none';
+    }
+  }
+  
+  clearUploadedPhotos() {
+    this.uploadedFiles = [];
+    const uploadedPhotos = document.getElementById('uploaded-photos');
+    if (uploadedPhotos) {
+      uploadedPhotos.innerHTML = '';
+    }
+    this.updateUploadUI();
   }
   
   deleteCoupon(couponCode) {
