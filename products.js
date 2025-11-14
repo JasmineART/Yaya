@@ -11,7 +11,7 @@ let PRODUCTS = [];
       titleIcon:'fas fa-crown',
       price:24.99,
       isbn: '979-8-9999322-0-4',
-      description:"The debut poetry collection by Yaya Starchild — 64 pages of luminous verses exploring love, loss, resilience, and present-moment magic. This signed limited edition includes a handwritten blessing and arrives wrapped in tissue paper. Each copy is numbered and touched by magic. Published by Pastel Poetics — October 25, 2025.",
+      description:"The debut poetry collection by Yaya Starchild — 64 pages of luminous verses exploring love, loss, resilience, and present-moment magic. This signed copy includes a handwritten blessing and arrives wrapped in tissue paper, touched by magic. Published by Pastel Poetics — October 25, 2025.",
       reviews: [
         {name:'Moon Sisters Book Club',rating:5,text:"A tender, luminous collection that feels both grounding and uplifting. One of those books you return to again and again.",date:'2025-10-27'},
         {name:'Ingrid',rating:5,text:"Delightful — playful yet deep. Yaya's voice sparkles.",date:'2025-10-29'}
