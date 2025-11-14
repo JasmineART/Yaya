@@ -3,10 +3,29 @@ const STORAGE_KEY = 'yaya_cart_v1';
 const DISCOUNT_STORAGE_KEY = 'yaya_discount_v1';
 
 // Discount codes: percentage discounts, flat dollar amounts, and BOGO deals
-const DISCOUNTS = { 
-  'PASTEL': { type: 'bogo_half', description: 'Buy one, get 2nd item 50% off' },
-  'SUNCATCHER': { type: 'percentage', value: 0.15, description: '15% off entire cart' },
-  'WHIMSY': { type: 'percentage', value: 0.25, description: '25% off entire cart' }
+const DISCOUNTS = {
+  "PASTEL": {
+    "type": "bogo_half",
+    "description": "Buy one, get 2nd item 50% off"
+  },
+  "SUNCATCHER": {
+    "type": "percentage",
+    "value": 0.15,
+    "description": "15% off entire cart"
+  },
+  "WHIMSY": {
+    "type": "percentage",
+    "value": 0.25,
+    "description": "25% off entire cart"
+  },
+  "ADMINTEST25": {
+    "code": "ADMINTEST25",
+    "type": "percentage",
+    "value": 25,
+    "description": "25% off for admin testing",
+    "active": true,
+    "created": "2025-11-14T03:22:18.628Z"
+  }
 };
 
 // Email functions will be available globally from simple-email.js script
