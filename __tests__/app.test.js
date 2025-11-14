@@ -8,22 +8,26 @@ beforeEach(() => {
   global.sendNewsletterSignup = jest.fn(() => Promise.resolve({ success: true }));
 });
 
-test('newsletter form registers a submit handler and uses EmailJS-only flow', async () => {
-  // Prepare DOM: a simple form with input and button
+test('newsletter form monitoring sets up EmailOctopus form handlers and EmailJS integration', async () => {
+  // Prepare DOM: EmailOctopus form structure
   document.body.innerHTML = `
-    <form id="newsletter-form" class="form-inline">
-      <input type="email" id="newsletter-email" value="tester@example.com" required />
-      <button type="submit">Join</button>
-    </form>
+    <div id="emailoctopus-form-container">
+      <form data-form="e717b62a-7d10-11f0-b467-0f9ecebb753c">
+        <input type="email" value="tester@example.com" />
+        <button type="submit">Subscribe</button>
+      </form>
+    </div>
   `;
 
-  // Wrap addEventListener to detect when app.js attaches submit listener to the form
+  // Wrap addEventListener to detect when app.js attaches submit listener to EmailOctopus form
   const originalAdd = EventTarget.prototype.addEventListener;
-  let attached = false;
+  let emailOctopusAttached = false;
   EventTarget.prototype.addEventListener = function(type, listener, options) {
     try {
-      // this could be window, document, or an element
-      if (this && this.id === 'newsletter-form' && type === 'submit') attached = true;
+      // Check if this is the EmailOctopus form getting a submit listener
+      if (this && this.getAttribute && this.getAttribute('data-form') === 'e717b62a-7d10-11f0-b467-0f9ecebb753c' && type === 'submit') {
+        emailOctopusAttached = true;
+      }
     } finally {
       return originalAdd.call(this, type, listener, options);
     }
@@ -37,12 +41,19 @@ test('newsletter form registers a submit handler and uses EmailJS-only flow', as
     window.initNewsletterForm();
   }
 
+  // Wait for the monitoring interval to find and set up the EmailOctopus form
+  await new Promise(resolve => setTimeout(resolve, 1100));
+
   // Restore the original addEventListener so other tests are unaffected
   EventTarget.prototype.addEventListener = originalAdd;
 
-  // Assert that the submit handler was attached (we detect attachment via the wrapper)
-  expect(attached).toBe(true);
+  // Assert that the EmailOctopus form handler was attached
+  expect(emailOctopusAttached).toBe(true);
 
-  // Now verify the global sendNewsletterSignup is available and callable (EmailJS function)
+  // Verify the global sendNewsletterSignup is available and callable (EmailJS function)
   expect(typeof global.sendNewsletterSignup).toBe('function');
+
+  // Verify EmailOctopus callback was set up
+  expect(typeof window.EmailOctopusCallback).toBe('object');
+  expect(typeof window.EmailOctopusCallback.onSuccess).toBe('function');
 });

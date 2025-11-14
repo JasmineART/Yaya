@@ -54,10 +54,11 @@ async function sendNotificationEmail(type, data) {
         
         templateParams = {
           to_email: 'faeriepoetics@gmail.com',
-          subscriber_email: data.email,
-          subscription_source: data.source || 'website',
+          user_email: data.email,
+          page: data.source || 'website',
           timestamp: templateParams.timestamp,
-          from_name: 'Yaya Starchild Website'
+          from_name: 'Yaya Starchild Website',
+          reply_to: data.email
         };
         templateId = EMAILJS_CONFIG.newsletterTemplateId;
         console.log('📧 Sending newsletter signup notification to faeriepoetics@gmail.com');

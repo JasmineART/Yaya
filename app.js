@@ -797,55 +797,75 @@ async function postToSupabase(path, body){
   }catch(e){return null}
 }
 
-// Newsletter initializer (exposed) - attaches submit handler for newsletter form
+// Newsletter initializer (exposed) - monitors EmailOctopus form submissions
 function initNewsletterForm() {
-  const nf = document.getElementById('newsletter-form');
-  if (!nf) return;
-
-  // Avoid duplicate listeners by replacing the node
-  try {
-    const clone = nf.cloneNode(true);
-    nf.parentNode.replaceChild(clone, nf);
-  } catch (e) {
-    // ignore
-  }
-
-  const form = document.getElementById('newsletter-form');
-  form.addEventListener('submit', async e => {
-    e.preventDefault();
-    const email = document.getElementById('newsletter-email').value;
-
-    try {
-      const submitBtn = form.querySelector('button[type="submit"]');
-      const originalText = submitBtn ? submitBtn.textContent : null;
-      if (submitBtn) submitBtn.textContent = 'Sending…';
-
-      // Check if sendNewsletterSignup function exists
-      if (typeof window.sendNewsletterSignup !== 'function') {
-        console.error('❌ sendNewsletterSignup function not found. EmailJS may not be loaded.');
-        alert('Subscription system temporarily unavailable. Please try again later.');
-        if (submitBtn && originalText) submitBtn.textContent = originalText;
-        return;
-      }
-
-      const emailResult = await window.sendNewsletterSignup(email, window.location.pathname);
-
-      if (emailResult && emailResult.success) {
-        alert('Thanks — you are subscribed! 📧 Notification sent.');
-        form.reset();
-        if (submitBtn && originalText) submitBtn.textContent = originalText;
-        return;
-      }
-
-      console.warn('EmailJS newsletter send failed', emailResult);
-      alert('Could not send subscription email via EmailJS. Please try again later.');
-      if (submitBtn && originalText) submitBtn.textContent = originalText;
-    } catch (err) {
-      console.error('Newsletter submission error (EmailJS only):', err);
-      alert('Subscription system temporarily unavailable. Please try again later.');
-      if (submitBtn && originalText) submitBtn.textContent = originalText;
+  console.log('🌟 Initializing EmailOctopus newsletter monitoring...');
+  
+  // Set up interval to check for EmailOctopus form and monitor submissions
+  let monitorInterval = setInterval(() => {
+    const emailOctopusForm = document.querySelector('form[data-form="e717b62a-7d10-11f0-b467-0f9ecebb753c"]');
+    
+    if (emailOctopusForm) {
+      console.log('✅ EmailOctopus form found, setting up monitoring');
+      clearInterval(monitorInterval);
+      
+      // Monitor form submissions to send EmailJS notifications
+      emailOctopusForm.addEventListener('submit', async (e) => {
+        // Get the email from the form
+        const emailInput = emailOctopusForm.querySelector('input[type="email"]');
+        const email = emailInput ? emailInput.value : null;
+        
+        if (email && typeof window.sendNewsletterSignup === 'function') {
+          console.log('📧 EmailOctopus form submitted, sending EmailJS notification...');
+          
+          // Small delay to let EmailOctopus process first
+          setTimeout(async () => {
+            try {
+              const emailResult = await window.sendNewsletterSignup(email, window.location.pathname);
+              if (emailResult && emailResult.success) {
+                console.log('✅ EmailJS notification sent successfully');
+              } else {
+                console.warn('⚠️ EmailJS notification failed:', emailResult);
+              }
+            } catch (error) {
+              console.error('❌ Error sending EmailJS notification:', error);
+            }
+          }, 500);
+        }
+      });
+      
+      // Also monitor for successful submissions via EmailOctopus callbacks
+      window.EmailOctopusCallback = window.EmailOctopusCallback || {};
+      window.EmailOctopusCallback.onSuccess = async function(formId) {
+        if (formId === 'e717b62a-7d10-11f0-b467-0f9ecebb753c') {
+          console.log('✅ EmailOctopus subscription successful');
+          
+          // Try to get email from form data or recent submission
+          const emailInput = document.querySelector('form[data-form="' + formId + '"] input[type="email"]');
+          const email = emailInput ? emailInput.value : null;
+          
+          if (email && typeof window.sendNewsletterSignup === 'function') {
+            try {
+              const emailResult = await window.sendNewsletterSignup(email, window.location.pathname);
+              if (emailResult && emailResult.success) {
+                console.log('✅ EmailJS notification sent via callback');
+              }
+            } catch (error) {
+              console.error('❌ Error in EmailOctopus callback:', error);
+            }
+          }
+        }
+      };
     }
-  });
+  }, 1000);
+  
+  // Clear interval after 30 seconds to avoid infinite checking
+  setTimeout(() => {
+    if (monitorInterval) {
+      clearInterval(monitorInterval);
+      console.log('⏰ EmailOctopus form monitoring timeout - form may not have loaded');
+    }
+  }, 30000);
 }
 
 // Expose for tests and manual init

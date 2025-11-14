@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EmailOctopus Integration Test</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: rgba(255,255,255,0.1);
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+    }
+    .test-section {
+      margin: 2rem 0;
+      padding: 1rem;
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+    }
+    .log {
+      background: rgba(0,0,0,0.3);
+      padding: 1rem;
+      border-radius: 5px;
+      margin-top: 1rem;
+      max-height: 200px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 0.9rem;
+    }
+    .log-entry {
+      margin: 0.2rem 0;
+      padding: 0.2rem;
+    }
+    .log-entry.success { color: #4CAF50; }
+    .log-entry.error { color: #f44336; }
+    .log-entry.info { color: #2196F3; }
+    .log-entry.warning { color: #FF9800; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🐙 EmailOctopus + EmailJS Integration Test</h1>
+    <p>This page tests the new EmailOctopus form integration with EmailJS notifications.</p>
+    
+    <div class="test-section">
+      <h3>📧 Newsletter Subscription Form</h3>
+      <p>Use the form below to test the integration. It should:</p>
+      <ul>
+        <li>Submit to EmailOctopus (you'll get added to the mailing list)</li>
+        <li>Send a notification email to faeriepoetics@gmail.com via EmailJS</li>
+        <li>Show success/error messages appropriately</li>
+      </ul>
+      
+      <div id="emailoctopus-form-container">
+        <script async src="https://eocampaign1.com/form/e717b62a-7d10-11f0-b467-0f9ecebb753c.js" data-form="e717b62a-7d10-11f0-b467-0f9ecebb753c"></script>
+      </div>
+    </div>
+    
+    <div class="test-section">
+      <h3>📊 Integration Status</h3>
+      <div id="status">
+        <div class="log-entry info">Checking integration status...</div>
+      </div>
+    </div>
+    
+    <div class="test-section">
+      <h3>📝 Activity Log</h3>
+      <button onclick="clearLog()" style="margin-bottom: 1rem; padding: 0.5rem 1rem; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; border-radius: 5px; cursor: pointer;">Clear Log</button>
+      <div id="log" class="log">
+        <div class="log-entry info">Log initialized...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="simple-email.js"></script>
+  <script src="app.js"></script>
+
+  <script>
+    // Override console methods to capture logs
+    const originalLog = console.log;
+    const originalError = console.error;
+    const originalWarn = console.warn;
+
+    function addLogEntry(message, type = 'info') {
+      const logDiv = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      logDiv.appendChild(entry);
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    function clearLog() {
+      document.getElementById('log').innerHTML = '<div class="log-entry info">Log cleared...</div>';
+    }
+
+    console.log = function(...args) {
+      addLogEntry(args.join(' '), 'info');
+      originalLog.apply(console, args);
+    };
+
+    console.error = function(...args) {
+      addLogEntry(args.join(' '), 'error');
+      originalError.apply(console, args);
+    };
+
+    console.warn = function(...args) {
+      addLogEntry(args.join(' '), 'warning');
+      originalWarn.apply(console, args);
+    };
+
+    // Status checker
+    function updateStatus() {
+      const statusDiv = document.getElementById('status');
+      let status = '';
+      
+      // Check EmailJS
+      if (typeof emailjs !== 'undefined') {
+        status += '<div class="log-entry success">✅ EmailJS library loaded</div>';
+      } else {
+        status += '<div class="log-entry error">❌ EmailJS library not loaded</div>';
+      }
+      
+      // Check sendNewsletterSignup
+      if (typeof window.sendNewsletterSignup === 'function') {
+        status += '<div class="log-entry success">✅ sendNewsletterSignup function available</div>';
+      } else {
+        status += '<div class="log-entry error">❌ sendNewsletterSignup function not available</div>';
+      }
+      
+      // Check EmailOctopus form
+      const eoForm = document.querySelector('form[data-form="e717b62a-7d10-11f0-b467-0f9ecebb753c"]');
+      if (eoForm) {
+        status += '<div class="log-entry success">✅ EmailOctopus form loaded</div>';
+      } else {
+        status += '<div class="log-entry warning">⏳ EmailOctopus form still loading...</div>';
+      }
+      
+      // Check callback setup
+      if (window.EmailOctopusCallback && window.EmailOctopusCallback.onSuccess) {
+        status += '<div class="log-entry success">✅ EmailOctopus callback configured</div>';
+      } else {
+        status += '<div class="log-entry warning">⏳ EmailOctopus callback not yet configured</div>';
+      }
+      
+      statusDiv.innerHTML = status;
+    }
+
+    // Update status periodically
+    updateStatus();
+    setInterval(updateStatus, 2000);
+
+    // Log when DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+      addLogEntry('DOM Content Loaded', 'success');
+    });
+
+    // Monitor for form submissions
+    document.addEventListener('submit', (e) => {
+      const form = e.target;
+      if (form.getAttribute('data-form') === 'e717b62a-7d10-11f0-b467-0f9ecebb753c') {
+        const emailInput = form.querySelector('input[type="email"]');
+        const email = emailInput ? emailInput.value : 'unknown';
+        addLogEntry(`EmailOctopus form submitted with email: ${email}`, 'info');
+      }
+    });
+  </script>
+</body>
+</html>
