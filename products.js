@@ -25,7 +25,7 @@ let PRODUCTS = [];
       price:19.99,
       isbn: '979-8-9999322-0-4',
       description:'Softcover paperback edition — 64 pages of poetry perfect for bedside reading, carrying in your bag, or gifting. Printed on cream-colored paper that feels gentle in your hands.',
-      reviews:[{name:'Adriana Auch',rating:4,text:'Perfect for quiet mornings in the park — brings calm and wonder.',date:'2025-11-02'}],
+      reviews:[{name:'Adriana Auch',rating:5,text:'I highly recommend bringing this book into nature with you.',date:'2025-11-02'}],
       images:['assets/suncatcher-cover.jpg']
     },
     {
