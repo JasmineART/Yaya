@@ -501,6 +501,12 @@
           Admin Dashboard
         </h1>
         <div class="admin-nav">
+          <button id="undoBtn" onclick="admin.undo()" disabled title="Nothing to undo">
+            <i class="fas fa-undo"></i> Undo
+          </button>
+          <button id="redoBtn" onclick="admin.redo()" disabled title="Nothing to redo">
+            <i class="fas fa-redo"></i> Redo
+          </button>
           <button onclick="showSection('overview')" class="active" id="nav-overview">Overview</button>
           <button onclick="showSection('products')" id="nav-products">Products</button>
           <button onclick="showSection('coupons')" id="nav-coupons">Coupons</button>

@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Portal Undo/Redo Test</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 2rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .test-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-weight: 600;
+        }
+        
+        button:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .undo-redo-controls {
+            background: rgba(0,0,0,0.2);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        
+        .test-log {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            height: 400px;
+            overflow-y: auto;
+            font-size: 0.9rem;
+        }
+        
+        .admin-demo {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .demo-section {
+            background: rgba(0,0,0,0.2);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+        
+        .demo-section h3 {
+            margin-top: 0;
+            color: #ffd700;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 4px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+        
+        input::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+        
+        .status-indicator {
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            font-weight: 600;
+        }
+        
+        .status-success {
+            background: rgba(46, 204, 113, 0.8);
+        }
+        
+        .status-error {
+            background: rgba(231, 76, 60, 0.8);
+        }
+        
+        .status-info {
+            background: rgba(52, 152, 219, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Admin Portal Undo/Redo Test Suite</h1>
+        
+        <div class="undo-redo-controls">
+            <h3>Undo/Redo Controls</h3>
+            <button id="undoBtn" onclick="testUndo()" disabled>
+                ↶ Undo
+            </button>
+            <button id="redoBtn" onclick="testRedo()" disabled>
+                ↷ Redo
+            </button>
+            <span id="historyInfo" style="margin-left: 1rem; opacity: 0.8;"></span>
+        </div>
+        
+        <div class="test-controls">
+            <button onclick="runAllTests()">🧪 Run All Tests</button>
+            <button onclick="testProductOperations()">🛍️ Test Product Undo/Redo</button>
+            <button onclick="testCouponOperations()">🎫 Test Coupon Undo/Redo</button>
+            <button onclick="testContentOperations()">📝 Test Content Undo/Redo</button>
+            <button onclick="clearLog()">🗑️ Clear Log</button>
+            <button onclick="resetAdmin()">🔄 Reset Admin</button>
+        </div>
+        
+        <div class="admin-demo">
+            <div class="demo-section">
+                <h3>Add Product Demo</h3>
+                <input type="text" id="demo-product-title" placeholder="Product Title">
+                <input type="number" id="demo-product-price" placeholder="Price" step="0.01">
+                <textarea id="demo-product-description" placeholder="Description"></textarea>
+                <input type="text" id="demo-product-image" placeholder="Image URL">
+                <button onclick="addDemoProduct()">Add Product</button>
+            </div>
+            
+            <div class="demo-section">
+                <h3>Add Coupon Demo</h3>
+                <input type="text" id="demo-coupon-code" placeholder="Coupon Code">
+                <select id="demo-coupon-type">
+                    <option value="percentage">Percentage</option>
+                    <option value="fixed">Fixed Amount</option>
+                    <option value="bogo">BOGO</option>
+                </select>
+                <input type="number" id="demo-coupon-value" placeholder="Value">
+                <input type="text" id="demo-coupon-description" placeholder="Description">
+                <button onclick="addDemoCoupon()">Add Coupon</button>
+            </div>
+            
+            <div class="demo-section">
+                <h3>Update Content Demo</h3>
+                <input type="text" id="demo-hero-title" placeholder="Hero Title">
+                <input type="text" id="demo-hero-subtitle" placeholder="Hero Subtitle">
+                <textarea id="demo-about-text" placeholder="About Text"></textarea>
+                <button onclick="updateDemoContent()">Update Content</button>
+            </div>
+        </div>
+        
+        <div id="status-display"></div>
+        
+        <div class="test-log" id="testLog">
+            <div style="color: #ffd700; font-weight: bold;">🚀 Test Log - Ready to run tests</div>
+            <div style="opacity: 0.8; margin-top: 0.5rem;">Click "Run All Tests" to start comprehensive testing, or use individual test buttons.</div>
+        </div>
+    </div>
+
+    <!-- Include the admin dashboard files -->
+    <script src="products.js"></script>
+    <script src="app.js"></script>
+    <script src="admin-dashboard.js"></script>
+    <script src="test-undo-redo.js"></script>
+
+    <script>
+        let admin;
+        let testLogger;
+        
+        // Initialize the test environment
+        function initTestEnvironment() {
+            // Set up authentication
+            sessionStorage.setItem('adminAuthenticated', 'true');
+            sessionStorage.setItem('adminLoginTime', Date.now().toString());
+            
+            // Create admin instance
+            try {
+                admin = new AdminDashboard();
+                log('✅ Admin instance created successfully', 'success');
+                updateHistoryInfo();
+            } catch (error) {
+                log('❌ Failed to create admin instance: ' + error.message, 'error');
+            }
+        }
+        
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('testLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const typeIcon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+            
+            logEl.innerHTML += `<div style="margin-bottom: 0.5rem;">
+                <span style="opacity: 0.6;">[${timestamp}]</span> ${typeIcon} ${message}
+            </div>`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+        
+        function clearLog() {
+            document.getElementById('testLog').innerHTML = 
+                '<div style="color: #ffd700; font-weight: bold;">🗑️ Log cleared</div>';
+        }
+        
+        function showStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status-display');
+            statusEl.innerHTML = `<div class="status-indicator status-${type}">${message}</div>`;
+            setTimeout(() => {
+                statusEl.innerHTML = '';
+            }, 3000);
+        }
+        
+        function updateHistoryInfo() {
+            if (!admin) return;
+            
+            const undoCount = admin.undoStack ? admin.undoStack.length : 0;
+            const redoCount = admin.redoStack ? admin.redoStack.length : 0;
+            
+            document.getElementById('historyInfo').textContent = 
+                `Undo: ${undoCount} | Redo: ${redoCount}`;
+                
+            // Update button states
+            const undoBtn = document.getElementById('undoBtn');
+            const redoBtn = document.getElementById('redoBtn');
+            
+            if (undoBtn) undoBtn.disabled = undoCount === 0;
+            if (redoBtn) redoBtn.disabled = redoCount === 0;
+        }
+        
+        async function runAllTests() {
+            if (!admin) {
+                log('❌ Admin instance not initialized', 'error');
+                return;
+            }
+            
+            log('🧪 Running comprehensive undo/redo tests...', 'info');
+            
+            try {
+                const tester = new UndoRedoTester();
+                const success = await tester.runAllTests();
+                
+                if (success) {
+                    log('🎉 All tests passed! Undo/redo functionality is working correctly.', 'success');
+                    showStatus('All tests passed!', 'success');
+                } else {
+                    log('⚠️ Some tests failed. Check console for details.', 'error');
+                    showStatus('Some tests failed', 'error');
+                }
+            } catch (error) {
+                log('❌ Test execution failed: ' + error.message, 'error');
+                showStatus('Test execution failed', 'error');
+            }
+            
+            updateHistoryInfo();
+        }
+        
+        function addDemoProduct() {
+            if (!admin) return;
+            
+            const title = document.getElementById('demo-product-title').value;
+            const price = document.getElementById('demo-product-price').value;
+            const description = document.getElementById('demo-product-description').value;
+            const image = document.getElementById('demo-product-image').value;
+            
+            if (!title || !price || !description || !image) {
+                log('❌ Please fill all product fields', 'error');
+                return;
+            }
+            
+            // Mock the form elements
+            mockElement('product-title', title);
+            mockElement('product-price', price);
+            mockElement('product-description', description);
+            mockElement('product-image', image);
+            mockElement('product-icon', 'fas fa-test');
+            
+            try {
+                admin.addProduct();
+                log(`✅ Added product: ${title}`, 'success');
+                showStatus('Product added', 'success');
+                
+                // Clear demo form
+                document.getElementById('demo-product-title').value = '';
+                document.getElementById('demo-product-price').value = '';
+                document.getElementById('demo-product-description').value = '';
+                document.getElementById('demo-product-image').value = '';
+            } catch (error) {
+                log('❌ Failed to add product: ' + error.message, 'error');
+            }
+            
+            updateHistoryInfo();
+        }
+        
+        function addDemoCoupon() {
+            if (!admin) return;
+            
+            const code = document.getElementById('demo-coupon-code').value;
+            const type = document.getElementById('demo-coupon-type').value;
+            const value = document.getElementById('demo-coupon-value').value;
+            const description = document.getElementById('demo-coupon-description').value;
+            
+            if (!code || !type || !value || !description) {
+                log('❌ Please fill all coupon fields', 'error');
+                return;
+            }
+            
+            // Mock the form elements
+            mockElement('coupon-code', code.toUpperCase());
+            mockElement('coupon-type', type);
+            mockElement('coupon-value', value);
+            mockElement('coupon-description', description);
+            
+            try {
+                admin.addCoupon();
+                log(`✅ Added coupon: ${code.toUpperCase()}`, 'success');
+                showStatus('Coupon added', 'success');
+                
+                // Clear demo form
+                document.getElementById('demo-coupon-code').value = '';
+                document.getElementById('demo-coupon-value').value = '';
+                document.getElementById('demo-coupon-description').value = '';
+            } catch (error) {
+                log('❌ Failed to add coupon: ' + error.message, 'error');
+            }
+            
+            updateHistoryInfo();
+        }
+        
+        function updateDemoContent() {
+            if (!admin) return;
+            
+            const heroTitle = document.getElementById('demo-hero-title').value;
+            const heroSubtitle = document.getElementById('demo-hero-subtitle').value;
+            const aboutText = document.getElementById('demo-about-text').value;
+            
+            if (!heroTitle && !heroSubtitle && !aboutText) {
+                log('❌ Please fill at least one content field', 'error');
+                return;
+            }
+            
+            const contentData = {};
+            if (heroTitle) contentData.heroTitle = heroTitle;
+            if (heroSubtitle) contentData.heroSubtitle = heroSubtitle;
+            if (aboutText) contentData.aboutText = aboutText;
+            
+            try {
+                admin.updateContent(contentData);
+                log('✅ Updated content', 'success');
+                showStatus('Content updated', 'success');
+                
+                // Clear demo form
+                document.getElementById('demo-hero-title').value = '';
+                document.getElementById('demo-hero-subtitle').value = '';
+                document.getElementById('demo-about-text').value = '';
+            } catch (error) {
+                log('❌ Failed to update content: ' + error.message, 'error');
+            }
+            
+            updateHistoryInfo();
+        }
+        
+        function testUndo() {
+            if (!admin) return;
+            
+            try {
+                admin.undo();
+                log('↶ Undo performed', 'info');
+                showStatus('Undo performed', 'info');
+            } catch (error) {
+                log('❌ Undo failed: ' + error.message, 'error');
+            }
+            
+            updateHistoryInfo();
+        }
+        
+        function testRedo() {
+            if (!admin) return;
+            
+            try {
+                admin.redo();
+                log('↷ Redo performed', 'info');
+                showStatus('Redo performed', 'info');
+            } catch (error) {
+                log('❌ Redo failed: ' + error.message, 'error');
+            }
+            
+            updateHistoryInfo();
+        }
+        
+        function resetAdmin() {
+            try {
+                initTestEnvironment();
+                log('🔄 Admin instance reset', 'success');
+                showStatus('Admin reset', 'success');
+            } catch (error) {
+                log('❌ Failed to reset admin: ' + error.message, 'error');
+            }
+        }
+        
+        function testProductOperations() {
+            log('🛍️ Testing product operations...', 'info');
+            // Add test product
+            mockElement('product-title', 'Test Product');
+            mockElement('product-price', '19.99');
+            mockElement('product-description', 'Test description');
+            mockElement('product-image', 'test.jpg');
+            
+            admin.addProduct();
+            log('✅ Product added for testing', 'success');
+            updateHistoryInfo();
+        }
+        
+        function testCouponOperations() {
+            log('🎫 Testing coupon operations...', 'info');
+            // Add test coupon
+            mockElement('coupon-code', 'TEST' + Date.now());
+            mockElement('coupon-type', 'percentage');
+            mockElement('coupon-value', '10');
+            mockElement('coupon-description', 'Test coupon');
+            
+            admin.addCoupon();
+            log('✅ Coupon added for testing', 'success');
+            updateHistoryInfo();
+        }
+        
+        function testContentOperations() {
+            log('📝 Testing content operations...', 'info');
+            admin.updateContent({
+                heroTitle: 'Test Hero Title',
+                heroSubtitle: 'Test subtitle'
+            });
+            log('✅ Content updated for testing', 'success');
+            updateHistoryInfo();
+        }
+        
+        function mockElement(id, value) {
+            let element = document.getElementById(id);
+            if (!element) {
+                element = document.createElement('input');
+                element.id = id;
+                element.style.display = 'none';
+                document.body.appendChild(element);
+            }
+            element.value = value;
+        }
+        
+        // Initialize when page loads
+        window.addEventListener('load', () => {
+            initTestEnvironment();
+            log('🚀 Undo/Redo test environment initialized', 'success');
+            log('📋 Use the controls above to test undo/redo functionality', 'info');
+        });
+    </script>
+</body>
+</html>

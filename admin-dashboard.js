@@ -11,6 +11,11 @@ class AdminDashboard {
       settings: {}
     };
     
+    // Undo/Redo functionality
+    this.undoStack = [];
+    this.redoStack = [];
+    this.maxHistorySize = 50;
+    
     this.init();
   }
   
@@ -29,6 +34,9 @@ class AdminDashboard {
     
     // Load overview data
     this.loadOverview();
+    
+    // Initialize undo/redo buttons
+    this.updateUndoRedoButtons();
   }
   
   isAuthenticated() {
@@ -325,6 +333,9 @@ class AdminDashboard {
       return;
     }
     
+    // Save state before making changes
+    this.saveState(`Add Product: ${title}`);
+    
     const newProduct = {
       id: Math.max(...this.currentData.products.map(p => p.id || 0)) + 1,
       title,
@@ -353,6 +364,9 @@ class AdminDashboard {
   addCoupon() {
     const code = document.getElementById('coupon-code').value.trim().toUpperCase();
     const type = document.getElementById('coupon-type').value;
+    
+    // Save state before making changes
+    this.saveState(`Add Coupon: ${code}`);
     const value = parseFloat(document.getElementById('coupon-value').value);
     const description = document.getElementById('coupon-description').value.trim();
     
@@ -394,46 +408,64 @@ class AdminDashboard {
     this.showStatus('success', `Coupon "${code}" ${action} successfully`, 'coupons');
   }
   
-  deleteProduct(id) {
-    if (!confirm('Are you sure you want to delete this product?')) return;
-    
-    const index = this.currentData.products.findIndex(p => p.id === id);
-    if (index > -1) {
-      const product = this.currentData.products[index];
-      this.currentData.products.splice(index, 1);
-      this.markChanges();
+  deleteProduct(productId) {
+    try {
+      const product = this.currentData.products.find(p => p.id === productId);
+      if (!product) {
+        throw new Error('Product not found');
+      }
+      
+      // Save state before making changes
+      this.saveState(`Delete Product: ${product.title}`);
+      
+      const productIndex = this.currentData.products.findIndex(p => p.id === productId);
+      
+      // Remove product
+      this.currentData.products.splice(productIndex, 1);
+      
+      this.hasChanges = true;
       this.loadProductsList();
-      this.loadOverview();
-      this.showStatus('success', `Product "${product.title}" deleted successfully!`, 'products');
+      this.showStatus('success', 'Product deleted successfully!', 'products');
+    } catch (error) {
+      this.showStatus('error', error.message, 'products');
     }
   }
   
-  deleteCoupon(code) {
-    if (!confirm(`Are you sure you want to delete the coupon "${code}"?`)) return;
-    
-    delete this.currentData.coupons[code];
-    this.markChanges();
-    this.loadCouponsList();
-    this.loadOverview();
-    this.showStatus('success', `Coupon "${code}" deleted successfully!`, 'coupons');
+  deleteCoupon(couponCode) {
+    try {
+      if (!this.currentData.coupons[couponCode]) {
+        throw new Error('Coupon not found');
+      }
+      
+      // Save state before making changes
+      this.saveState(`Delete Coupon: ${couponCode}`);
+      
+      delete this.currentData.coupons[couponCode];
+      
+      this.hasChanges = true;
+      this.loadCouponsList();
+      this.showStatus('success', 'Coupon deleted successfully!', 'coupons');
+    } catch (error) {
+      this.showStatus('error', error.message, 'coupons');
+    }
   }
   
-  updateContent(section) {
-    const tagline = document.getElementById('site-tagline').value;
-    const heroText = document.getElementById('hero-text').value;
-    const aboutIntro = document.getElementById('about-intro').value;
-    
-    this.currentData.content = {
-      tagline,
-      heroText,
-      aboutIntro
-    };
-    
-    // Save to localStorage
-    localStorage.setItem('adminSiteContent', JSON.stringify(this.currentData.content));
-    
-    this.markChanges();
-    this.showStatus('success', 'Content updated successfully!', 'content');
+  updateContent(contentData) {
+    try {
+      // Save state before making changes
+      this.saveState('Update Site Content');
+      
+      // Update current data
+      Object.assign(this.currentData.content, contentData);
+      
+      // Save to localStorage
+      localStorage.setItem('adminSiteContent', JSON.stringify(this.currentData.content));
+      
+      this.markChanges();
+      this.showStatus('success', 'Content updated successfully!', 'content');
+    } catch (error) {
+      this.showStatus('error', error.message, 'content');
+    }
   }
   
   changeCredentials() {
@@ -648,6 +680,163 @@ class AdminDashboard {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+  }
+  
+  // Undo/Redo functionality
+  saveState(action = 'Unknown Action') {
+    // Create a deep copy of current state
+    const state = {
+      data: JSON.parse(JSON.stringify(this.currentData)),
+      timestamp: Date.now(),
+      action: action
+    };
+    
+    // Add to undo stack
+    this.undoStack.push(state);
+    
+    // Clear redo stack when new action is performed
+    this.redoStack = [];
+    
+    // Limit history size
+    if (this.undoStack.length > this.maxHistorySize) {
+      this.undoStack.shift();
+    }
+    
+    this.updateUndoRedoButtons();
+  }
+  
+  undo() {
+    if (this.undoStack.length === 0) return;
+    
+    // Save current state to redo stack
+    const currentState = {
+      data: JSON.parse(JSON.stringify(this.currentData)),
+      timestamp: Date.now(),
+      action: 'Current State'
+    };
+    this.redoStack.push(currentState);
+    
+    // Restore previous state
+    const previousState = this.undoStack.pop();
+    this.currentData = JSON.parse(JSON.stringify(previousState.data));
+    
+    // Update UI
+    this.refreshAllSections();
+    this.updateUndoRedoButtons();
+    
+    // Show feedback
+    this.showNotification(`Undid: ${previousState.action}`, 'success');
+  }
+  
+  redo() {
+    if (this.redoStack.length === 0) return;
+    
+    // Save current state to undo stack
+    const currentState = {
+      data: JSON.parse(JSON.stringify(this.currentData)),
+      timestamp: Date.now(),
+      action: 'Undo Action'
+    };
+    this.undoStack.push(currentState);
+    
+    // Restore next state
+    const nextState = this.redoStack.pop();
+    this.currentData = JSON.parse(JSON.stringify(nextState.data));
+    
+    // Update UI
+    this.refreshAllSections();
+    this.updateUndoRedoButtons();
+    
+    // Show feedback
+    this.showNotification(`Redid: ${nextState.action}`, 'success');
+  }
+  
+  updateUndoRedoButtons() {
+    const undoBtn = document.getElementById('undoBtn');
+    const redoBtn = document.getElementById('redoBtn');
+    
+    if (undoBtn) {
+      undoBtn.disabled = this.undoStack.length === 0;
+      undoBtn.title = this.undoStack.length > 0 
+        ? `Undo: ${this.undoStack[this.undoStack.length - 1].action}` 
+        : 'Nothing to undo';
+    }
+    
+    if (redoBtn) {
+      redoBtn.disabled = this.redoStack.length === 0;
+      redoBtn.title = this.redoStack.length > 0 
+        ? `Redo: ${this.redoStack[this.redoStack.length - 1].action}` 
+        : 'Nothing to redo';
+    }
+  }
+  
+  refreshAllSections() {
+    // Refresh products section
+    this.loadProductsList();
+    
+    // Refresh coupons section
+    this.loadCouponsList();
+    
+    // Refresh content section if loaded
+    if (document.getElementById('heroTitle')) {
+      this.loadContentForms();
+    }
+    
+    // Update overview
+    this.loadOverview();
+  }
+  
+  showNotification(message, type = 'info') {
+    // Create notification element if it doesn't exist
+    let notification = document.getElementById('admin-notification');
+    if (!notification) {
+      notification = document.createElement('div');
+      notification.id = 'admin-notification';
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        font-family: 'Cormorant Garamond', serif;
+        font-weight: 600;
+        z-index: 10000;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.3);
+        transition: all 0.3s ease;
+        transform: translateX(100%);
+      `;
+      document.body.appendChild(notification);
+    }
+    
+    // Set message and type
+    notification.textContent = message;
+    notification.className = `notification-${type}`;
+    
+    // Style based on type
+    if (type === 'success') {
+      notification.style.background = 'rgba(46, 204, 113, 0.9)';
+      notification.style.color = 'white';
+    } else if (type === 'error') {
+      notification.style.background = 'rgba(231, 76, 60, 0.9)';
+      notification.style.color = 'white';
+    } else {
+      notification.style.background = 'rgba(52, 152, 219, 0.9)';
+      notification.style.color = 'white';
+    }
+    
+    // Animate in
+    notification.style.transform = 'translateX(0)';
+    
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+      notification.style.transform = 'translateX(100%)';
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 300);
+    }, 3000);
   }
 }
 
