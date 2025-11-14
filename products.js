@@ -144,9 +144,10 @@ function renderProductDetail(){
   
   // Preview button for book products
   const previewButton = isBookProduct ? `
-    <button id="view-preview-btn" class="thumb preview-thumb" style="padding: 1rem; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(255,255,255,0.15); border:2px solid rgba(255,255,255,0.4); border-radius:12px; cursor:pointer; transition:all 0.3s ease; margin-top: 1rem; width: 100%;" onmouseover="this.style.transform='scale(1.02)'; this.style.borderColor='rgba(255,255,255,0.7)'; this.style.background='rgba(255,255,255,0.25)';" onmouseout="this.style.transform='scale(1)'; this.style.borderColor='rgba(255,255,255,0.4)'; this.style.background='rgba(255,255,255,0.15)';">
+    <button id="view-preview-btn" class="thumb preview-thumb" style="padding: 1rem; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(255,255,255,0.15); border:2px solid rgba(255,255,255,0.4); border-radius:12px; cursor:pointer; transition:all 0.3s ease; margin-top: 1rem; width: 100%;" onmouseover="this.style.transform='scale(1.02)'; this.style.borderColor='rgba(255,255,255,0.7)'; this.style.background='rgba(255,255,255,0.25)';" onmouseout="this.style.transform='scale(1)'; this.style.borderColor='rgba(255,255,255,0.4)'; this.style.background='rgba(255,255,255,0.15)';" aria-label="Open book preview reader">
       <i class="fas fa-book-open" style="font-size:2rem; margin-bottom:0.5rem;"></i>
-      <span style="font-size:1rem; font-weight:600;">View Book Preview</span>
+      <span style="font-size:1rem; font-weight:600;">📖 Read Preview</span>
+      <small style="font-size:0.8rem; opacity:0.8; margin-top:0.3rem;">Click for fullscreen</small>
     </button>
   ` : '';
   
@@ -157,10 +158,13 @@ function renderProductDetail(){
           <img id="main-image" src="${p.images[0]}" alt="${escapeHtml(p.title)} main view" loading="eager" data-current-index="0"/>
           ${slideshowControls}
           <div id="pdf-preview-container" style="display:none;">
-            <div class="pdf-viewer">
+            <div class="pdf-viewer" id="pdf-viewer">
               <div class="pdf-controls">
                 <h4><i class="fas fa-book-open"></i> Book Preview</h4>
-                <button id="close-preview-btn" class="btn ghost"><i class="fas fa-times"></i> Close</button>
+                <div class="pdf-controls-group">
+                  <button id="fullscreen-btn" class="btn ghost" title="Open in fullscreen"><i class="fas fa-expand"></i></button>
+                  <button id="close-preview-btn" class="btn ghost"><i class="fas fa-times"></i> Close</button>
+                </div>
               </div>
               <div id="pdf-scroll-container"></div>
             </div>
@@ -347,21 +351,84 @@ function renderProductDetail(){
         e.stopPropagation();
         mainImage.style.display = 'none';
         previewContainer.style.display = 'block';
+        
+        // Load PDF if not already loaded
         if(!pdfLoaded) {
           loadPDF();
+        } else {
+          // Ensure scroll container is properly sized
+          setTimeout(() => {
+            pdfScrollContainer.scrollTop = 0;
+            pdfScrollContainer.style.overflowY = 'scroll';
+          }, 50);
         }
+        
+        // Analytics/tracking
+        console.log('Book preview opened');
       });
     }
 
+    // Fullscreen functionality
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+    const pdfViewer = document.getElementById('pdf-viewer');
+    let isFullscreen = false;
+    
+    if(fullscreenBtn) {
+      fullscreenBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if(!isFullscreen) {
+          // Enter fullscreen
+          pdfViewer.classList.add('fullscreen');
+          fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+          fullscreenBtn.title = 'Exit fullscreen';
+          document.body.style.overflow = 'hidden';
+          isFullscreen = true;
+        } else {
+          // Exit fullscreen
+          pdfViewer.classList.remove('fullscreen');
+          fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+          fullscreenBtn.title = 'Open in fullscreen';
+          document.body.style.overflow = '';
+          isFullscreen = false;
+        }
+      });
+    }
+    
     // Close preview and show main image
     if(closePreviewBtn) {
       closePreviewBtn.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
+        
+        // Exit fullscreen if active
+        if(isFullscreen) {
+          pdfViewer.classList.remove('fullscreen');
+          document.body.style.overflow = '';
+          isFullscreen = false;
+        }
+        
         previewContainer.style.display = 'none';
         mainImage.style.display = 'block';
       });
     }
+    
+    // ESC key to close fullscreen/preview
+    document.addEventListener('keydown', function(e) {
+      if(e.key === 'Escape') {
+        if(isFullscreen) {
+          pdfViewer.classList.remove('fullscreen');
+          fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+          fullscreenBtn.title = 'Open in fullscreen';
+          document.body.style.overflow = '';
+          isFullscreen = false;
+        } else if(previewContainer.style.display !== 'none') {
+          previewContainer.style.display = 'none';
+          mainImage.style.display = 'block';
+        }
+      }
+    });
 
     // Load PDF and render all pages
     function loadPDF() {
@@ -371,7 +438,7 @@ function renderProductDetail(){
       if (typeof pdfjsLib !== 'undefined') {
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         
-        pdfScrollContainer.innerHTML = '<p style="color:#8b7a86; text-align:center; padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Loading preview...</p>';
+        pdfScrollContainer.innerHTML = '<div style="color:#8b7a86; text-align:center; padding:3rem;"><i class="fas fa-spinner fa-spin" style="font-size:2rem; margin-bottom:1rem; display:block;"></i><p style="margin:0; font-size:1.1rem; font-weight:600;">Loading book preview...</p><small style="opacity:0.7; display:block; margin-top:0.5rem;">This may take a few moments</small></div>';
         
         const loadingTask = pdfjsLib.getDocument(url);
         loadingTask.promise.then(function(pdf) {
@@ -379,14 +446,31 @@ function renderProductDetail(){
           pdfLoaded = true;
           pdfScrollContainer.innerHTML = ''; // Clear loading message
           
+          // Add scroll instructions
+          const scrollInstructions = document.createElement('div');
+          scrollInstructions.innerHTML = '<div style="background:rgba(139,122,134,0.1); padding:0.75rem; border-radius:8px; margin-bottom:1rem; text-align:center; color:#8b7a86; font-size:0.9rem;"><i class="fas fa-mouse-pointer"></i> Scroll down to read through the preview • <i class="fas fa-expand"></i> Click fullscreen for better reading</div>';
+          pdfScrollContainer.appendChild(scrollInstructions);
+          
           // Render all pages
           const numPages = pdf.numPages;
           for(let pageNum = 1; pageNum <= numPages; pageNum++) {
             renderPage(pageNum);
           }
+          
+          // Ensure scrollbar is visible after loading
+          setTimeout(() => {
+            pdfScrollContainer.style.overflowY = 'scroll';
+          }, 100);
         }).catch(function(error) {
           console.error('Error loading PDF:', error);
-          pdfScrollContainer.innerHTML = '<p style="color:#8b7a86; text-align:center; padding:2rem;">✨ Preview temporarily unavailable. Please try again later!</p>';
+          pdfScrollContainer.innerHTML = `
+            <div style="color:#8b7a86; text-align:center; padding:3rem;">
+              <i class="fas fa-exclamation-triangle" style="font-size:2rem; margin-bottom:1rem; display:block; color:#e74c3c;"></i>
+              <h4 style="margin:0 0 1rem 0; color:#8b7a86;">Preview Temporarily Unavailable</h4>
+              <p style="margin:0 0 1rem 0; opacity:0.8;">We're having trouble loading the book preview right now.</p>
+              <button onclick="location.reload()" class="btn primary" style="margin-top:1rem;">Try Again</button>
+            </div>
+          `;
         });
       } else {
         pdfScrollContainer.innerHTML = '<p style="color:#8b7a86; text-align:center; padding:2rem;">✨ Preview not supported in this browser.</p>';
@@ -409,13 +493,27 @@ function renderProductDetail(){
         canvas.style.maxWidth = '100%';
         canvas.style.height = 'auto';
         
+        // Create page container
+        const pageContainer = document.createElement('div');
+        pageContainer.style.cssText = 'margin-bottom:2rem; padding:1rem; background:rgba(139,122,134,0.05); border-radius:8px; border:1px solid rgba(139,122,134,0.1);';
+        
         // Add page number label
         const pageLabel = document.createElement('div');
         pageLabel.textContent = `Page ${pageNum}`;
-        pageLabel.style.cssText = 'text-align:center; color:#8b7a86; font-size:0.85rem; margin-bottom:0.5rem; font-weight:600;';
+        pageLabel.style.cssText = 'text-align:center; color:#8b7a86; font-size:0.9rem; margin-bottom:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:1px;';
         
-        pdfScrollContainer.appendChild(pageLabel);
-        pdfScrollContainer.appendChild(canvas);
+        // Make canvas clickable for fullscreen
+        canvas.style.cursor = 'pointer';
+        canvas.title = 'Click to open in fullscreen';
+        canvas.addEventListener('click', function() {
+          if(fullscreenBtn && !isFullscreen) {
+            fullscreenBtn.click();
+          }
+        });
+        
+        pageContainer.appendChild(pageLabel);
+        pageContainer.appendChild(canvas);
+        pdfScrollContainer.appendChild(pageContainer);
 
         const renderContext = {
           canvasContext: context,
