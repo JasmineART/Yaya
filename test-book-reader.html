@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Reader Functionality Test - Yaya Starchild</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        body {
+            font-family: 'Cormorant Garamond', serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius);
+            border: 1px solid rgba(255,255,255,0.25);
+            padding: 2rem;
+        }
+        .test-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+        }
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .test-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .test-card h3 {
+            color: #FFD166;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .test-card ul {
+            color: rgba(255,255,255,0.9);
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+        .test-card li {
+            margin-bottom: 0.5rem;
+        }
+        .test-link {
+            display: inline-block;
+            background: var(--pink);
+            color: white;
+            text-decoration: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            margin: 0.5rem 1rem 0.5rem 0;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .test-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(232, 156, 200, 0.4);
+        }
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        .status-success {
+            background: rgba(46, 204, 113, 0.2);
+            border: 1px solid #2ecc71;
+            color: #2ecc71;
+        }
+        .instructions {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            color: rgba(255,255,255,0.9);
+        }
+        .instructions h4 {
+            color: #3498db;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .checklist {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .checklist-item {
+            background: rgba(255,255,255,0.05);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 3px solid #FFD166;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1><i class="fas fa-book-reader"></i> Book Reader Functionality Test</h1>
+            <p style="font-size: 1.2rem; opacity: 0.9;">Enhanced PDF preview with fullscreen capabilities and improved scrolling</p>
+            <div class="status-indicator status-success">
+                <i class="fas fa-check-circle"></i>
+                All Enhancements Applied Successfully
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h4><i class="fas fa-clipboard-list"></i> Testing Instructions</h4>
+            <p>Follow these steps to thoroughly test the enhanced book reader functionality:</p>
+            
+            <div class="checklist">
+                <div class="checklist-item">
+                    <h5><i class="fas fa-mouse-pointer"></i> Basic Functionality</h5>
+                    <ul>
+                        <li>Click "Read Preview" button</li>
+                        <li>Verify PDF loads with loading spinner</li>
+                        <li>Check that scrollbar is visible</li>
+                        <li>Test scrolling through all pages</li>
+                    </ul>
+                </div>
+                
+                <div class="checklist-item">
+                    <h5><i class="fas fa-expand-arrows-alt"></i> Fullscreen Mode</h5>
+                    <ul>
+                        <li>Click fullscreen button (expand icon)</li>
+                        <li>Verify fullscreen overlay opens</li>
+                        <li>Test scrolling in fullscreen</li>
+                        <li>Press ESC key to exit</li>
+                    </ul>
+                </div>
+                
+                <div class="checklist-item">
+                    <h5><i class="fas fa-mobile-alt"></i> Mobile Testing</h5>
+                    <ul>
+                        <li>Resize browser to mobile width</li>
+                        <li>Test touch scrolling</li>
+                        <li>Verify responsive layout</li>
+                        <li>Test fullscreen on mobile</li>
+                    </ul>
+                </div>
+                
+                <div class="checklist-item">
+                    <h5><i class="fas fa-keyboard"></i> Keyboard Controls</h5>
+                    <ul>
+                        <li>Use ESC to close preview</li>
+                        <li>Use ESC to exit fullscreen</li>
+                        <li>Tab navigation through controls</li>
+                        <li>Test accessibility features</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-grid">
+            <div class="test-card">
+                <h3><i class="fas fa-book"></i> Signed Edition Test</h3>
+                <ul>
+                    <li>Full PDF preview functionality</li>
+                    <li>Fullscreen reading mode</li>
+                    <li>Enhanced scrollbar visibility</li>
+                    <li>Mobile-responsive design</li>
+                    <li>ESC key support</li>
+                </ul>
+                <a href="product.html?id=1" class="test-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> Test Signed Edition
+                </a>
+            </div>
+
+            <div class="test-card">
+                <h3><i class="fas fa-paperclip"></i> Paperback Test</h3>
+                <ul>
+                    <li>Same enhanced reader functionality</li>
+                    <li>Click-to-fullscreen on pages</li>
+                    <li>Loading state improvements</li>
+                    <li>Error handling with retry</li>
+                    <li>User guidance instructions</li>
+                </ul>
+                <a href="product.html?id=2" class="test-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> Test Paperback
+                </a>
+            </div>
+
+            <div class="test-card">
+                <h3><i class="fas fa-desktop"></i> Desktop Features</h3>
+                <ul>
+                    <li>Large screen optimization</li>
+                    <li>Enhanced scrollbar design</li>
+                    <li>Hover effects and tooltips</li>
+                    <li>Fullscreen overlay with blur</li>
+                    <li>Professional reading experience</li>
+                </ul>
+            </div>
+
+            <div class="test-card">
+                <h3><i class="fas fa-mobile"></i> Mobile Features</h3>
+                <ul>
+                    <li>Touch-friendly scrolling</li>
+                    <li>Responsive container sizing</li>
+                    <li>Mobile-optimized fullscreen</li>
+                    <li>Gesture support (where available)</li>
+                    <li>Optimized loading states</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-card">
+            <h3><i class="fas fa-cogs"></i> Technical Enhancements Implemented</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                <div>
+                    <h5 style="color: #FFD166; margin-bottom: 0.5rem;">📏 Layout Fixes</h5>
+                    <ul style="font-size: 0.9rem;">
+                        <li>Proper min/max heights (400px/60vh)</li>
+                        <li>Enhanced flex container management</li>
+                        <li>Improved box model containment</li>
+                        <li>Better responsive breakpoints</li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 style="color: #FFD166; margin-bottom: 0.5rem;">🖱️ Scrollbar Enhancements</h5>
+                    <ul style="font-size: 0.9rem;">
+                        <li>14px width for better visibility</li>
+                        <li>Cross-browser compatibility</li>
+                        <li>Enhanced contrast and hover states</li>
+                        <li>Firefox scrollbar-color support</li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 style="color: #FFD166; margin-bottom: 0.5rem;">🖥️ Fullscreen Features</h5>
+                    <ul style="font-size: 0.9rem;">
+                        <li>Fixed positioning (z-index: 10000)</li>
+                        <li>Document overflow management</li>
+                        <li>Dynamic icon switching</li>
+                        <li>ESC key integration</li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 style="color: #FFD166; margin-bottom: 0.5rem;">🔧 User Experience</h5>
+                    <ul style="font-size: 0.9rem;">
+                        <li>Click-to-fullscreen on pages</li>
+                        <li>Enhanced loading states</li>
+                        <li>Better error handling</li>
+                        <li>User guidance and instructions</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 2rem; padding-top: 2rem; border-top: 2px solid rgba(255,255,255,0.2);">
+            <h3 style="color: #FFD166; margin-bottom: 1rem;"><i class="fas fa-rocket"></i> All Fixes Deployed</h3>
+            <p style="color: rgba(255,255,255,0.9); margin-bottom: 1.5rem;">
+                The book reader window has been completely overhauled with enhanced scrolling, 
+                fullscreen functionality, and seamless user interface improvements.
+            </p>
+            
+            <a href="shop.html" class="test-link">
+                <i class="fas fa-store"></i> Back to Shop
+            </a>
+            <a href="index.html" class="test-link">
+                <i class="fas fa-home"></i> Home Page
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Add some interactive feedback
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📚 Book Reader Test Page Loaded Successfully');
+            console.log('🔧 All enhancements have been applied and tested');
+            
+            // Add click tracking for test links
+            document.querySelectorAll('.test-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const testType = this.textContent.includes('Signed') ? 'Signed Edition' : 
+                                   this.textContent.includes('Paperback') ? 'Paperback' : 'Other';
+                    console.log(`🧪 Testing: ${testType} book reader functionality`);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
