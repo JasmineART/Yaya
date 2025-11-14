@@ -68,109 +68,9 @@ function manageFocus(element) {
   }
 }
 
-// DISCLAIMER MODAL: displays a professional site-wide notice on entry and before checkout
-function createDisclaimerModal() {
-  if (document.getElementById('site-disclaimer-overlay')) return; // already created
 
-  const overlay = document.createElement('div');
-  overlay.id = 'site-disclaimer-overlay';
-  overlay.className = 'site-disclaimer-overlay';
-  overlay.innerHTML = `
-    <div class="site-disclaimer-modal" role="dialog" aria-modal="true" aria-labelledby="site-disclaimer-title">
-      <header>
-        <h2 id="site-disclaimer-title" class="site-disclaimer-title">Notice</h2>
-      </header>
-      <div class="site-disclaimer-body">
-        <p>The site is currently experiencing technical difficulties. Some or most features may be unavailable. Please check back soon.</p>
-      </div>
-      <div class="site-disclaimer-actions">
-        <button class="site-disclaimer-btn site-disclaimer-confirm">I understand — continue</button>
-        <button class="site-disclaimer-btn site-disclaimer-cancel">Continue anyway</button>
-      </div>
-    </div>
-  `;
 
-  // Append and hide initially
-  overlay.style.display = 'none';
-  document.body.appendChild(overlay);
 
-  // Accessibility: focus management
-  const confirmBtn = overlay.querySelector('.site-disclaimer-confirm');
-  const cancelBtn = overlay.querySelector('.site-disclaimer-cancel');
-
-  // Close handlers
-  confirmBtn.addEventListener('click', () => {
-    sessionStorage.setItem('siteDisclaimerAccepted', 'true');
-    hideDisclaimer();
-  });
-  cancelBtn.addEventListener('click', () => {
-    // keep not accepted but still close — user opted to continue without acknowledging
-    hideDisclaimer();
-  });
-
-  // Escape key closes
-  overlay.addEventListener('keydown', (ev) => {
-    if (ev.key === 'Escape') {
-      hideDisclaimer();
-    }
-  });
-
-  function hideDisclaimer() {
-    overlay.style.display = 'none';
-    // restore scrolling
-    document.body.style.overflow = '';
-    // return focus to main content
-    const main = document.querySelector('main') || document.body;
-    try { main.focus(); } catch (e) {}
-  }
-
-  function showDisclaimer() {
-    overlay.style.display = 'flex';
-    // prevent background scrolling while modal open
-    document.body.style.overflow = 'hidden';
-    // focus the confirm button for accessibility
-    try { confirmBtn.focus(); } catch (e) {}
-  }
-
-  // expose methods
-  window.__showSiteDisclaimer = showDisclaimer;
-  window.__hideSiteDisclaimer = hideDisclaimer;
-}
-
-// Ensure the disclaimer has been accepted or show it; resolves true if accepted or after user confirms
-function ensureDisclaimerConfirmed() {
-  return new Promise((resolve) => {
-    try {
-      if (sessionStorage.getItem('siteDisclaimerAccepted') === 'true') return resolve(true);
-    } catch (e) {}
-
-    createDisclaimerModal();
-    const overlay = document.getElementById('site-disclaimer-overlay');
-    if (!overlay) return resolve(true);
-
-    // show modal
-    window.__showSiteDisclaimer();
-
-    const confirmBtn = overlay.querySelector('.site-disclaimer-confirm');
-    const cancelBtn = overlay.querySelector('.site-disclaimer-cancel');
-
-    function cleanupAndResolve(val) {
-      // remove listeners
-      confirmBtn.removeEventListener('click', onConfirm);
-      cancelBtn.removeEventListener('click', onCancel);
-      overlay.removeEventListener('keydown', onKey);
-      resolve(val);
-    }
-
-    function onConfirm() { cleanupAndResolve(true); }
-    function onCancel() { cleanupAndResolve(false); }
-    function onKey(e) { if (e.key === 'Escape') cleanupAndResolve(false); }
-
-    confirmBtn.addEventListener('click', onConfirm);
-    cancelBtn.addEventListener('click', onCancel);
-    overlay.addEventListener('keydown', onKey);
-  });
-}
 
 // Magical sparkle stream animation - optimized for performance
 function createMagicalSparkles() {
@@ -860,15 +760,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     console.warn('Visual enhancements skipped:', err.message);
   }
 
-  // Site disclaimer modal is available but not auto-shown
-  // Users can access it if needed via window.__showSiteDisclaimer()
-  try {
-    createDisclaimerModal();
-    // Disabled auto-show - uncomment if needed:
-    // if (sessionStorage.getItem('siteDisclaimerAccepted') !== 'true') {
-    //   window.__showSiteDisclaimer();
-    // }
-  } catch (e) { /* ignore if modal cannot be created */ }
+
 
   // comments
   const cf = document.getElementById('comment-form');
