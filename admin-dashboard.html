@@ -1,0 +1,746 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#E89CC8" />
+    <meta name="robots" content="noindex, nofollow" />
+    
+    <title>Admin Dashboard - Yaya Starchild</title>
+    <meta name="description" content="Admin dashboard for managing Yaya Starchild website content" />
+    
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <style>
+      body {
+        position: relative;
+        z-index: 2;
+      }
+      
+      .admin-header {
+        background: var(--glass);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(255,255,255,0.2);
+        padding: 1rem 0;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: var(--shadow);
+      }
+      
+      .admin-header .container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      
+      .admin-title {
+        font-family: 'Cinzel', serif;
+        color: #2c3e50;
+        font-size: var(--text-xl);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+      }
+      
+      .admin-nav {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      
+      .admin-nav button {
+        background: rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.3);
+        color: #2c3e50;
+        padding: 0.6rem 1.2rem;
+        border-radius: var(--radius);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-family: 'Cormorant Garamond', serif;
+        font-weight: 600;
+        font-size: var(--text-sm);
+        backdrop-filter: blur(10px);
+        min-height: var(--min-touch-size);
+        text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+      }
+      
+      .admin-nav button:hover,
+      .admin-nav button.active {
+        background: var(--glass-strong);
+        border-color: var(--pink);
+        transform: translateY(-2px);
+        box-shadow: var(--glow);
+      }
+      
+      .admin-content {
+        padding: 2rem 0;
+        position: relative;
+        z-index: 2;
+      }
+      
+      .admin-section {
+        background: var(--glass-strong);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.25);
+        border-radius: var(--radius);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        display: none;
+        box-shadow: var(--shadow);
+        animation: fadeInUp 0.4s ease-out;
+      }
+      
+      .admin-section.active {
+        display: block;
+      }
+      
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      .admin-section h2 {
+        color: #2c3e50;
+        font-family: 'Cinzel', serif;
+        font-size: var(--text-2xl);
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid rgba(44,62,80,0.2);
+      }
+      
+      .admin-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+      
+      .admin-card {
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 16px;
+        padding: 1.75rem;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+      }
+      
+      .admin-card:hover {
+        border-color: var(--pink);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px rgba(232, 156, 200, 0.25);
+        background: rgba(255,255,255,0.12);
+      }
+      
+      .admin-card h3 {
+        color: #2c3e50;
+        font-family: 'Cinzel', serif;
+        font-size: var(--text-lg);
+        font-weight: 600;
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+      }
+      
+      .admin-form-group {
+        margin-bottom: 1.25rem;
+      }
+      
+      .admin-form-group label {
+        display: block;
+        color: #2c3e50;
+        font-family: 'Cormorant Garamond', serif;
+        font-weight: 600;
+        font-size: var(--text-base);
+        margin-bottom: 0.6rem;
+        text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+      }
+      
+      .admin-form-group input,
+      .admin-form-group textarea,
+      .admin-form-group select {
+        width: 100%;
+        padding: 1rem;
+        border: 2px solid rgba(44,62,80,0.3);
+        border-radius: 12px;
+        background: rgba(255,255,255,0.9);
+        backdrop-filter: blur(5px);
+        color: #2c3e50;
+        font-family: 'Cormorant Garamond', serif;
+        font-size: var(--text-base);
+        transition: all 0.3s ease;
+        min-height: var(--min-touch-size);
+      }
+      
+      .admin-form-group input::placeholder,
+      .admin-form-group textarea::placeholder {
+        color: rgba(44,62,80,0.6);
+        font-style: italic;
+      }
+      
+      .admin-form-group textarea {
+        min-height: 120px;
+        resize: vertical;
+        line-height: 1.6;
+      }
+      
+      .admin-form-group input:focus,
+      .admin-form-group textarea:focus,
+      .admin-form-group select:focus {
+        outline: none;
+        border-color: var(--pink);
+        box-shadow: 0 0 20px rgba(232, 156, 200, 0.3), var(--focus-shadow);
+        background: rgba(255,255,255,0.15);
+      }
+      
+      .admin-btn {
+        background: linear-gradient(135deg, var(--pink), var(--purple));
+        color: var(--white);
+        border: none;
+        padding: 0.9rem 1.8rem;
+        border-radius: 12px;
+        font-family: 'Cormorant Garamond', serif;
+        font-weight: 600;
+        font-size: var(--text-base);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-right: 0.75rem;
+        margin-bottom: 0.75rem;
+        min-height: var(--min-touch-size);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      }
+      
+      .admin-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(232, 156, 200, 0.4);
+        background: linear-gradient(135deg, var(--pink-dark), var(--purple-dark));
+      }
+      
+      .admin-btn.danger {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+      }
+      
+      .admin-btn.danger:hover {
+        background: linear-gradient(135deg, #ee5a52, #dc4441);
+      }
+      
+      .admin-btn.secondary {
+        background: rgba(255,255,255,0.15);
+        border: 1px solid rgba(255,255,255,0.3);
+        backdrop-filter: blur(5px);
+      }
+      
+      .admin-btn.secondary:hover {
+        background: rgba(255,255,255,0.25);
+        border-color: var(--pink);
+      }
+      
+      .save-site-btn {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        background: linear-gradient(135deg, #4CAF50, #45a049);
+        color: white;
+        border: none;
+        padding: 1.2rem 2.5rem;
+        border-radius: 50px;
+        font-family: 'Cinzel', serif;
+        font-size: var(--text-lg);
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 20px 50px rgba(76, 175, 80, 0.4);
+        z-index: 1000;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        text-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        display: none;
+      }
+      
+            .save-site-btn:hover {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 25px 60px rgba(76, 175, 80, 0.5);
+      }
+      
+      .save-site-btn.pulse {
+        animation: savePulse 1.5s ease-in-out infinite;
+      }
+      
+      @keyframes savePulse {
+        0% { 
+          box-shadow: 0 20px 50px rgba(76, 175, 80, 0.4);
+        }
+        50% { 
+          box-shadow: 0 25px 60px rgba(76, 175, 80, 0.6), 0 0 30px rgba(76, 175, 80, 0.4);
+          transform: scale(1.02);
+        }
+        100% { 
+          box-shadow: 0 20px 50px rgba(76, 175, 80, 0.4);
+        }
+      }
+      
+      .save-site-btn.show {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      
+      .admin-status {
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        display: none;
+      }
+      
+      .admin-status.success {
+        background: rgba(76, 175, 80, 0.1);
+        border: 1px solid rgba(76, 175, 80, 0.3);
+        color: #4CAF50;
+      }
+      
+      .admin-status.error {
+        background: rgba(255, 107, 107, 0.1);
+        border: 1px solid rgba(255, 107, 107, 0.3);
+        color: #ff6b6b;
+      }
+      
+      .product-list {
+        display: grid;
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+      
+      .product-item {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 8px;
+        padding: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      
+      .product-info h4 {
+        color: var(--white);
+        margin: 0 0 0.5rem 0;
+      }
+      
+      .product-info p {
+        color: rgba(255,255,255,0.7);
+        margin: 0;
+        font-size: 0.9rem;
+      }
+      
+      .coupon-list {
+        display: grid;
+        gap: 0.5rem;
+        margin-top: 1rem;
+      }
+      
+      .coupon-item {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 8px;
+        padding: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      
+      .coupon-info {
+        display: flex;
+        gap: 2rem;
+        align-items: center;
+      }
+      
+      .coupon-code {
+        font-family: monospace;
+        background: rgba(255,255,255,0.1);
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        color: var(--pink);
+        font-weight: bold;
+      }
+      
+      .status-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: var(--text-sm);
+        font-weight: 500;
+      }
+      
+      .status-online {
+        background: rgba(76, 175, 80, 0.2);
+        color: #2e7d32;
+        border: 1px solid rgba(76, 175, 80, 0.4);
+        font-weight: 600;
+      }
+      
+      .status-offline {
+        background: rgba(255, 107, 107, 0.2);
+        color: #c62828;
+        border: 1px solid rgba(255, 107, 107, 0.4);
+        font-weight: 600;
+      }
+      
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+      
+      .stat-card {
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+      }
+      
+      .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(232, 156, 200, 0.15);
+      }
+      
+      .stat-number {
+        font-family: 'Cinzel', serif;
+        font-size: var(--text-2xl);
+        font-weight: 700;
+        color: var(--pink);
+        display: block;
+        margin-bottom: 0.5rem;
+      }
+      
+      .stat-label {
+        font-size: var(--text-sm);
+        color: rgba(44,62,80,0.8);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 600;
+      }
+      
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .admin-nav {
+          flex-wrap: wrap;
+          gap: 0.5rem;
+        }
+        
+        .admin-nav button {
+          padding: 0.5rem 0.8rem;
+          font-size: var(--text-xs);
+        }
+        
+        .admin-section {
+          padding: 1.5rem;
+        }
+        
+        .admin-grid {
+          grid-template-columns: 1fr;
+        }
+        
+        .stats-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .save-site-btn {
+          bottom: 20px;
+          right: 20px;
+          padding: 1rem 1.5rem;
+          font-size: var(--text-base);
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .admin-header .container {
+          flex-direction: column;
+          gap: 1rem;
+        }
+        
+        .admin-title {
+          font-size: var(--text-lg);
+        }
+        
+        .stats-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="admin-header">
+      <div class="container">
+        <h1 class="admin-title">
+          <i class="fas fa-crown"></i>
+          Admin Dashboard
+        </h1>
+        <div class="admin-nav">
+          <button onclick="showSection('overview')" class="active" id="nav-overview">Overview</button>
+          <button onclick="showSection('products')" id="nav-products">Products</button>
+          <button onclick="showSection('coupons')" id="nav-coupons">Coupons</button>
+          <button onclick="showSection('content')" id="nav-content">Content</button>
+          <button onclick="showSection('settings')" id="nav-settings">Settings</button>
+          <button onclick="logout()" class="danger">
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <main class="container admin-content">
+      <!-- Overview Section -->
+      <div id="overview-section" class="admin-section active">
+        <h2><i class="fas fa-chart-line"></i> Dashboard Overview</h2>
+        
+        <!-- Statistics Grid -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-number" id="product-count">0</span>
+            <div class="stat-label">Products</div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-number" id="coupon-count">0</span>
+            <div class="stat-label">Active Coupons</div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-number status-indicator status-online">
+              <i class="fas fa-circle"></i> Online
+            </span>
+            <div class="stat-label">Site Status</div>
+          </div>
+        </div>
+        
+        <div class="admin-status" id="overview-status"></div>
+        
+        <!-- Quick Actions -->
+        <div class="admin-card">
+          <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+          <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem;">
+            <button onclick="showSection('products')" class="admin-btn secondary">
+              <i class="fas fa-plus"></i> Add Product
+            </button>
+            <button onclick="showSection('coupons')" class="admin-btn secondary">
+              <i class="fas fa-tag"></i> Create Coupon
+            </button>
+            <button onclick="showSection('content')" class="admin-btn secondary">
+              <i class="fas fa-edit"></i> Edit Content
+            </button>
+          </div>
+        </div>
+        
+        <p style="color: var(--white); line-height: 1.6;">
+          Welcome to your admin dashboard! Here you can manage all aspects of your website including products, coupons, and content. 
+          Make your changes in the different sections and click the green "Save Site" button to deploy your updates.
+        </p>
+      </div>
+
+      <!-- Products Section -->
+      <div id="products-section" class="admin-section">
+        <h2><i class="fas fa-box"></i> Product Management</h2>
+        
+        <div class="admin-status" id="products-status"></div>
+        
+        <div class="admin-grid">
+          <div class="admin-card">
+            <h3><i class="fas fa-plus"></i> Add New Product</h3>
+            <form id="add-product-form">
+              <div class="admin-form-group">
+                <label for="product-title">Product Title</label>
+                <input type="text" id="product-title" placeholder="e.g., Suncatcher Spirit (Signed Edition)" required />
+              </div>
+              <div class="admin-form-group">
+                <label for="product-price">Price ($)</label>
+                <input type="number" id="product-price" step="0.01" min="0" placeholder="19.99" required />
+              </div>
+              <div class="admin-form-group">
+                <label for="product-description">Description</label>
+                <textarea id="product-description" placeholder="Product description..." required></textarea>
+              </div>
+              <div class="admin-form-group">
+                <label for="product-icon">Icon Class (Font Awesome)</label>
+                <input type="text" id="product-icon" placeholder="fas fa-book" />
+              </div>
+              <div class="admin-form-group">
+                <label for="product-isbn">ISBN (optional)</label>
+                <input type="text" id="product-isbn" placeholder="979-8-9999322-0-4" />
+              </div>
+              <div class="admin-form-group">
+                <label for="product-image">Image Path</label>
+                <input type="text" id="product-image" placeholder="assets/product-image.jpg" required />
+              </div>
+              <button type="submit" class="admin-btn">
+                <i class="fas fa-plus"></i> Add Product
+              </button>
+            </form>
+          </div>
+          
+          <div class="admin-card">
+            <h3><i class="fas fa-list"></i> Current Products</h3>
+            <div id="product-list" class="product-list">
+              Loading products...
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coupons Section -->
+      <div id="coupons-section" class="admin-section">
+        <h2><i class="fas fa-ticket-alt"></i> Coupon Management</h2>
+        
+        <div class="admin-status" id="coupons-status"></div>
+        
+        <div class="admin-grid">
+          <div class="admin-card">
+            <h3><i class="fas fa-plus"></i> Add New Coupon</h3>
+            <form id="add-coupon-form">
+              <div class="admin-form-group">
+                <label for="coupon-code">Coupon Code</label>
+                <input type="text" id="coupon-code" placeholder="MAGIC25" required style="text-transform: uppercase;" />
+              </div>
+              <div class="admin-form-group">
+                <label for="coupon-type">Discount Type</label>
+                <select id="coupon-type" required>
+                  <option value="">Select type...</option>
+                  <option value="percentage">Percentage Off</option>
+                  <option value="flat">Flat Dollar Amount</option>
+                  <option value="bogo_half">Buy One Get 2nd 50% Off</option>
+                </select>
+              </div>
+              <div class="admin-form-group">
+                <label for="coupon-value">Discount Value</label>
+                <input type="number" id="coupon-value" step="0.01" min="0" placeholder="25 (for 25% or $25)" />
+              </div>
+              <div class="admin-form-group">
+                <label for="coupon-description">Description</label>
+                <input type="text" id="coupon-description" placeholder="25% off entire cart" required />
+              </div>
+              <button type="submit" class="admin-btn">
+                <i class="fas fa-plus"></i> Add Coupon
+              </button>
+            </form>
+          </div>
+          
+          <div class="admin-card">
+            <h3><i class="fas fa-list"></i> Active Coupons</h3>
+            <div id="coupon-list" class="coupon-list">
+              Loading coupons...
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Section -->
+      <div id="content-section" class="admin-section">
+        <h2><i class="fas fa-edit"></i> Content Management</h2>
+        
+        <div class="admin-status" id="content-status"></div>
+        
+        <div class="admin-grid">
+          <div class="admin-card">
+            <h3><i class="fas fa-home"></i> Homepage Content</h3>
+            <div class="admin-form-group">
+              <label for="site-tagline">Site Tagline</label>
+              <input type="text" id="site-tagline" value="Whimsical poet who hopes to leave you enchanted." />
+            </div>
+            <div class="admin-form-group">
+              <label for="hero-text">Hero Section Text</label>
+              <textarea id="hero-text">Discover luminous poetry that sparks wonder and celebrates the magic in everyday moments. Each verse invites you to pause, breathe, and find light in the spaces between heartbeats.</textarea>
+            </div>
+            <button onclick="updateContent('homepage')" class="admin-btn">
+              <i class="fas fa-save"></i> Update Homepage
+            </button>
+          </div>
+          
+          <div class="admin-card">
+            <h3><i class="fas fa-user"></i> About Page Content</h3>
+            <div class="admin-form-group">
+              <label for="about-intro">About Introduction</label>
+              <textarea id="about-intro">At the age of eight, Yaya picked up a pen for solace and never looked back. Starting with short stories in her youth, she eventually landed upon poetry as her most treasured means of expression.</textarea>
+            </div>
+            <button onclick="updateContent('about')" class="admin-btn">
+              <i class="fas fa-save"></i> Update About
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Section -->
+      <div id="settings-section" class="admin-section">
+        <h2><i class="fas fa-cog"></i> Admin Settings</h2>
+        
+        <div class="admin-status" id="settings-status"></div>
+        
+        <div class="admin-grid">
+          <div class="admin-card">
+            <h3><i class="fas fa-key"></i> Change Admin Credentials</h3>
+            <form id="change-credentials-form">
+              <div class="admin-form-group">
+                <label for="current-password">Current Password</label>
+                <input type="password" id="current-password" required />
+              </div>
+              <div class="admin-form-group">
+                <label for="new-username">New Username</label>
+                <input type="text" id="new-username" placeholder="AdminYaya" />
+              </div>
+              <div class="admin-form-group">
+                <label for="new-password">New Password</label>
+                <input type="password" id="new-password" />
+              </div>
+              <div class="admin-form-group">
+                <label for="confirm-password">Confirm New Password</label>
+                <input type="password" id="confirm-password" />
+              </div>
+              <button type="submit" class="admin-btn">
+                <i class="fas fa-save"></i> Update Credentials
+              </button>
+            </form>
+          </div>
+          
+          <div class="admin-card">
+            <h3><i class="fas fa-download"></i> Backup & Export</h3>
+            <p style="color: rgba(255,255,255,0.8); margin-bottom: 1rem;">
+              Download a backup of your current site data including products, coupons, and content.
+            </p>
+            <button onclick="exportData()" class="admin-btn secondary">
+              <i class="fas fa-download"></i> Export Site Data
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Save Site Button -->
+    <button id="save-site-btn" class="save-site-btn" onclick="saveSite()">
+      <i class="fas fa-rocket"></i>
+      Save & Deploy Site
+    </button>
+
+    <script src="admin-dashboard.js"></script>
+  </body>
+</html>

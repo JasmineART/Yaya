@@ -7,6 +7,7 @@
     "start": "node optimized-server.js",
     "dev": "NODE_ENV=development node optimized-server.js",
     "server": "cd server && node index.js",
+    "admin": "node start-admin-api.js",
     "build": "node build-static.js",
     "validate": "node validate-deploy.js",
     "predeploy": "npm run validate && npm run build",
