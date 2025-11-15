@@ -807,57 +807,7 @@ a:focus,button:focus,input:focus,textarea:focus{
   left:0;
 }
 
-/* ===== HAMBURGER MENU ===== */
-.hamburger {
-  display: none; /* Hidden by default, shown on mobile */
-  flex-direction: column;
-  justify-content: space-around;
-  width: 48px;
-  height: 48px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 10px;
-  z-index: 100003;
-  position: relative;
-  transition: all 0.3s ease;
-  border-radius: 8px;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.hamburger:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.hamburger:focus-visible {
-  outline: 2px solid var(--focus-color);
-  outline-offset: 2px;
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.hamburger-line {
-  width: 24px;
-  height: 3px;
-  background: var(--white);
-  border-radius: 3px;
-  transition: all 0.3s ease;
-  box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
-}
-
-/* Hamburger animation when open */
-.hamburger.active .hamburger-line:nth-child(1) {
-  transform: translateY(8px) rotate(45deg);
-}
-
-.hamburger.active .hamburger-line:nth-child(2) {
-  opacity: 0;
-  transform: translateX(-20px);
-}
-
-.hamburger.active .hamburger-line:nth-child(3) {
-  transform: translateY(-8px) rotate(-45deg);
-}
+/* ===== MOBILE RESPONSIVE NAVIGATION ===== */
 
 .hero{
   display:flex;
@@ -1821,113 +1771,67 @@ textarea{
 
 /* Base mobile styles (applied to all screen sizes up to 768px) */
 @media (max-width: 47.9375rem) {
-  /* Show hamburger menu on mobile */
-  .hamburger {
-    display: flex;
-  }
-  
-  /* Mobile navigation - hidden by default */
+  /* Mobile header - stacked layout */
   .site-header {
-    flex-direction: row;
-    justify-content: space-between;
+    flex-direction: column;
     align-items: center;
+    text-align: center;
     padding: 1rem;
-    position: relative;
+    gap: 1rem;
   }
   
   .brand {
-    flex-direction: row;
-    gap: 0.75rem;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
   }
   
   .brand h1 {
     font-size: 1.3rem;
+    margin: 0;
   }
   
   .logo {
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
   }
   
   .tag {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
   }
   
-  /* Mobile navigation menu */
+  /* Mobile navigation - stacked below header */
   .nav {
-    position: fixed;
-    top: 0;
-    right: -100%;
-    height: 100vh;
-    width: 280px;
-    max-width: 85vw;
-    background: linear-gradient(135deg, 
-      #E89CC8 0%,
-      #D899E6 50%,
-      #B88DD8 100%);
-    box-shadow: -5px 0 30px rgba(0, 0, 0, 0.3);
-    padding: 5rem 2rem 2rem;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0;
-    transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 100002;
-    overflow-y: auto;
-  }
-  
-  /* Mobile menu open state */
-  .nav.active {
-    right: 0;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.5rem 0;
   }
   
   /* Mobile nav links */
   .nav a {
     width: 100%;
-    padding: 1rem 1.25rem;
-    font-size: 1.2rem;
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
     font-weight: 600;
     border-radius: 8px;
-    margin-bottom: 0.5rem;
-    background: rgba(255, 255, 255, 0.25);
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     transition: all 0.3s ease;
-    text-align: left;
+    text-align: center;
     display: block;
-    cursor: pointer;
     touch-action: manipulation;
-    color: #ffffff;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   }
   
   .nav a:hover,
   .nav a:focus-visible {
-    background: rgba(255, 255, 255, 0.4);
-    transform: translateX(5px);
-    padding-left: 1.5rem;
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.02);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   }
   
   .nav a::after {
     display: none; /* Remove underline animation on mobile */
-  }
-  
-  /* Mobile overlay when menu is open - transparent for readability */
-  .nav-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: transparent;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.4s ease;
-    z-index: 100001;
-  }
-  
-  .nav-overlay.active {
-    opacity: 1;
-    pointer-events: auto;
   }
 }
 
@@ -2138,12 +2042,7 @@ input::placeholder, textarea::placeholder {
 
 /* Tablet styles (768px and up) */
 @media (min-width: 48rem) {
-  /* Hide hamburger on desktop */
-  .hamburger {
-    display: none !important;
-  }
-  
-  /* Show desktop navigation */
+  /* Desktop navigation */
   .nav {
     position: static;
     flex-direction: row;
