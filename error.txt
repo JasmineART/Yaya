@@ -1,0 +1,1 @@
+Payment error: Invalid stripe.redirectToCheckout parameter: line_items is not an accepted parameter

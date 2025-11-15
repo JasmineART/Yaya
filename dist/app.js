@@ -3,10 +3,29 @@ const STORAGE_KEY = 'yaya_cart_v1';
 const DISCOUNT_STORAGE_KEY = 'yaya_discount_v1';
 
 // Discount codes: percentage discounts, flat dollar amounts, and BOGO deals
-const DISCOUNTS = { 
-  'PASTEL': { type: 'bogo_half', description: 'Buy one, get 2nd item 50% off' },
-  'SUNCATCHER': { type: 'percentage', value: 0.15, description: '15% off entire cart' },
-  'WHIMSY': { type: 'percentage', value: 0.25, description: '25% off entire cart' }
+const DISCOUNTS = {
+  "PASTEL": {
+    "type": "bogo_half",
+    "description": "Buy one, get 2nd item 50% off"
+  },
+  "SUNCATCHER": {
+    "type": "percentage",
+    "value": 0.15,
+    "description": "15% off entire cart"
+  },
+  "WHIMSY": {
+    "type": "percentage",
+    "value": 0.25,
+    "description": "25% off entire cart"
+  },
+  "ADMINTEST25": {
+    "code": "ADMINTEST25",
+    "type": "percentage",
+    "value": 25,
+    "description": "25% off for admin testing",
+    "active": true,
+    "created": "2025-11-14T03:22:18.628Z"
+  }
 };
 
 // Email functions will be available globally from simple-email.js script
@@ -68,109 +87,9 @@ function manageFocus(element) {
   }
 }
 
-// DISCLAIMER MODAL: displays a professional site-wide notice on entry and before checkout
-function createDisclaimerModal() {
-  if (document.getElementById('site-disclaimer-overlay')) return; // already created
 
-  const overlay = document.createElement('div');
-  overlay.id = 'site-disclaimer-overlay';
-  overlay.className = 'site-disclaimer-overlay';
-  overlay.innerHTML = `
-    <div class="site-disclaimer-modal" role="dialog" aria-modal="true" aria-labelledby="site-disclaimer-title">
-      <header>
-        <h2 id="site-disclaimer-title" class="site-disclaimer-title">Notice</h2>
-      </header>
-      <div class="site-disclaimer-body">
-        <p>The site is currently experiencing technical difficulties. Some or most features may be unavailable. Please check back soon.</p>
-      </div>
-      <div class="site-disclaimer-actions">
-        <button class="site-disclaimer-btn site-disclaimer-confirm">I understand — continue</button>
-        <button class="site-disclaimer-btn site-disclaimer-cancel">Continue anyway</button>
-      </div>
-    </div>
-  `;
 
-  // Append and hide initially
-  overlay.style.display = 'none';
-  document.body.appendChild(overlay);
 
-  // Accessibility: focus management
-  const confirmBtn = overlay.querySelector('.site-disclaimer-confirm');
-  const cancelBtn = overlay.querySelector('.site-disclaimer-cancel');
-
-  // Close handlers
-  confirmBtn.addEventListener('click', () => {
-    sessionStorage.setItem('siteDisclaimerAccepted', 'true');
-    hideDisclaimer();
-  });
-  cancelBtn.addEventListener('click', () => {
-    // keep not accepted but still close — user opted to continue without acknowledging
-    hideDisclaimer();
-  });
-
-  // Escape key closes
-  overlay.addEventListener('keydown', (ev) => {
-    if (ev.key === 'Escape') {
-      hideDisclaimer();
-    }
-  });
-
-  function hideDisclaimer() {
-    overlay.style.display = 'none';
-    // restore scrolling
-    document.body.style.overflow = '';
-    // return focus to main content
-    const main = document.querySelector('main') || document.body;
-    try { main.focus(); } catch (e) {}
-  }
-
-  function showDisclaimer() {
-    overlay.style.display = 'flex';
-    // prevent background scrolling while modal open
-    document.body.style.overflow = 'hidden';
-    // focus the confirm button for accessibility
-    try { confirmBtn.focus(); } catch (e) {}
-  }
-
-  // expose methods
-  window.__showSiteDisclaimer = showDisclaimer;
-  window.__hideSiteDisclaimer = hideDisclaimer;
-}
-
-// Ensure the disclaimer has been accepted or show it; resolves true if accepted or after user confirms
-function ensureDisclaimerConfirmed() {
-  return new Promise((resolve) => {
-    try {
-      if (sessionStorage.getItem('siteDisclaimerAccepted') === 'true') return resolve(true);
-    } catch (e) {}
-
-    createDisclaimerModal();
-    const overlay = document.getElementById('site-disclaimer-overlay');
-    if (!overlay) return resolve(true);
-
-    // show modal
-    window.__showSiteDisclaimer();
-
-    const confirmBtn = overlay.querySelector('.site-disclaimer-confirm');
-    const cancelBtn = overlay.querySelector('.site-disclaimer-cancel');
-
-    function cleanupAndResolve(val) {
-      // remove listeners
-      confirmBtn.removeEventListener('click', onConfirm);
-      cancelBtn.removeEventListener('click', onCancel);
-      overlay.removeEventListener('keydown', onKey);
-      resolve(val);
-    }
-
-    function onConfirm() { cleanupAndResolve(true); }
-    function onCancel() { cleanupAndResolve(false); }
-    function onKey(e) { if (e.key === 'Escape') cleanupAndResolve(false); }
-
-    confirmBtn.addEventListener('click', onConfirm);
-    cancelBtn.addEventListener('click', onCancel);
-    overlay.addEventListener('keydown', onKey);
-  });
-}
 
 // Magical sparkle stream animation - optimized for performance
 function createMagicalSparkles() {
@@ -643,15 +562,15 @@ function renderCartContents(){
     }
     
     return `
-      <div class="cart-item" style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 12px; margin-bottom: 1rem;">
-        <img src="${itemImage}" alt="${productTitle}${variantLabel}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;"/>
-        <div style="flex: 1;">
-          <strong>${productTitle}${variantLabel}</strong>
-          <div style="color: rgba(255,255,255,0.8); font-size: 0.9rem;">${it.qty} × ${formatPrice(p.price)}</div>
+      <div class="cart-item" data-product-id="${it.uniqueKey || it.id}">
+        <img src="${itemImage}" alt="${productTitle}${variantLabel}" class="cart-item-image"/>
+        <div class="cart-item-details">
+          <strong class="cart-item-title">${productTitle}${variantLabel}</strong>
+          <div class="cart-item-price">${it.qty} × ${formatPrice(p.price)}</div>
         </div>
-        <div style="font-weight: 600; font-size: 1.1rem;">${formatPrice(p.price*it.qty)}</div>
-        <button onclick="removeFromCart('${it.uniqueKey || it.id}')" style="background: rgba(255,100,100,0.7); border: none; border-radius: 50%; width: 30px; height: 30px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove item">
-          <i class="fas fa-times"></i>
+        <div class="cart-item-total">${formatPrice(p.price*it.qty)}</div>
+        <button onclick="removeFromCart('${it.uniqueKey || it.id}')" class="cart-item-remove" aria-label="Remove ${productTitle}${variantLabel} from cart" title="Remove item">
+          <i class="fas fa-times" aria-hidden="true"></i>
         </button>
       </div>
     `;
@@ -797,63 +716,23 @@ async function postToSupabase(path, body){
   }catch(e){return null}
 }
 
-// Newsletter initializer (exposed) - monitors EmailOctopus form submissions
+// Newsletter initializer (exposed) - basic EmailOctopus form setup
 function initNewsletterForm() {
-  console.log('🌟 Initializing EmailOctopus newsletter monitoring...');
+  console.log('🌟 Initializing EmailOctopus newsletter form...');
   
-  // Set up interval to check for EmailOctopus form and monitor submissions
+  // Simple setup to ensure EmailOctopus forms work properly
   let monitorInterval = setInterval(() => {
     const emailOctopusForm = document.querySelector('form[data-form="e717b62a-7d10-11f0-b467-0f9ecebb753c"]');
     
     if (emailOctopusForm) {
-      console.log('✅ EmailOctopus form found, setting up monitoring');
+      console.log('✅ EmailOctopus form found - basic setup complete');
       clearInterval(monitorInterval);
       
-      // Monitor form submissions to send EmailJS notifications
-      emailOctopusForm.addEventListener('submit', async (e) => {
-        // Get the email from the form
-        const emailInput = emailOctopusForm.querySelector('input[type="email"]');
-        const email = emailInput ? emailInput.value : null;
-        
-        if (email && typeof window.sendNewsletterSignup === 'function') {
-          console.log('📧 EmailOctopus form submitted, sending EmailJS notification...');
-          
-          // Small delay to let EmailOctopus process first
-          setTimeout(async () => {
-            try {
-              const emailResult = await window.sendNewsletterSignup(email, window.location.pathname);
-              if (emailResult && emailResult.success) {
-                console.log('✅ EmailJS notification sent successfully');
-              } else {
-                console.warn('⚠️ EmailJS notification failed:', emailResult);
-              }
-            } catch (error) {
-              console.error('❌ Error sending EmailJS notification:', error);
-            }
-          }, 500);
-        }
-      });
-      
-      // Also monitor for successful submissions via EmailOctopus callbacks
+      // Set up optional success callback for logging
       window.EmailOctopusCallback = window.EmailOctopusCallback || {};
-      window.EmailOctopusCallback.onSuccess = async function(formId) {
+      window.EmailOctopusCallback.onSuccess = function(formId) {
         if (formId === 'e717b62a-7d10-11f0-b467-0f9ecebb753c') {
           console.log('✅ EmailOctopus subscription successful');
-          
-          // Try to get email from form data or recent submission
-          const emailInput = document.querySelector('form[data-form="' + formId + '"] input[type="email"]');
-          const email = emailInput ? emailInput.value : null;
-          
-          if (email && typeof window.sendNewsletterSignup === 'function') {
-            try {
-              const emailResult = await window.sendNewsletterSignup(email, window.location.pathname);
-              if (emailResult && emailResult.success) {
-                console.log('✅ EmailJS notification sent via callback');
-              }
-            } catch (error) {
-              console.error('❌ Error in EmailOctopus callback:', error);
-            }
-          }
         }
       };
     }
@@ -900,15 +779,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     console.warn('Visual enhancements skipped:', err.message);
   }
 
-  // Site disclaimer modal is available but not auto-shown
-  // Users can access it if needed via window.__showSiteDisclaimer()
-  try {
-    createDisclaimerModal();
-    // Disabled auto-show - uncomment if needed:
-    // if (sessionStorage.getItem('siteDisclaimerAccepted') !== 'true') {
-    //   window.__showSiteDisclaimer();
-    // }
-  } catch (e) { /* ignore if modal cannot be created */ }
+
 
   // comments
   const cf = document.getElementById('comment-form');

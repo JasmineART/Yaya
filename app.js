@@ -562,15 +562,15 @@ function renderCartContents(){
     }
     
     return `
-      <div class="cart-item" style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 12px; margin-bottom: 1rem;">
-        <img src="${itemImage}" alt="${productTitle}${variantLabel}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;"/>
-        <div style="flex: 1;">
-          <strong>${productTitle}${variantLabel}</strong>
-          <div style="color: rgba(255,255,255,0.8); font-size: 0.9rem;">${it.qty} × ${formatPrice(p.price)}</div>
+      <div class="cart-item" data-product-id="${it.uniqueKey || it.id}">
+        <img src="${itemImage}" alt="${productTitle}${variantLabel}" class="cart-item-image"/>
+        <div class="cart-item-details">
+          <strong class="cart-item-title">${productTitle}${variantLabel}</strong>
+          <div class="cart-item-price">${it.qty} × ${formatPrice(p.price)}</div>
         </div>
-        <div style="font-weight: 600; font-size: 1.1rem;">${formatPrice(p.price*it.qty)}</div>
-        <button onclick="removeFromCart('${it.uniqueKey || it.id}')" style="background: rgba(255,100,100,0.7); border: none; border-radius: 50%; width: 30px; height: 30px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove item">
-          <i class="fas fa-times"></i>
+        <div class="cart-item-total">${formatPrice(p.price*it.qty)}</div>
+        <button onclick="removeFromCart('${it.uniqueKey || it.id}')" class="cart-item-remove" aria-label="Remove ${productTitle}${variantLabel} from cart" title="Remove item">
+          <i class="fas fa-times" aria-hidden="true"></i>
         </button>
       </div>
     `;

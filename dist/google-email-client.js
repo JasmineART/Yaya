@@ -49,18 +49,7 @@ async function sendEmailViaCloud(type, data) {
   }
 }
 
-/**
- * Send newsletter signup notification
- * 
- * @param {string} email - Subscriber email address
- * @param {string} source - Source page (optional)
- */
-async function sendNewsletterSignup(email, source = 'website') {
-  return sendEmailViaCloud('newsletter', {
-    email,
-    source
-  });
-}
+
 
 /**
  * Send comment notification
@@ -99,13 +88,11 @@ async function sendOrderNotification(orderData) {
 
 // Make functions available globally for inline event handlers
 window.sendEmailViaCloud = sendEmailViaCloud;
-window.sendNewsletterSignup = sendNewsletterSignup;
 window.sendCommentNotification = sendCommentNotification;
 window.sendOrderNotification = sendOrderNotification;
 
 export { 
   sendEmailViaCloud, 
-  sendNewsletterSignup, 
   sendCommentNotification, 
   sendOrderNotification 
 };
