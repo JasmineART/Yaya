@@ -6,20 +6,31 @@
     <meta name="theme-color" content="#E89CC8" />
     <title>Payment — Yaya Starchild</title>
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <script src="https://js.stripe.com/v3/"></script>
+    <script defer src="app.js"></script>
   </head>
   <body>
+    <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header">
       <div class="brand">
-        <a href="index.html"><img src="assets/logo-new.jpg" alt="Yaya Starchild logo" class="logo"/></a>
+        <a href="index.html" aria-label="Yaya Starchild homepage"><img src="assets/logo-new.jpg" alt="Yaya Starchild circular logo with whimsical script lettering" class="logo"/></a>
         <div>
           <h1>Yaya Starchild</h1>
           <p class="tag">Whimsical poet who hopes to leave you enchanted.</p>
         </div>
       </div>
+      <nav class="nav" role="navigation" aria-label="Main navigation">
+        <a href="index.html">Home</a>
+        <a href="shop.html">Shop</a>
+        <a href="about.html">About the Author</a>
+        <a href="cart.html" id="nav-cart" aria-label="Shopping cart">
+          Cart (<span id="nav-cart-count" aria-label="items in cart">0</span>)
+        </a>
+      </nav>
     </header>
 
-    <main class="container" style="max-width: 600px; margin: 2rem auto;">
+    <main id="main" class="container" role="main" style="max-width: 600px; margin: 2rem auto;">
       <h2><i class="fas fa-credit-card"></i> Complete Your Payment</h2>
       
       <div id="order-summary" style="background: var(--glass); padding: 1.5rem; border-radius: var(--radius); margin-bottom: 2rem;">
