@@ -355,12 +355,26 @@ function removeFromCart(uniqueKey) {
   
   // Filter out the item - check both uniqueKey and id for compatibility
   // Handle type coercion: uniqueKey might be string, but id might be number
+  let removedItem = null;
   const filteredItems = items.filter(item => {
     const itemKey = item.uniqueKey || item.id;
     // Use == for loose equality to handle string/number mismatch
     const match = itemKey == uniqueKey;
     if (match) {
       console.log('✅ Found matching item to remove:', item, 'itemKey:', itemKey, typeof itemKey);
+      removedItem = item;
+      
+      // Track analytics event for cart removal
+      if (window.analyticsTracker) {
+        const product = window.products?.find(p => p.id === item.id);
+        window.analyticsTracker.trackEcommerce('remove_from_cart', {
+          product_id: item.id,
+          product_name: product?.name || 'Unknown Item',
+          quantity: item.qty,
+          price: product?.price || 0,
+          variant: item.metadata?.variantId || null
+        });
+      }
     } else {
       console.log('⏭️ Keeping item:', item, 'itemKey:', itemKey, typeof itemKey);
     }
@@ -389,9 +403,32 @@ function addToCart(productId, qty=1, metadata={}){
   if(found) {
     found.qty += qty;
     announceToScreenReader(`Updated ${productName} quantity to ${found.qty} in cart`);
+    
+    // Track analytics event for cart update
+    if (window.analyticsTracker) {
+      window.analyticsTracker.trackEcommerce('cart_update', {
+        product_id: productId,
+        product_name: productName,
+        quantity: found.qty,
+        price: product?.price || 0,
+        variant: metadata.variantId || null
+      });
+    }
   } else {
     items.push({id:productId, qty, uniqueKey, metadata});
     announceToScreenReader(`Added ${productName} to cart`);
+    
+    // Track analytics event for cart addition
+    if (window.analyticsTracker) {
+      window.analyticsTracker.trackEcommerce('add_to_cart', {
+        product_id: productId,
+        product_name: productName,
+        quantity: qty,
+        price: product?.price || 0,
+        variant: metadata.variantId || null,
+        cart_total: getCartTotal()
+      });
+    }
   }
   saveCart(items);
 }

@@ -91,6 +91,24 @@
         </div>
     </footer>
 
+    <!-- Firebase Configuration -->
+    <script type="module">
+        import { db, collection, getDocs, query, where, orderBy, limit } from './firebase-config.js';
+        import { updateDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+        
+        // Make Firebase functions available globally
+        window.firebaseDB = db;
+        window.firebaseQuery = query;
+        window.firebaseWhere = where;
+        window.firebaseOrderBy = orderBy;
+        window.firebaseLimit = limit;
+        window.firebaseCollection = collection;
+        window.firebaseGetDocs = getDocs;
+        window.firebaseUpdateDoc = updateDoc;
+        window.firebaseDoc = doc;
+        window.firebaseGetDoc = getDoc;
+    </script>
+    
     <!-- EmailJS Library -->
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     
@@ -99,7 +117,71 @@
     
     <!-- Scripts -->
     <script defer src="app.js"></script>
+    <script defer src="analytics-tracker.js"></script>
     <script>
+        /**
+         * Retrieve order data from Firebase by order ID or recent orders
+         */
+        async function getOrderFromFirebase(orderId = null) {
+            try {
+                if (!window.firebaseDB) {
+                    console.warn('Firebase not initialized, falling back to sessionStorage');
+                    return null;
+                }
+                
+                const ordersCollection = window.firebaseCollection(window.firebaseDB, 'orders');
+                
+                if (orderId) {
+                    // Try to get specific order by ID
+                    const orderDoc = window.firebaseDoc(window.firebaseDB, 'orders', orderId);
+                    const snapshot = await window.firebaseGetDoc(orderDoc);
+                    if (snapshot.exists()) {
+                        return { id: snapshot.id, ...snapshot.data() };
+                    }
+                } 
+                
+                // Fallback: get most recent pending order
+                const orderQuery = window.firebaseQuery(
+                    ordersCollection,
+                    window.firebaseWhere('status', '==', 'pending_payment'),
+                    window.firebaseOrderBy('timestamp', 'desc'),
+                    window.firebaseLimit(5)
+                );
+                
+                const snapshot = await window.firebaseGetDocs(orderQuery);
+                if (!snapshot.empty) {
+                    // Return the most recent order
+                    const mostRecent = snapshot.docs[0];
+                    return { id: mostRecent.id, ...mostRecent.data() };
+                }
+                
+                return null;
+            } catch (error) {
+                console.error('Error retrieving order from Firebase:', error);
+                return null;
+            }
+        }
+        
+        /**
+         * Mark order as completed and email sent in Firebase
+         */
+        async function markOrderCompleted(orderId, emailSent = false) {
+            try {
+                if (!window.firebaseDB || !orderId) return;
+                
+                const orderDoc = window.firebaseDoc(window.firebaseDB, 'orders', orderId);
+                await window.firebaseUpdateDoc(orderDoc, {
+                    status: 'completed',
+                    emailSent: emailSent,
+                    completedAt: new Date()
+                });
+                
+                console.log(`✅ Order ${orderId} marked as completed`);
+            } catch (error) {
+                console.error('Error updating order status:', error);
+            }
+        }
+        
         // Extract session ID from URL and display it
         document.addEventListener('DOMContentLoaded', async function() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -108,41 +190,112 @@
             if (sessionId) {
                 document.getElementById('session-id').textContent = sessionId;
                 
-                // Try to get order data from sessionStorage
-                const pendingOrder = sessionStorage.getItem('pendingOrder');
+                // Try to get order data from Firebase first, then sessionStorage
+                const pendingOrderId = sessionStorage.getItem('pendingOrderId');
+                let orderData = null;
+                let orderId = null;
                 
-                if (pendingOrder) {
-                    try {
-                        const orderData = JSON.parse(pendingOrder);
-                        console.log('📦 Order data found:', orderData);
+                // Try Firebase first
+                if (pendingOrderId) {
+                    orderData = await getOrderFromFirebase(pendingOrderId);
+                    orderId = pendingOrderId;
+                }
+                
+                // Fallback to recent orders if specific ID doesn't work
+                if (!orderData) {
+                    orderData = await getOrderFromFirebase();
+                    orderId = orderData?.id;
+                }
+                
+                // Final fallback to sessionStorage
+                if (!orderData) {
+                    const pendingOrder = sessionStorage.getItem('pendingOrder');
+                    if (pendingOrder) {
+                        try {
+                            orderData = JSON.parse(pendingOrder);
+                            console.log('📦 Order data from sessionStorage:', orderData);
+                        } catch (error) {
+                            console.error('Error parsing sessionStorage order data:', error);
+                        }
+                    }
+                }
+                
+                if (orderData) {
+                    console.log('📦 Order data found:', orderData);
+                    
+                    // Track analytics event for purchase completion
+                    if (window.analyticsTracker) {
+                        const items = orderData.items || orderData.orderDetails?.items || [];
+                        const total = orderData.total || orderData.orderDetails?.total || 0;
+                        const currency = 'USD';
                         
-                        // Send order notification email to faeriepoetics@gmail.com
-                        if (typeof sendOrderNotification === 'function' && orderData.customer) {
-                            const emailData = {
-                                customerName: orderData.customer.name || 'Guest',
-                                customerEmail: orderData.customer.email || '',
-                                total: orderData.total ? `$${orderData.total.toFixed(2)}` : 'N/A',
-                                items: orderData.items || [],
-                                shippingAddress: orderData.customer.address 
-                                    ? `${orderData.customer.address}, ${orderData.customer.city}, ${orderData.customer.state} ${orderData.customer.zip}`
-                                    : 'N/A'
-                            };
-                            
-                            console.log('📧 Sending order notification email...');
+                        window.analyticsTracker.trackEcommerce('purchase', {
+                            transaction_id: sessionId,
+                            order_id: orderId,
+                            value: total,
+                            currency: currency,
+                            items: items.map(item => ({
+                                product_id: item.id,
+                                product_name: item.name,
+                                quantity: item.quantity,
+                                price: item.price,
+                                variant: item.variant || null
+                            })),
+                            customer_email: orderData.customerInfo?.email || orderData.customer?.email,
+                            shipping_cost: orderData.shipping || 0
+                        });
+                    }
+                    
+                    // Send order notification email to faeriepoetics@gmail.com
+                    if (typeof sendOrderNotification === 'function') {
+                        const customerInfo = orderData.customerInfo || orderData.customer || {};
+                        const orderDetails = orderData.orderDetails || orderData;
+                        
+                        const emailData = {
+                            customerName: customerInfo.name || 'Guest',
+                            customerEmail: customerInfo.email || '',
+                            total: orderDetails.total ? orderDetails.total.toFixed(2) : 'N/A',
+                            items: orderData.items || [],
+                            shippingAddress: customerInfo.address 
+                                ? `${customerInfo.address}, ${customerInfo.city}, ${customerInfo.state} ${customerInfo.zip}`
+                                : 'N/A'
+                        };
+                        
+                        console.log('📧 Sending order notification email...', emailData);
+                        
+                        try {
                             const emailResult = await sendOrderNotification(emailData);
                             
                             if (emailResult && emailResult.success) {
                                 console.log('✅ Order notification sent to faeriepoetics@gmail.com');
+                                
+                                // Mark order as completed with email sent
+                                if (orderId) {
+                                    await markOrderCompleted(orderId, true);
+                                }
                             } else {
                                 console.warn('⚠️ Order notification failed:', emailResult?.error);
+                                
+                                // Mark order as completed but email failed
+                                if (orderId) {
+                                    await markOrderCompleted(orderId, false);
+                                }
+                            }
+                        } catch (emailError) {
+                            console.error('📧 EmailJS error:', emailError);
+                            
+                            // Mark order as completed but email failed
+                            if (orderId) {
+                                await markOrderCompleted(orderId, false);
                             }
                         }
-                        
-                        // Clear the pending order from session storage
-                        sessionStorage.removeItem('pendingOrder');
-                    } catch (error) {
-                        console.error('Error processing order notification:', error);
                     }
+                    
+                    // Clear the pending order from session storage
+                    sessionStorage.removeItem('pendingOrder');
+                    sessionStorage.removeItem('pendingOrderId');
+                } else {
+                    console.warn('⚠️ No order data found');
                 }
                 
                 // Clear cart after successful payment

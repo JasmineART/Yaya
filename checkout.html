@@ -38,6 +38,7 @@
     <script defer src="stripe-payments.js"></script>
     <script defer src="products.js"></script>
     <script defer src="app.js"></script>
+    <script defer src="analytics-tracker.js"></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -128,6 +129,100 @@
     </footer>
 
     <!-- Firebase Configuration -->
-    <script type="module" src="firebase-config.js"></script>
+    <script type="module">
+      import { db, collection, addDoc, updateDoc, doc, serverTimestamp } from './firebase-config.js';
+      
+      // Make Firebase available globally
+      window.firebaseDB = db;
+      window.firebaseCollection = collection;
+      window.firebaseAddDoc = addDoc;
+      window.firebaseUpdateDoc = updateDoc;
+      window.firebaseDoc = doc;
+      window.firebaseServerTimestamp = serverTimestamp;
+      
+      // Auto-save order metadata as user fills form
+      let abandonedOrderId = null;
+      let saveTimeout = null;
+      
+      /**
+       * Save abandoned order data to Firebase
+       */
+      async function saveAbandonedOrder(formData, cartData) {
+        try {
+          const orderData = {
+            customerInfo: formData,
+            items: cartData || [],
+            status: 'abandoned',
+            timestamp: window.firebaseServerTimestamp(),
+            lastUpdated: window.firebaseServerTimestamp(),
+            source: 'checkout_form'
+          };
+          
+          if (abandonedOrderId) {
+            // Update existing abandoned order
+            const orderDoc = window.firebaseDoc(window.firebaseDB, 'abandoned_orders', abandonedOrderId);
+            await window.firebaseUpdateDoc(orderDoc, {
+              customerInfo: formData,
+              items: cartData || [],
+              lastUpdated: window.firebaseServerTimestamp()
+            });
+            console.log('📝 Updated abandoned order:', abandonedOrderId);
+          } else {
+            // Create new abandoned order
+            const docRef = await window.firebaseAddDoc(window.firebaseCollection(window.firebaseDB, 'abandoned_orders'), orderData);
+            abandonedOrderId = docRef.id;
+            console.log('📝 Created abandoned order:', abandonedOrderId);
+          }
+        } catch (error) {
+          console.warn('Could not save abandoned order:', error);
+        }
+      }
+      
+      /**
+       * Get current form data
+       */
+      function getFormData() {
+        return {
+          name: document.getElementById('name')?.value || '',
+          email: document.getElementById('email')?.value || '',
+          address: document.getElementById('address')?.value || '',
+          city: document.getElementById('city')?.value || '',
+          state: document.getElementById('state')?.value || '',
+          zip: document.getElementById('zip')?.value || ''
+        };
+      }
+      
+      /**
+       * Auto-save with debouncing
+       */
+      function scheduleAutoSave() {
+        if (saveTimeout) clearTimeout(saveTimeout);
+        
+        saveTimeout = setTimeout(() => {
+          const formData = getFormData();
+          
+          // Only save if at least name and email are provided
+          if (formData.name.trim() || formData.email.trim()) {
+            const cartItems = typeof getCartItems === 'function' ? getCartItems() : [];
+            saveAbandonedOrder(formData, cartItems);
+          }
+        }, 2000); // Save 2 seconds after user stops typing
+      }
+      
+      // Set up auto-save listeners when DOM is ready
+      document.addEventListener('DOMContentLoaded', function() {
+        const formFields = ['name', 'email', 'address', 'city', 'state', 'zip'];
+        
+        formFields.forEach(fieldId => {
+          const field = document.getElementById(fieldId);
+          if (field) {
+            field.addEventListener('input', scheduleAutoSave);
+            field.addEventListener('blur', scheduleAutoSave);
+          }
+        });
+        
+        console.log('📝 Auto-save for abandoned orders enabled');
+      });
+    </script>
   </body>
 </html>

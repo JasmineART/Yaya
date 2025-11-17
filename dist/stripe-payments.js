@@ -34,6 +34,81 @@ async function initializeStripe() {
 }
 
 /**
+ * Store order metadata in Firebase for later retrieval
+ */
+/**
+ * Store order metadata in Firebase for later retrieval
+ */
+async function storeOrderMetadata(cartItems, customerInfo, orderDetails) {
+  try {
+    const orderData = {
+      customerInfo: {
+        name: customerInfo.name,
+        email: customerInfo.email,
+        address: customerInfo.address,
+        city: customerInfo.city,
+        state: customerInfo.state,
+        zip: customerInfo.zip
+      },
+      items: cartItems.map(item => ({
+        id: item.id,
+        name: item.name || item.title,
+        price: parseFloat(item.price),
+        quantity: item.quantity || item.qty || 1,
+        image: item.image
+      })),
+      orderDetails: {
+        subtotal: orderDetails.subtotal,
+        discountAmount: orderDetails.discountAmount || 0,
+        discountCode: orderDetails.discountCode || '',
+        shipping: orderDetails.shipping,
+        tax: orderDetails.tax,
+        total: orderDetails.total
+      },
+      timestamp: new Date(),
+      status: 'pending_payment',
+      emailSent: false
+    };
+
+    // Store in Firebase if available
+    if (window.firebaseDB && window.firebaseCollection && window.firebaseAddDoc) {
+      try {
+        const docRef = await window.firebaseAddDoc(window.firebaseCollection(window.firebaseDB, 'orders'), {
+          ...orderData,
+          timestamp: window.firebaseServerTimestamp ? window.firebaseServerTimestamp() : new Date()
+        });
+        console.log('📦 Order metadata stored in Firebase with ID:', docRef.id);
+        
+        // Store in sessionStorage as backup
+        sessionStorage.setItem('pendingOrderId', docRef.id);
+        sessionStorage.setItem('pendingOrder', JSON.stringify(orderData));
+        
+        return docRef.id;
+      } catch (firebaseError) {
+        console.warn('Firebase storage failed, using sessionStorage:', firebaseError);
+      }
+    }
+
+    // Fallback to sessionStorage only
+    console.log('📦 Storing order metadata in sessionStorage (Firebase not available)');
+    sessionStorage.setItem('pendingOrder', JSON.stringify(orderData));
+    return null;
+  } catch (error) {
+    console.error('❌ Failed to store order metadata:', error);
+    // Final fallback to sessionStorage only
+    const orderData = {
+      customerInfo: customerInfo,
+      items: cartItems,
+      orderDetails: orderDetails,
+      timestamp: Date.now(),
+      status: 'pending_payment'
+    };
+    sessionStorage.setItem('pendingOrder', JSON.stringify(orderData));
+    return null;
+  }
+}
+
+/**
  * Create Stripe checkout
  * Uses server if configured, otherwise shows payment options
  */
@@ -85,6 +160,16 @@ async function createStripeCheckout(cartItems, customerInfo) {
     if (serverUrl) {
       // Use server-side Stripe Checkout (full features)
       console.log('📡 Using server-side checkout:', serverUrl);
+      
+      // Store order metadata before redirecting to Stripe
+      const orderId = await storeOrderMetadata(cartItems, customerInfo, {
+        subtotal: calcBase,
+        discountAmount: discountAmount,
+        discountCode: appliedDiscount?.code || '',
+        shipping: shipping,
+        tax: tax,
+        total: total
+      });
       
       try {
         const response = await fetch(`${serverUrl}/create-stripe-session`, {
@@ -142,20 +227,16 @@ async function createStripeCheckout(cartItems, customerInfo) {
       // No server configured - show payment options page
       console.log('⚠️ No server configured, redirecting to payment options...');
       
-      const orderData = {
-        items: cartItems,
-        customer: customerInfo,
-        subtotal: subtotal,
+      // Store order metadata before redirecting
+      const orderId = await storeOrderMetadata(cartItems, customerInfo, {
+        subtotal: calcBase,
         discountAmount: discountAmount,
         discountCode: appliedDiscount?.code || '',
         shipping: shipping,
         tax: tax,
-        taxRate: taxRate,
-        total: total,
-        timestamp: Date.now()
-      };
+        total: total
+      });
       
-      sessionStorage.setItem('pendingOrder', JSON.stringify(orderData));
       window.location.href = 'payment.html';
     }
     
@@ -202,6 +283,16 @@ async function handleStripeCheckout() {
     if (!customerInfo.address.trim() || !customerInfo.city.trim() || !customerInfo.state.trim() || !customerInfo.zip.trim()) {
       alert('Please fill in all shipping address fields');
       return;
+    }
+    
+    // Track analytics event for checkout initiation
+    if (window.analyticsTracker) {
+      const cartTotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+      window.analyticsTracker.trackEcommerce('begin_checkout', {
+        cart_items: cart.length,
+        cart_value: cartTotal,
+        customer_email: customerInfo.email
+      });
     }
 
     // Show loading state

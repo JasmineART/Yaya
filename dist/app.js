@@ -279,120 +279,6 @@ function showAllContent() {
   allElements.forEach(el => el.classList.add('active'));
 }
 
-// ===== MOBILE NAVIGATION =====
-function initMobileNavigation() {
-  const hamburger = document.querySelector('.hamburger');
-  const nav = document.querySelector('.nav');
-  
-  if (!hamburger || !nav) {
-    console.log('ℹ️ Mobile navigation elements not found');
-    return;
-  }
-  
-  // Create overlay for mobile menu
-  let overlay = document.querySelector('.nav-overlay');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.className = 'nav-overlay';
-    overlay.setAttribute('aria-hidden', 'true');
-    document.body.appendChild(overlay);
-  }
-  
-  // Toggle menu function
-  function toggleMenu(forceClose = false) {
-    const isOpen = nav.classList.contains('active');
-    
-    if (forceClose || isOpen) {
-      // Close menu
-      nav.classList.remove('active');
-      hamburger.classList.remove('active');
-      overlay.classList.remove('active');
-      hamburger.setAttribute('aria-expanded', 'false');
-      document.body.style.overflow = ''; // Re-enable scrolling
-      console.log('📱 Mobile menu closed');
-    } else {
-      // Open menu
-      nav.classList.add('active');
-      hamburger.classList.add('active');
-      overlay.classList.add('active');
-      hamburger.setAttribute('aria-expanded', 'true');
-      document.body.style.overflow = 'hidden'; // Prevent scrolling
-      console.log('📱 Mobile menu opened');
-      
-      // Focus first nav link for accessibility
-      const firstLink = nav.querySelector('a');
-      if (firstLink) {
-        setTimeout(() => firstLink.focus(), 100);
-      }
-    }
-  }
-  
-  // Hamburger button click
-  hamburger.addEventListener('click', (e) => {
-    e.stopPropagation();
-    toggleMenu();
-  });
-  
-  // Overlay click removed to speed up navigation
-  // Users can click hamburger or press Escape to close
-  
-  // Navigation links - let them navigate naturally
-  // Menu will close automatically when page unloads
-  const navLinks = nav.querySelectorAll('a');
-  navLinks.forEach(link => {
-    link.addEventListener('click', (e) => {
-      // Let the link navigate normally - don't close menu manually
-      // The page navigation will handle cleanup
-      console.log('📱 Navigation link clicked:', link.getAttribute('href'));
-    });
-  });
-  
-  // Close menu on escape key
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && nav.classList.contains('active')) {
-      toggleMenu(true);
-      hamburger.focus(); // Return focus to hamburger button
-    }
-  });
-  
-  // Close menu when resizing to desktop
-  let resizeTimer;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => {
-      if (window.innerWidth > 768 && nav.classList.contains('active')) {
-        toggleMenu(true);
-        console.log('📱 Mobile menu closed due to resize');
-      }
-    }, 250);
-  });
-  
-  // Trap focus within menu when open
-  nav.addEventListener('keydown', (e) => {
-    if (e.key === 'Tab' && nav.classList.contains('active')) {
-      const focusableElements = nav.querySelectorAll('a[href]');
-      const firstElement = focusableElements[0];
-      const lastElement = focusableElements[focusableElements.length - 1];
-      
-      if (e.shiftKey) {
-        // Shift + Tab
-        if (document.activeElement === firstElement) {
-          e.preventDefault();
-          lastElement.focus();
-        }
-      } else {
-        // Tab
-        if (document.activeElement === lastElement) {
-          e.preventDefault();
-          firstElement.focus();
-        }
-      }
-    }
-  });
-  
-  console.log('📱 Mobile navigation initialized');
-}
-
 // Scroll event listeners for reveal animations
 if (typeof window !== 'undefined') {
   window.addEventListener('scroll', revealOnScroll);
@@ -469,12 +355,26 @@ function removeFromCart(uniqueKey) {
   
   // Filter out the item - check both uniqueKey and id for compatibility
   // Handle type coercion: uniqueKey might be string, but id might be number
+  let removedItem = null;
   const filteredItems = items.filter(item => {
     const itemKey = item.uniqueKey || item.id;
     // Use == for loose equality to handle string/number mismatch
     const match = itemKey == uniqueKey;
     if (match) {
       console.log('✅ Found matching item to remove:', item, 'itemKey:', itemKey, typeof itemKey);
+      removedItem = item;
+      
+      // Track analytics event for cart removal
+      if (window.analyticsTracker) {
+        const product = window.products?.find(p => p.id === item.id);
+        window.analyticsTracker.trackEcommerce('remove_from_cart', {
+          product_id: item.id,
+          product_name: product?.name || 'Unknown Item',
+          quantity: item.qty,
+          price: product?.price || 0,
+          variant: item.metadata?.variantId || null
+        });
+      }
     } else {
       console.log('⏭️ Keeping item:', item, 'itemKey:', itemKey, typeof itemKey);
     }
@@ -503,9 +403,32 @@ function addToCart(productId, qty=1, metadata={}){
   if(found) {
     found.qty += qty;
     announceToScreenReader(`Updated ${productName} quantity to ${found.qty} in cart`);
+    
+    // Track analytics event for cart update
+    if (window.analyticsTracker) {
+      window.analyticsTracker.trackEcommerce('cart_update', {
+        product_id: productId,
+        product_name: productName,
+        quantity: found.qty,
+        price: product?.price || 0,
+        variant: metadata.variantId || null
+      });
+    }
   } else {
     items.push({id:productId, qty, uniqueKey, metadata});
     announceToScreenReader(`Added ${productName} to cart`);
+    
+    // Track analytics event for cart addition
+    if (window.analyticsTracker) {
+      window.analyticsTracker.trackEcommerce('add_to_cart', {
+        product_id: productId,
+        product_name: productName,
+        quantity: qty,
+        price: product?.price || 0,
+        variant: metadata.variantId || null,
+        cart_total: getCartTotal()
+      });
+    }
   }
   saveCart(items);
 }
@@ -757,9 +680,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   
   // Initialize accessibility features first
   initAccessibility();
-  
-  // Initialize mobile navigation
-  initMobileNavigation();
   
   // Cart and newsletter
   updateCartCount();
