@@ -528,6 +528,7 @@ function renderProductDetail(){
 
 // safety exports for other scripts
 window.PRODUCTS = PRODUCTS;
+window.products = PRODUCTS; // Backward compatibility alias
 window.renderProductsGrid = renderProductsGrid;
 window.renderProductDetail = renderProductDetail;
 

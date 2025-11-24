@@ -366,10 +366,10 @@ function removeFromCart(uniqueKey) {
       
       // Track analytics event for cart removal
       if (window.analyticsTracker) {
-        const product = window.products?.find(p => p.id === item.id);
+        const product = window.PRODUCTS?.find(p => p.id === item.id);
         window.analyticsTracker.trackEcommerce('remove_from_cart', {
           product_id: item.id,
-          product_name: product?.name || 'Unknown Item',
+          product_name: product?.title || product?.name || 'Unknown Item',
           quantity: item.qty,
           price: product?.price || 0,
           variant: item.metadata?.variantId || null
@@ -397,8 +397,8 @@ function addToCart(productId, qty=1, metadata={}){
   const uniqueKey = metadata.variantId ? `${productId}-${metadata.variantId}` : productId;
   const found = items.find(i=>i.uniqueKey===uniqueKey || (!i.uniqueKey && i.id===productId && !metadata.variantId));
   
-  const product = window.products?.find(p => p.id === productId);
-  const productName = product?.name || 'Item';
+  const product = window.PRODUCTS?.find(p => p.id === productId);
+  const productName = product?.title || product?.name || 'Item';
   
   if(found) {
     found.qty += qty;
