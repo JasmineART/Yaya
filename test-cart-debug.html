@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cart Debug Test</title>
+</head>
+<body>
+  <h1>Cart Debug Test</h1>
+  <div id="output" style="font-family: monospace; white-space: pre-wrap;"></div>
+  
+  <script src="products.js"></script>
+  <script src="app.js"></script>
+  <script>
+    const output = document.getElementById('output');
+    let log = '';
+    
+    function logResult(msg) {
+      log += msg + '\n';
+      output.textContent = log;
+      console.log(msg);
+    }
+    
+    setTimeout(() => {
+      logResult('=== CART FUNCTIONALITY DEBUG ===\n');
+      
+      // Check if products loaded
+      logResult('1. Products Loaded:');
+      logResult('   window.PRODUCTS exists: ' + (typeof window.PRODUCTS !== 'undefined'));
+      logResult('   window.products exists: ' + (typeof window.products !== 'undefined'));
+      logResult('   PRODUCTS length: ' + (window.PRODUCTS ? window.PRODUCTS.length : 'N/A'));
+      if (window.PRODUCTS && window.PRODUCTS.length > 0) {
+        logResult('   First product: ' + JSON.stringify(window.PRODUCTS[0]));
+      }
+      
+      logResult('\n2. Cart Functions Available:');
+      logResult('   addToCart: ' + (typeof window.addToCart));
+      logResult('   getCart: ' + (typeof window.getCart));
+      logResult('   updateCartCount: ' + (typeof window.updateCartCount));
+      
+      logResult('\n3. localStorage Test:');
+      try {
+        localStorage.setItem('test_key', 'test_value');
+        const val = localStorage.getItem('test_key');
+        localStorage.removeItem('test_key');
+        logResult('   localStorage working: ' + (val === 'test_value'));
+      } catch(e) {
+        logResult('   localStorage ERROR: ' + e.message);
+      }
+      
+      logResult('\n4. Testing addToCart:');
+      try {
+        if (typeof window.addToCart === 'function') {
+          window.addToCart(1, 1);
+          logResult('   ✓ addToCart(1, 1) called successfully');
+          
+          const cart = window.getCart();
+          logResult('   Cart contents: ' + JSON.stringify(cart, null, 2));
+          logResult('   Cart length: ' + cart.length);
+          
+          const lsCart = localStorage.getItem('yaya_cart_v1');
+          logResult('   localStorage raw: ' + lsCart);
+        } else {
+          logResult('   ✗ addToCart is not a function!');
+        }
+      } catch(e) {
+        logResult('   ✗ ERROR: ' + e.message);
+        logResult('   Stack: ' + e.stack);
+      }
+      
+      logResult('\n5. Testing updateCartCount:');
+      try {
+        if (typeof window.updateCartCount === 'function') {
+          window.updateCartCount();
+          logResult('   ✓ updateCartCount() called');
+        } else {
+          logResult('   ✗ updateCartCount is not a function!');
+        }
+      } catch(e) {
+        logResult('   ✗ ERROR: ' + e.message);
+      }
+      
+      logResult('\n=== TEST COMPLETE ===');
+    }, 200);
+  </script>
+</body>
+</html>

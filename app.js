@@ -74,6 +74,17 @@ function announceToScreenReader(message, priority = 'polite') {
   console.log(`📢 Announced: ${message}`);
 }
 
+// Calculate cart total
+function getCartTotal() {
+  const items = getCart();
+  if (!window.PRODUCTS || !items.length) return 0;
+  
+  return items.reduce((total, item) => {
+    const product = window.PRODUCTS.find(p => p.id === item.id);
+    return total + ((product?.price || 0) * item.qty);
+  }, 0);
+}
+
 // Enhanced focus management
 function manageFocus(element) {
   if (element && typeof element.focus === 'function') {
@@ -392,45 +403,63 @@ function removeFromCart(uniqueKey) {
 }
 
 function addToCart(productId, qty=1, metadata={}){
+  console.log('🛒 addToCart called:', {productId, qty, metadata});
+  
   const items = getCart();
+  console.log('📦 Current cart:', items);
+  
   // For items with variants, create unique cart entries
   const uniqueKey = metadata.variantId ? `${productId}-${metadata.variantId}` : productId;
   const found = items.find(i=>i.uniqueKey===uniqueKey || (!i.uniqueKey && i.id===productId && !metadata.variantId));
   
   const product = window.PRODUCTS?.find(p => p.id === productId);
+  console.log('📖 Product found:', product);
+  
   const productName = product?.title || product?.name || 'Item';
   
   if(found) {
     found.qty += qty;
+    console.log('✏️ Updated existing item quantity:', found);
     announceToScreenReader(`Updated ${productName} quantity to ${found.qty} in cart`);
     
     // Track analytics event for cart update
     if (window.analyticsTracker) {
-      window.analyticsTracker.trackEcommerce('cart_update', {
-        product_id: productId,
-        product_name: productName,
-        quantity: found.qty,
-        price: product?.price || 0,
-        variant: metadata.variantId || null
-      });
+      try {
+        window.analyticsTracker.trackEcommerce('cart_update', {
+          product_id: productId,
+          product_name: productName,
+          quantity: found.qty,
+          price: product?.price || 0,
+          variant: metadata.variantId || null
+        });
+      } catch(e) {
+        console.warn('Analytics tracking failed:', e);
+      }
     }
   } else {
-    items.push({id:productId, qty, uniqueKey, metadata});
+    const newItem = {id:productId, qty, uniqueKey, metadata};
+    items.push(newItem);
+    console.log('➕ Added new item:', newItem);
     announceToScreenReader(`Added ${productName} to cart`);
     
     // Track analytics event for cart addition
     if (window.analyticsTracker) {
-      window.analyticsTracker.trackEcommerce('add_to_cart', {
-        product_id: productId,
-        product_name: productName,
-        quantity: qty,
-        price: product?.price || 0,
-        variant: metadata.variantId || null,
-        cart_total: getCartTotal()
-      });
+      try {
+        window.analyticsTracker.trackEcommerce('add_to_cart', {
+          product_id: productId,
+          product_name: productName,
+          quantity: qty,
+          price: product?.price || 0,
+          variant: metadata.variantId || null,
+          cart_total: typeof getCartTotal === 'function' ? getCartTotal() : 0
+        });
+      } catch(e) {
+        console.warn('Analytics tracking failed:', e);
+      }
     }
   }
   saveCart(items);
+  console.log('💾 Cart saved:', items);
 }
 
 function updateCartCount(){
@@ -1011,6 +1040,7 @@ window.addToCart = addToCart;
 window.updateCartCount = updateCartCount;
 window.getCartItems = getCartItems;
 window.getCart = getCart;
+window.getCartTotal = getCartTotal;
 window.removeFromCart = removeFromCart;
 window.removeDiscount = removeDiscount;
 window.getAppliedDiscount = getAppliedDiscount;
