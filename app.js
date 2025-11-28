@@ -18,10 +18,15 @@ const DISCOUNTS = {
     "value": 0.25,
     "description": "25% off entire cart"
   },
+  "BLACKFRIDAY": {
+    "type": "percentage",
+    "value": 0.40,
+    "description": "40% off entire cart"
+  },
   "ADMINTEST25": {
     "code": "ADMINTEST25",
     "type": "percentage",
-    "value": 25,
+    "value": 0.25,
     "description": "25% off for admin testing",
     "active": true,
     "created": "2025-11-14T03:22:18.628Z"

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coupon Test</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+    .test { background: white; padding: 20px; margin: 10px 0; border-radius: 8px; }
+    .success { color: green; }
+    .error { color: red; }
+    button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>🎟️ Coupon Code Testing</h1>
+  <div id="results"></div>
+
+  <script src="products.js"></script>
+  <script src="app.js"></script>
+  <script>
+    const results = document.getElementById('results');
+
+    // Wait for products to load
+    setTimeout(() => {
+      // Test cart with sample items
+      const testCart = [
+        { id: 1, qty: 1 }, // Signed book $24.99
+        { id: 2, qty: 1 }  // Paperback $19.99
+      ];
+
+      const testCoupons = [
+        'BLACKFRIDAY',
+        'WHIMSY',
+        'SUNCATCHER',
+        'PASTEL',
+        'ADMINTEST25',
+        'INVALID'
+      ];
+
+      // Calculate subtotal
+      const subtotal = testCart.reduce((sum, item) => {
+        const product = window.PRODUCTS?.find(p => p.id === item.id);
+        return sum + (product ? product.price * item.qty : 0);
+      }, 0);
+
+      results.innerHTML += `<div class="test">
+        <h3>Test Cart</h3>
+        <p>Items: ${testCart.length}</p>
+        <p>Subtotal: $${subtotal.toFixed(2)}</p>
+      </div>`;
+
+      // Test each coupon
+      testCoupons.forEach(code => {
+        const result = window.calculateDiscount(subtotal, code, testCart);
+        
+        const testDiv = document.createElement('div');
+        testDiv.className = 'test';
+        testDiv.innerHTML = `
+          <h3>Code: ${code}</h3>
+          <p class="${result.valid ? 'success' : 'error'}">
+            Valid: ${result.valid ? '✅ YES' : '❌ NO'}
+          </p>
+          ${result.valid ? `
+            <p>Description: ${result.description}</p>
+            <p>Discount Amount: $${result.amount.toFixed(2)}</p>
+            <p>Final Price: $${(subtotal - result.amount).toFixed(2)}</p>
+            <p>Percentage: ${((result.amount / subtotal) * 100).toFixed(1)}%</p>
+          ` : `
+            <p>Error: ${result.message}</p>
+          `}
+        `;
+        results.appendChild(testDiv);
+      });
+
+      // Add manual test section
+      const manualTest = document.createElement('div');
+      manualTest.className = 'test';
+      manualTest.innerHTML = `
+        <h3>Manual Test</h3>
+        <input type="text" id="manual-code" placeholder="Enter coupon code" style="padding: 8px; width: 200px;">
+        <button onclick="testManualCode()">Test Code</button>
+        <div id="manual-result" style="margin-top: 10px;"></div>
+      `;
+      results.appendChild(manualTest);
+
+      window.testManualCode = function() {
+        const code = document.getElementById('manual-code').value.toUpperCase().trim();
+        const result = window.calculateDiscount(subtotal, code, testCart);
+        const manualResult = document.getElementById('manual-result');
+        
+        if (result.valid) {
+          manualResult.innerHTML = `
+            <p class="success">✅ Valid!</p>
+            <p>${result.description}</p>
+            <p>Saves: $${result.amount.toFixed(2)} (${((result.amount / subtotal) * 100).toFixed(1)}%)</p>
+          `;
+        } else {
+          manualResult.innerHTML = `<p class="error">❌ ${result.message}</p>`;
+        }
+      };
+
+    }, 500);
+  </script>
+</body>
+</html>
