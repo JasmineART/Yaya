@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coupon Debug Test</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; max-width: 1200px; margin: 0 auto; }
+    h1 { color: #333; }
+    .section { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .test-result { padding: 10px; margin: 10px 0; border-radius: 4px; }
+    .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    pre { background: #f4f4f4; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    button { padding: 10px 20px; margin: 5px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px; }
+    button:hover { background: #0056b3; }
+    input { padding: 8px; margin: 5px; border: 1px solid #ddd; border-radius: 4px; width: 200px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+    th { background: #f8f9fa; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>🔍 Coupon System Debug Test</h1>
+
+  <div class="section">
+    <h2>Step 1: Check Products Loading</h2>
+    <div id="products-check"></div>
+  </div>
+
+  <div class="section">
+    <h2>Step 2: Check DISCOUNTS Object</h2>
+    <div id="discounts-check"></div>
+  </div>
+
+  <div class="section">
+    <h2>Step 3: Check Functions Available</h2>
+    <div id="functions-check"></div>
+  </div>
+
+  <div class="section">
+    <h2>Step 4: Test Each Coupon Code</h2>
+    <div id="coupon-tests"></div>
+  </div>
+
+  <div class="section">
+    <h2>Step 5: Interactive Test</h2>
+    <input type="text" id="manual-code" placeholder="Enter coupon code" />
+    <button onclick="testManualCode()">Test Code</button>
+    <div id="manual-result" style="margin-top: 10px;"></div>
+  </div>
+
+  <div class="section">
+    <h2>Step 6: Test Full Cart Flow</h2>
+    <button onclick="testFullFlow()">Run Full Cart + Coupon Flow</button>
+    <div id="flow-result" style="margin-top: 10px;"></div>
+  </div>
+
+  <script src="products.js"></script>
+  <script src="app.js"></script>
+  <script>
+    console.log('🧪 Starting comprehensive coupon debug test...');
+
+    setTimeout(() => {
+      // Step 1: Check Products
+      const productsCheck = document.getElementById('products-check');
+      if (window.PRODUCTS && window.PRODUCTS.length > 0) {
+        productsCheck.innerHTML = `
+          <div class="test-result success">
+            ✅ Products loaded successfully
+            <pre>Count: ${window.PRODUCTS.length}
+Products: ${JSON.stringify(window.PRODUCTS.map(p => ({id: p.id, title: p.title, price: p.price})), null, 2)}</pre>
+          </div>
+        `;
+      } else {
+        productsCheck.innerHTML = '<div class="test-result error">❌ Products not loaded</div>';
+      }
+
+      // Step 2: Check DISCOUNTS
+      const discountsCheck = document.getElementById('discounts-check');
+      if (typeof DISCOUNTS !== 'undefined') {
+        const discountKeys = Object.keys(DISCOUNTS);
+        discountsCheck.innerHTML = `
+          <div class="test-result success">
+            ✅ DISCOUNTS object found
+            <pre>Codes available: ${discountKeys.join(', ')}
+            
+Full DISCOUNTS object:
+${JSON.stringify(DISCOUNTS, null, 2)}</pre>
+          </div>
+        `;
+      } else {
+        discountsCheck.innerHTML = '<div class="test-result error">❌ DISCOUNTS object not found</div>';
+      }
+
+      // Step 3: Check Functions
+      const functionsCheck = document.getElementById('functions-check');
+      const functions = {
+        'calculateDiscount': typeof window.calculateDiscount,
+        'getCart': typeof window.getCart,
+        'addToCart': typeof window.addToCart,
+        'saveAppliedDiscount': typeof window.saveAppliedDiscount,
+        'getAppliedDiscount': typeof window.getAppliedDiscount
+      };
+      
+      const allFunctionsExist = Object.values(functions).every(t => t === 'function');
+      functionsCheck.innerHTML = `
+        <div class="test-result ${allFunctionsExist ? 'success' : 'error'}">
+          ${allFunctionsExist ? '✅' : '❌'} Functions check
+          <table>
+            <tr><th>Function</th><th>Status</th></tr>
+            ${Object.entries(functions).map(([name, type]) => 
+              `<tr><td>${name}</td><td>${type === 'function' ? '✅ Available' : '❌ Missing'}</td></tr>`
+            ).join('')}
+          </table>
+        </div>
+      `;
+
+      // Step 4: Test Each Coupon
+      const couponTests = document.getElementById('coupon-tests');
+      const testCart = [
+        { id: 1, qty: 1 }, // $24.99
+        { id: 2, qty: 1 }  // $19.99
+      ];
+      
+      const subtotal = testCart.reduce((sum, item) => {
+        const product = window.PRODUCTS?.find(p => p.id === item.id);
+        return sum + (product ? product.price * item.qty : 0);
+      }, 0);
+
+      const testCoupons = ['BLACKFRIDAY', 'WHIMSY', 'SUNCATCHER', 'PASTEL', 'ADMINTEST25'];
+      
+      let resultsHTML = `<div class="test-result info">Test cart subtotal: $${subtotal.toFixed(2)}</div><table>
+        <tr><th>Code</th><th>Valid</th><th>Description</th><th>Amount</th><th>% Off</th></tr>`;
+      
+      testCoupons.forEach(code => {
+        console.log(`Testing code: ${code}`);
+        const result = window.calculateDiscount(subtotal, code, testCart);
+        console.log(`Result for ${code}:`, result);
+        
+        const percentOff = result.valid ? ((result.amount / subtotal) * 100).toFixed(1) : 'N/A';
+        resultsHTML += `
+          <tr class="${result.valid ? 'success' : 'error'}">
+            <td><strong>${code}</strong></td>
+            <td>${result.valid ? '✅ Valid' : '❌ Invalid'}</td>
+            <td>${result.valid ? result.description : result.message}</td>
+            <td>${result.valid ? '$' + result.amount.toFixed(2) : 'N/A'}</td>
+            <td>${percentOff}%</td>
+          </tr>
+        `;
+      });
+      
+      resultsHTML += '</table>';
+      couponTests.innerHTML = resultsHTML;
+
+    }, 500);
+
+    // Manual test function
+    window.testManualCode = function() {
+      const code = document.getElementById('manual-code').value.toUpperCase().trim();
+      const manualResult = document.getElementById('manual-result');
+      
+      if (!code) {
+        manualResult.innerHTML = '<div class="test-result error">❌ Please enter a code</div>';
+        return;
+      }
+
+      const testCart = [
+        { id: 1, qty: 1 },
+        { id: 2, qty: 1 }
+      ];
+      
+      const subtotal = testCart.reduce((sum, item) => {
+        const product = window.PRODUCTS?.find(p => p.id === item.id);
+        return sum + (product ? product.price * item.qty : 0);
+      }, 0);
+
+      console.log('Manual test:', { code, subtotal, testCart });
+      const result = window.calculateDiscount(subtotal, code, testCart);
+      console.log('Manual test result:', result);
+
+      if (result.valid) {
+        manualResult.innerHTML = `
+          <div class="test-result success">
+            <h3>✅ Code "${code}" is Valid!</h3>
+            <p><strong>Description:</strong> ${result.description}</p>
+            <p><strong>Subtotal:</strong> $${subtotal.toFixed(2)}</p>
+            <p><strong>Discount Amount:</strong> $${result.amount.toFixed(2)}</p>
+            <p><strong>Percentage Off:</strong> ${((result.amount / subtotal) * 100).toFixed(1)}%</p>
+            <p><strong>Final Price:</strong> $${(subtotal - result.amount).toFixed(2)}</p>
+          </div>
+        `;
+      } else {
+        manualResult.innerHTML = `
+          <div class="test-result error">
+            <h3>❌ Code "${code}" is Invalid</h3>
+            <p><strong>Error:</strong> ${result.message}</p>
+          </div>
+        `;
+      }
+    };
+
+    // Full flow test
+    window.testFullFlow = function() {
+      const flowResult = document.getElementById('flow-result');
+      let log = [];
+
+      try {
+        // Clear cart
+        localStorage.removeItem('yaya_cart_v1');
+        localStorage.removeItem('yaya_discount_v1');
+        log.push('✅ Cleared cart and discounts');
+
+        // Add items to cart
+        window.addToCart(1, 1);
+        window.addToCart(2, 1);
+        log.push('✅ Added 2 items to cart');
+
+        // Get cart
+        const cart = window.getCart();
+        log.push(`✅ Cart retrieved: ${cart.length} items`);
+
+        // Calculate subtotal
+        const subtotal = cart.reduce((s, it) => {
+          const p = window.PRODUCTS.find(x => x.id === it.id);
+          return p ? s + (p.price * it.qty) : s;
+        }, 0);
+        log.push(`✅ Subtotal calculated: $${subtotal.toFixed(2)}`);
+
+        // Test BLACKFRIDAY
+        const result = window.calculateDiscount(subtotal, 'BLACKFRIDAY', cart);
+        log.push(`✅ BLACKFRIDAY test: ${result.valid ? 'Valid' : 'Invalid'}`);
+        
+        if (result.valid) {
+          log.push(`   - Description: ${result.description}`);
+          log.push(`   - Discount: $${result.amount.toFixed(2)}`);
+          log.push(`   - Percentage: ${((result.amount / subtotal) * 100).toFixed(1)}%`);
+          
+          // Apply discount
+          window.saveAppliedDiscount({ code: 'BLACKFRIDAY', appliedAt: Date.now() });
+          log.push('✅ Discount saved to localStorage');
+          
+          // Retrieve applied discount
+          const applied = window.getAppliedDiscount();
+          log.push(`✅ Applied discount retrieved: ${applied.code}`);
+        } else {
+          log.push(`   - Error: ${result.message}`);
+        }
+
+        flowResult.innerHTML = `
+          <div class="test-result success">
+            <h3>✅ Full Flow Test Complete</h3>
+            <pre>${log.join('\n')}</pre>
+          </div>
+        `;
+
+      } catch (error) {
+        log.push(`❌ Error: ${error.message}`);
+        flowResult.innerHTML = `
+          <div class="test-result error">
+            <h3>❌ Flow Test Failed</h3>
+            <pre>${log.join('\n')}\n\nError: ${error.stack}</pre>
+          </div>
+        `;
+      }
+    };
+  </script>
+</body>
+</html>

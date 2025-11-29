@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Coupon Test</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .test-container { max-width: 800px; margin: 50px auto; padding: 20px; }
+    .test-section { background: rgba(255,255,255,0.1); padding: 20px; margin: 20px 0; border-radius: 12px; }
+    .result { padding: 15px; margin: 10px 0; border-radius: 8px; }
+    .success { background: #d4edda; color: #155724; }
+    .error { background: #f8d7da; color: #721c24; }
+    button { padding: 12px 24px; margin: 5px; cursor: pointer; font-size: 16px; }
+    input { padding: 10px; margin: 5px; font-size: 16px; width: 300px; }
+  </style>
+</head>
+<body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
+  <div class="test-container">
+    <h1 style="color: white; text-align: center;">🎟️ Coupon Code Tester</h1>
+    
+    <div class="test-section">
+      <h2 style="color: white;">Test Coupon Codes</h2>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap; margin: 20px 0;">
+        <button onclick="testCode('BLACKFRIDAY')" class="btn primary">Test BLACKFRIDAY</button>
+        <button onclick="testCode('WHIMSY')" class="btn ghost">Test WHIMSY</button>
+        <button onclick="testCode('SUNCATCHER')" class="btn ghost">Test SUNCATCHER</button>
+        <button onclick="testCode('PASTEL')" class="btn ghost">Test PASTEL</button>
+        <button onclick="testCode('ADMINTEST25')" class="btn ghost">Test ADMINTEST25</button>
+      </div>
+      
+      <div style="margin: 20px 0;">
+        <input type="text" id="custom-code" placeholder="Or enter custom code..." style="color: #333;" />
+        <button onclick="testCustomCode()" class="btn primary">Test Custom Code</button>
+      </div>
+      
+      <div id="test-result"></div>
+    </div>
+
+    <div class="test-section">
+      <h2 style="color: white;">System Status</h2>
+      <div id="system-status"></div>
+    </div>
+  </div>
+
+  <script src="products.js"></script>
+  <script src="app.js"></script>
+  <script>
+    console.log('🧪 Simple Coupon Test Page Loaded');
+
+    // Check system on load
+    setTimeout(() => {
+      const statusDiv = document.getElementById('system-status');
+      let status = [];
+
+      // Check products
+      if (window.PRODUCTS && window.PRODUCTS.length > 0) {
+        status.push(`<div class="result success">✅ Products loaded: ${window.PRODUCTS.length} items</div>`);
+      } else {
+        status.push(`<div class="result error">❌ Products not loaded</div>`);
+      }
+
+      // Check DISCOUNTS
+      if (typeof DISCOUNTS !== 'undefined') {
+        status.push(`<div class="result success">✅ DISCOUNTS available: ${Object.keys(DISCOUNTS).join(', ')}</div>`);
+      } else {
+        status.push(`<div class="result error">❌ DISCOUNTS not found</div>`);
+      }
+
+      // Check calculateDiscount
+      if (typeof window.calculateDiscount === 'function') {
+        status.push(`<div class="result success">✅ calculateDiscount function ready</div>`);
+      } else {
+        status.push(`<div class="result error">❌ calculateDiscount function missing</div>`);
+      }
+
+      statusDiv.innerHTML = status.join('');
+    }, 500);
+
+    function testCode(code) {
+      console.log('Testing code:', code);
+      const resultDiv = document.getElementById('test-result');
+      
+      // Create test cart
+      const testCart = [
+        { id: 1, qty: 1 }, // Signed book $24.99
+        { id: 2, qty: 1 }  // Paperback $19.99
+      ];
+
+      // Calculate subtotal
+      const subtotal = testCart.reduce((sum, item) => {
+        const product = window.PRODUCTS?.find(p => p.id === item.id);
+        return sum + (product ? product.price * item.qty : 0);
+      }, 0);
+
+      console.log('Test cart subtotal:', subtotal);
+
+      // Test the code
+      const result = window.calculateDiscount(subtotal, code, testCart);
+      console.log('Discount result:', result);
+
+      if (result.valid) {
+        const finalPrice = subtotal - result.amount;
+        const percentOff = ((result.amount / subtotal) * 100).toFixed(1);
+        
+        resultDiv.innerHTML = `
+          <div class="result success">
+            <h3>✅ ${code} - VALID!</h3>
+            <p><strong>Description:</strong> ${result.description}</p>
+            <p><strong>Original Total:</strong> $${subtotal.toFixed(2)}</p>
+            <p><strong>Discount Amount:</strong> $${result.amount.toFixed(2)} (${percentOff}% off)</p>
+            <p><strong>Final Price:</strong> $${finalPrice.toFixed(2)}</p>
+          </div>
+        `;
+      } else {
+        resultDiv.innerHTML = `
+          <div class="result error">
+            <h3>❌ ${code} - INVALID</h3>
+            <p><strong>Error:</strong> ${result.message}</p>
+          </div>
+        `;
+      }
+    }
+
+    function testCustomCode() {
+      const code = document.getElementById('custom-code').value.toUpperCase().trim();
+      if (code) {
+        testCode(code);
+      } else {
+        document.getElementById('test-result').innerHTML = `
+          <div class="result error">❌ Please enter a code</div>
+        `;
+      }
+    }
+
+    // Allow Enter key in input
+    document.getElementById('custom-code').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        testCustomCode();
+      }
+    });
+  </script>
+</body>
+</html>
