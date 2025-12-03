@@ -126,7 +126,7 @@ async function createStripeCheckout(cartItems, customerInfo) {
     // Check for applied discount
     const appliedDiscount = window.getAppliedDiscount ? window.getAppliedDiscount() : null;
     if (appliedDiscount && appliedDiscount.code && window.calculateDiscount) {
-      const discountResult = window.calculateDiscount(subtotal, appliedDiscount.code);
+      const discountResult = window.calculateDiscount(subtotal, appliedDiscount.code, cartItems);
       if (discountResult.valid) {
         discountAmount = discountResult.amount;
         discountedSubtotal = subtotal - discountAmount;
@@ -136,23 +136,22 @@ async function createStripeCheckout(cartItems, customerInfo) {
 
   // Calculate shipping and tax (configurable via window.YAYA_CONFIG)
   // Use the discounted subtotal as the taxable/shippable base
-  const calcBase = discountedSubtotal;
   const cfg = window.YAYA_CONFIG || {};
     // taxRate: decimal (e.g. 0.085 for 8.5%). Accept either `taxRate` (decimal) or `taxPercent` (0-100).
     const taxRate = (typeof cfg.taxRate !== 'undefined') ? Number(cfg.taxRate) : ((typeof cfg.taxPercent !== 'undefined') ? Number(cfg.taxPercent) / 100 : 0);
-    // Tax should be calculated on the discounted subtotal (calcBase)
-    let tax = +(calcBase * (taxRate || 0));
+    // Tax should be calculated on the discounted subtotal
+    let tax = +(discountedSubtotal * (taxRate || 0));
     tax = Math.round(tax * 100) / 100; // round to 2 decimals
     // shipping in dollars. Accept `shipping` (dollars) or `shippingCents` (integer cents)
     let shipping = 0;
     if (typeof cfg.shipping !== 'undefined') shipping = Number(cfg.shipping);
     else if (typeof cfg.shippingCents !== 'undefined') shipping = Number(cfg.shippingCents) / 100;
     // free shipping over threshold (dollars) - compare against discounted subtotal
-    if (typeof cfg.freeShippingOver !== 'undefined' && calcBase >= Number(cfg.freeShippingOver)) shipping = 0;
+    if (typeof cfg.freeShippingOver !== 'undefined' && discountedSubtotal >= Number(cfg.freeShippingOver)) shipping = 0;
 
-    const total = +(Math.round((calcBase + shipping + tax) * 100) / 100);
+    const total = +(Math.round((discountedSubtotal + shipping + tax) * 100) / 100);
 
-  console.log('🛒 Processing checkout:', { subtotal: calcBase, originalSubtotal: subtotal, discountedSubtotal, shipping, tax, total, items: cartItems.length });
+  console.log('🛒 Processing checkout:', { originalSubtotal: subtotal.toFixed(2), discountAmount: discountAmount.toFixed(2), discountedSubtotal: discountedSubtotal.toFixed(2), shipping: shipping.toFixed(2), tax: tax.toFixed(2), total: total.toFixed(2), items: cartItems.length });
 
     // Check if server URL is configured
     const serverUrl = window.YAYA_CONFIG?.serverUrl;
@@ -163,7 +162,7 @@ async function createStripeCheckout(cartItems, customerInfo) {
       
       // Store order metadata before redirecting to Stripe
       const orderId = await storeOrderMetadata(cartItems, customerInfo, {
-        subtotal: calcBase,
+        subtotal: discountedSubtotal,
         discountAmount: discountAmount,
         discountCode: appliedDiscount?.code || '',
         shipping: shipping,
@@ -192,7 +191,7 @@ async function createStripeCheckout(cartItems, customerInfo) {
             shipping: shipping,
             tax: tax,
             taxRate: taxRate,
-            subtotal: calcBase,
+            subtotal: subtotal,
             total: total,
             successUrl: `${window.location.origin}/success.html?session_id={CHECKOUT_SESSION_ID}`,
             cancelUrl: `${window.location.origin}/cart.html`
@@ -229,7 +228,7 @@ async function createStripeCheckout(cartItems, customerInfo) {
       
       // Store order metadata before redirecting
       const orderId = await storeOrderMetadata(cartItems, customerInfo, {
-        subtotal: calcBase,
+        subtotal: discountedSubtotal,
         discountAmount: discountAmount,
         discountCode: appliedDiscount?.code || '',
         shipping: shipping,
