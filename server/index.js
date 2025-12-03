@@ -154,6 +154,13 @@ app.get('/_health', (req, res) => {
 });
 
 // Create a Stripe Checkout session
+// BILLING LOGIC:
+// 1. Frontend sends: items (with original prices), subtotal (already discounted), discountAmount, shipping, tax, total
+// 2. Backend calculates discount ratio from original item prices to match frontend's discounted subtotal
+// 3. Each item's price is reduced proportionally by the discount ratio
+// 4. Shipping and tax are added as separate line items (already calculated on discounted subtotal by frontend)
+// 5. Stripe charges: (discounted items total) + shipping + tax
+// 6. We verify Stripe's total matches frontend's total and log any discrepancies
 app.post('/create-stripe-session', async (req,res)=>{
   if(!stripe) return res.status(500).json({error:'Stripe not configured'});
   try{
@@ -175,27 +182,32 @@ app.post('/create-stripe-session', async (req,res)=>{
       return res.status(400).json({error:'Items array is required'});
     }
     
-    // Calculate the original subtotal from items
-    const calculatedSubtotal = items.reduce((sum, item) => {
+    // Calculate the original subtotal from items (before discount)
+    const calculatedOriginalSubtotal = items.reduce((sum, item) => {
       return sum + ((item.price || 0) * (item.quantity || item.qty || 1));
     }, 0);
     
-    // If there's a discount, calculate the discount ratio to apply proportionally
+    // The frontend sends 'subtotal' which is the ORIGINAL subtotal (before discount)
+    // We use this to verify calculations match, then apply discount
+    const originalSubtotal = subtotal || calculatedOriginalSubtotal;
     let discountRatio = 1;
-    if (discountAmount && discountAmount > 0 && calculatedSubtotal > 0) {
-      discountRatio = (calculatedSubtotal - discountAmount) / calculatedSubtotal;
+    
+    if (discountAmount && discountAmount > 0 && originalSubtotal > 0) {
+      // Calculate ratio: if $100 original becomes $80 after $20 discount, ratio = 0.8
+      const discountedSubtotal = originalSubtotal - discountAmount;
+      discountRatio = discountedSubtotal / originalSubtotal;
       console.log('💰 Discount calculation:', {
-        calculatedSubtotal,
-        discountAmount,
-        discountRatio: discountRatio.toFixed(4),
-        finalSubtotal: (calculatedSubtotal * discountRatio).toFixed(2)
+        originalSubtotal: originalSubtotal.toFixed(2),
+        discountAmount: discountAmount.toFixed(2),
+        discountedSubtotal: discountedSubtotal.toFixed(2),
+        discountRatio: discountRatio.toFixed(4)
       });
     }
     
     // Map items to line_items for Stripe with discounted prices
     const line_items = items.map(item => {
       const originalPrice = item.price || 0;
-      const discountedPrice = originalPrice * discountRatio; // Apply discount proportionally
+      const discountedPrice = originalPrice * discountRatio; // Apply discount proportionally to match frontend
       
       const product_data = {
         name: item.name || item.title || 'Product',
@@ -281,7 +293,18 @@ app.post('/create-stripe-session', async (req,res)=>{
     const stripeTotal = line_items.reduce((sum, item) => {
       return sum + (item.price_data.unit_amount * item.quantity);
     }, 0) / 100;
+    
     console.log('💵 Stripe checkout total will be: $' + stripeTotal.toFixed(2));
+    console.log('💵 Frontend calculated total: $' + (total || 0).toFixed(2));
+    
+    // Verify totals match (within 1 cent due to rounding)
+    const totalDifference = Math.abs(stripeTotal - (total || 0));
+    if (totalDifference > 0.01) {
+      console.warn('⚠️ TOTAL MISMATCH! Stripe will charge $' + stripeTotal.toFixed(2) + ' but frontend calculated $' + (total || 0).toFixed(2));
+      console.warn('⚠️ Difference: $' + totalDifference.toFixed(2));
+    } else {
+      console.log('✅ Total verification passed - Stripe charge matches frontend calculation');
+    }
     
     // Create Stripe checkout session
     const sessionConfig = {
@@ -314,27 +337,39 @@ app.post('/create-stripe-session', async (req,res)=>{
     
     // Store order information in Supabase
     if(supabase){
-      try{ 
+      try{
+        const discountedSubtotal = originalSubtotal - (discountAmount || 0);
         await supabase.from('orders').insert([{
           stripe_session_id: session.id,
           customer_email: customer?.email || '',
           customer_name: customer?.name || '',
-          total_amount: total || 0,
-          subtotal_amount: subtotal || 0,
+          total_amount: stripeTotal,  // Use actual Stripe total, not frontend calculation
+          subtotal_amount: discountedSubtotal,  // Discounted subtotal (after discount applied)
           discount_code: discountCode || '',
           discount_amount: discountAmount || 0,
           shipping_amount: shipping || 0,
           tax_amount: tax || 0,
-          metadata: {items, customer},
+          metadata: {items, customer, frontend_total: total, original_subtotal: originalSubtotal},
           status: 'created',
           created_at: new Date().toISOString()
         }]); 
+        console.log('✅ Order stored in Supabase with Stripe total: $' + stripeTotal.toFixed(2));
       } catch(e) {
         console.warn('supabase insert failed',e);
       }
     }
     
-    console.log('✅ Stripe session created:', { sessionId: session.id, subtotal, shipping, tax, total, discountCode });
+    console.log('✅ Stripe session created:', { 
+      sessionId: session.id, 
+      originalSubtotal: calculatedOriginalSubtotal.toFixed(2),
+      discountedSubtotal: effectiveSubtotal.toFixed(2),
+      discountCode,
+      discountAmount: (discountAmount || 0).toFixed(2),
+      shipping: (shipping || 0).toFixed(2),
+      tax: (tax || 0).toFixed(2),
+      stripeChargeTotal: stripeTotal.toFixed(2),
+      frontendTotal: (total || 0).toFixed(2)
+    });
     res.json({url: session.url, id: session.id});
     
   }catch(err){
