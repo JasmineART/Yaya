@@ -1968,6 +1968,12 @@ class AdminDashboard {
         revenue: ordersData.totalRevenue.toFixed(2)
       });
       
+      console.log('💰 Revenue includes ALL fees:', {
+        completedOrders: ordersData.completedOrders,
+        totalRevenue: ordersData.totalRevenue.toFixed(2),
+        breakdown: 'Each order total = subtotal + shipping + tax - discounts'
+      });
+      
       // Update orders overview
       this.updateOrdersOverview(ordersData);
       
@@ -2098,6 +2104,15 @@ class AdminDashboard {
           }, 0);
           order.orderDetails.subtotal = itemsTotal;
           order.orderDetails.total = itemsTotal + (order.orderDetails.shipping || 0) + (order.orderDetails.tax || 0) - (order.orderDetails.discount || 0);
+          
+          console.log('📊 Calculated order total:', {
+            orderId: order.id,
+            itemsTotal: itemsTotal.toFixed(2),
+            shipping: (order.orderDetails.shipping || 0).toFixed(2),
+            tax: (order.orderDetails.tax || 0).toFixed(2),
+            discount: (order.orderDetails.discount || 0).toFixed(2),
+            finalTotal: order.orderDetails.total.toFixed(2)
+          });
         }
         
         // Apply client-side filtering for non-abandoned orders
@@ -2141,6 +2156,11 @@ class AdminDashboard {
         pending: pendingCount,
         abandoned: abandonedCount,
         revenue: totalRevenue.toFixed(2)
+      });
+      
+      console.log('💰 Revenue breakdown (completed orders only):', {
+        totalRevenue: totalRevenue.toFixed(2),
+        note: 'Includes subtotal + shipping + tax - discounts'
       });
       
       return {
@@ -2200,37 +2220,50 @@ class AdminDashboard {
       console.log('📋 Supabase orders found:', data.length);
       
       // Transform Supabase orders to match our internal format
-      const orders = data.map(order => ({
-        id: order.id,
-        status: order.status || 'pending',
-        timestamp: new Date(order.created_at),
+      const orders = data.map(order => {
+        const orderObj = {
+          id: order.id,
+          status: order.status || 'pending',
+          timestamp: new Date(order.created_at),
+          
+          customerInfo: {
+            name: order.customer_name || 'Unknown',
+            email: order.customer_email || '',
+            address: order.shipping_address || '',
+            city: order.shipping_city || '',
+            state: order.shipping_state || '',
+            zip: order.shipping_zip || ''
+          },
+          
+          items: order.items || [],
+          
+          orderDetails: {
+            subtotal: parseFloat(order.subtotal_amount || 0),
+            shipping: parseFloat(order.shipping_amount || 0),
+            tax: parseFloat(order.tax_amount || 0),
+            total: parseFloat(order.total_amount || 0),
+            discount: parseFloat(order.discount_amount || 0),
+            discountCode: order.discount_code || ''
+          },
+          
+          emailSent: order.email_sent || false,
+          orderNumber: order.order_number || order.id,
+          stripeSessionId: order.stripe_session_id,
+          paypalOrderId: order.paypal_order_id,
+          source: 'supabase'
+        };
         
-        customerInfo: {
-          name: order.customer_name || 'Unknown',
-          email: order.customer_email || '',
-          address: order.shipping_address || '',
-          city: order.shipping_city || '',
-          state: order.shipping_state || '',
-          zip: order.shipping_zip || ''
-        },
+        // Log order details to verify all fees are included
+        console.log('💾 Supabase order loaded:', {
+          orderId: orderObj.id.substring(0, 12),
+          subtotal: orderObj.orderDetails.subtotal.toFixed(2),
+          shipping: orderObj.orderDetails.shipping.toFixed(2),
+          tax: orderObj.orderDetails.tax.toFixed(2),
+          total: orderObj.orderDetails.total.toFixed(2)
+        });
         
-        items: order.items || [],
-        
-        orderDetails: {
-          subtotal: parseFloat(order.subtotal_amount || 0),
-          shipping: parseFloat(order.shipping_amount || 0),
-          tax: parseFloat(order.tax_amount || 0),
-          total: parseFloat(order.total_amount || 0),
-          discount: parseFloat(order.discount_amount || 0),
-          discountCode: order.discount_code || ''
-        },
-        
-        emailSent: order.email_sent || false,
-        orderNumber: order.order_number || order.id,
-        stripeSessionId: order.stripe_session_id,
-        paypalOrderId: order.paypal_order_id,
-        source: 'supabase'
-      }));
+        return orderObj;
+      });
       
       console.log('✅ Processed Supabase orders:', orders.length);
       
@@ -2299,7 +2332,14 @@ class AdminDashboard {
         id: 'ord_001',
         customerInfo: { name: 'Sarah Johnson', email: 'sarah@example.com' },
         items: [{ name: 'Suncatcher Spirit (Signed)', price: 24.99, quantity: 1 }],
-        orderDetails: { total: 37.21, shipping: 9.99, tax: 2.23 },
+        orderDetails: { 
+          subtotal: 24.99,
+          shipping: 9.99, 
+          tax: 2.23,
+          total: 37.21,
+          discount: 0,
+          discountCode: ''
+        },
         status: 'completed',
         timestamp: new Date(Date.now() - 86400000 * 2),
         emailSent: true
@@ -2308,7 +2348,14 @@ class AdminDashboard {
         id: 'ord_002',
         customerInfo: { name: 'Mike Chen', email: 'mike@example.com' },
         items: [{ name: 'Suncatcher Spirit (Paperback)', price: 19.99, quantity: 2 }],
-        orderDetails: { total: 53.20, shipping: 9.99, tax: 3.23 },
+        orderDetails: { 
+          subtotal: 39.98,
+          shipping: 9.99, 
+          tax: 3.23,
+          total: 53.20,
+          discount: 0,
+          discountCode: ''
+        },
         status: 'pending_payment',
         timestamp: new Date(Date.now() - 3600000 * 6),
         emailSent: false
@@ -2317,6 +2364,14 @@ class AdminDashboard {
         id: 'abn_001',
         customerInfo: { name: 'Jessica Lee', email: 'jessica@example.com' },
         items: [{ name: 'Suncatcher Spirit Sticker', price: 3.00, quantity: 3 }],
+        orderDetails: {
+          subtotal: 9.00,
+          shipping: 0,
+          tax: 0,
+          total: 9.00,
+          discount: 0,
+          discountCode: ''
+        },
         status: 'abandoned',
         timestamp: new Date(Date.now() - 86400000),
         source: 'checkout_form'
