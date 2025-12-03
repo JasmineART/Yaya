@@ -1171,7 +1171,7 @@ class AdminDashboard {
   
   async getAnalyticsFromFirebase(timeRange = 'daily') {
     try {
-      if (!window.firebaseDB) {
+      if (!window.db) {
         // Fallback to mock data if Firebase not available
         return this.getMockAnalyticsData(timeRange);
       }
@@ -1219,28 +1219,36 @@ class AdminDashboard {
       const dataCollectionStart = new Date('2025-05-01');
       const queryStartDate = startDate < dataCollectionStart ? dataCollectionStart : startDate;
       
+      // Import Firestore functions dynamically
+      const { collection, query, where, orderBy, getDocs } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
+      
       // Get page views data
-      const pageViewsQuery = await window.firebaseDB
-        .collection('analytics')
-        .where('collection', '==', 'page_views')
-        .where('timestamp', '>=', queryStartDate)
-        .where('timestamp', '<=', endDate)
-        .orderBy('timestamp', 'desc')
-        .get();
+      const analyticsRef = collection(window.db, 'analytics');
+      const pageViewsQuery = query(
+        analyticsRef,
+        where('collection', '==', 'page_views'),
+        where('timestamp', '>=', queryStartDate),
+        where('timestamp', '<=', endDate),
+        orderBy('timestamp', 'desc')
+      );
+      const pageViewsSnapshot = await getDocs(pageViewsQuery);
       
       // Get sessions data
-      const sessionsQuery = await window.firebaseDB
-        .collection('analytics')
-        .where('collection', '==', 'sessions')
-        .where('timestamp', '>=', queryStartDate)
-        .where('timestamp', '<=', endDate)
-        .get();
+      const sessionsQuery = query(
+        analyticsRef,
+        where('collection', '==', 'sessions'),
+        where('timestamp', '>=', queryStartDate),
+        where('timestamp', '<=', endDate)
+      );
+      const sessionsSnapshot = await getDocs(sessionsQuery);
       
       // Get visitor locations (only from May 2025 onwards)
-      const locationsQuery = await window.firebaseDB
-        .collection('visitor_locations')
-        .where('lastSeen', '>=', queryStartDate)
-        .get();
+      const locationsRef = collection(window.db, 'visitor_locations');
+      const locationsQuery = query(
+        locationsRef,
+        where('lastSeen', '>=', queryStartDate)
+      );
+      const locationsSnapshot = await getDocs(locationsQuery);
       
       // Process the data
       const pageViews = [];
@@ -1250,7 +1258,7 @@ class AdminDashboard {
       const uniqueVisitors = new Set();
       
       // Process page views
-      pageViewsQuery.forEach(doc => {
+      pageViewsSnapshot.forEach(doc => {
         const data = doc.data();
         const pageData = data.data;
         
@@ -1310,7 +1318,7 @@ class AdminDashboard {
       const locations = [];
       const locationMap = new Map();
       
-      locationsQuery.forEach(doc => {
+      locationsSnapshot.forEach(doc => {
         const data = doc.data();
         if (data.location && data.location.country) {
           const country = data.location.country;
@@ -1332,7 +1340,7 @@ class AdminDashboard {
       let totalSessions = 0;
       let bounces = 0;
       
-      sessionsQuery.forEach(doc => {
+      sessionsSnapshot.forEach(doc => {
         const data = doc.data();
         const sessionData = data.data;
         
@@ -1902,15 +1910,63 @@ class AdminDashboard {
   
   async initializeOrders() {
     try {
+      // Check Firebase connection
+      if (!window.db) {
+        console.error('❌ Firebase not initialized - window.db is undefined');
+        console.log('⏳ Waiting for Firebase to initialize...');
+        
+        // Wait a bit for Firebase to initialize
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        if (!window.db) {
+          console.error('❌ Firebase still not initialized after waiting');
+          this.showStatus('warning', 'Firebase not initialized - showing mock data', 'orders');
+        } else {
+          console.log('✅ Firebase initialized after waiting');
+        }
+      } else {
+        console.log('✅ Firebase already initialized');
+      }
+      
+      // Check Supabase connection
+      if (!window.supabase) {
+        console.warn('⚠️ Supabase not initialized - Stripe orders may not be visible');
+        console.log('💡 To see production Stripe orders, configure Supabase credentials in supabase-config.js');
+      } else {
+        console.log('✅ Supabase initialized - will fetch production Stripe orders');
+      }
+      
       await this.loadOrdersData();
     } catch (error) {
       console.error('Error initializing orders:', error);
+      this.showStatus('error', 'Failed to initialize orders', 'orders');
     }
   }
   
   async loadOrdersData(filter = 'all') {
     try {
-      const ordersData = await this.getOrdersFromFirebase(filter);
+      // Fetch from both Firebase and Supabase
+      const firebaseData = await this.getOrdersFromFirebase(filter);
+      const supabaseData = await this.getOrdersFromSupabase(filter);
+      
+      // Merge orders from both sources
+      const mergedOrders = [...firebaseData.orders, ...supabaseData.orders];
+      
+      // Remove duplicates (in case order exists in both databases)
+      const uniqueOrders = this.deduplicateOrders(mergedOrders);
+      
+      // Sort by timestamp (newest first)
+      uniqueOrders.sort((a, b) => b.timestamp - a.timestamp);
+      
+      // Recalculate totals
+      const ordersData = this.calculateOrderTotals(uniqueOrders, filter);
+      
+      console.log('📊 Combined orders:', {
+        firebase: firebaseData.orders.length,
+        supabase: supabaseData.orders.length,
+        total: uniqueOrders.length,
+        revenue: ordersData.totalRevenue.toFixed(2)
+      });
       
       // Update orders overview
       this.updateOrdersOverview(ordersData);
@@ -1929,49 +1985,41 @@ class AdminDashboard {
   
   async getOrdersFromFirebase(filter = 'all') {
     try {
-      if (!window.firebaseDB) {
+      if (!window.db) {
+        console.warn('Firebase not initialized, using mock data');
         return this.getMockOrdersData(filter);
       }
       
-      let ordersQuery;
+      console.log('🔥 Loading orders from Firebase, filter:', filter);
+      
+      // Import Firestore functions dynamically
+      const { collection, query, where, orderBy, limit, getDocs } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
+      
+      let snapshot;
+      let isAbandoned = false;
       
       if (filter === 'abandoned') {
-        // Query abandoned carts
-        const abandonedRef = window.firebaseCollection(window.firebaseDB, 'abandoned_orders');
-        ordersQuery = window.firebaseQuery(
-          abandonedRef,
-          window.firebaseOrderBy('timestamp', 'desc'),
-          window.firebaseLimit(50)
-        );
+        // Query abandoned carts - use lastUpdated or timestamp field
+        isAbandoned = true;
+        const abandonedRef = collection(window.db, 'abandoned_orders');
+        // Don't use orderBy on potentially missing field
+        const abandonedQuery = query(abandonedRef, limit(50));
+        snapshot = await getDocs(abandonedQuery);
+        console.log('📋 Abandoned orders found:', snapshot.size);
       } else {
-        // Query regular orders
-        const ordersRef = window.firebaseCollection(window.firebaseDB, 'orders');
+        // Query regular orders - simplified without 'in' operator
+        const ordersRef = collection(window.db, 'orders');
         
-        if (filter === 'completed') {
-          ordersQuery = window.firebaseQuery(
-            ordersRef,
-            window.firebaseWhere('status', '==', 'completed'),
-            window.firebaseOrderBy('timestamp', 'desc'),
-            window.firebaseLimit(50)
-          );
-        } else if (filter === 'pending') {
-          ordersQuery = window.firebaseQuery(
-            ordersRef,
-            window.firebaseWhere('status', '==', 'pending_payment'),
-            window.firebaseOrderBy('timestamp', 'desc'),
-            window.firebaseLimit(50)
-          );
-        } else {
-          // All orders
-          ordersQuery = window.firebaseQuery(
-            ordersRef,
-            window.firebaseOrderBy('timestamp', 'desc'),
-            window.firebaseLimit(100)
-          );
-        }
+        // Simple query without complex filtering to avoid index requirements
+        // We'll filter in JavaScript instead
+        const ordersQuery = query(
+          ordersRef,
+          limit(200) // Get more orders since we're filtering client-side
+        );
+        
+        snapshot = await getDocs(ordersQuery);
+        console.log('📋 Total orders found:', snapshot.size);
       }
-      
-      const snapshot = await window.firebaseGetDocs(ordersQuery);
       
       if (snapshot.empty) {
         return this.getMockOrdersData(filter);
@@ -1985,27 +2033,119 @@ class AdminDashboard {
       
       snapshot.forEach(doc => {
         const data = doc.data();
+        
+        // Normalize timestamp - handle multiple field names and formats
+        let orderTimestamp;
+        if (data.timestamp?.toDate) {
+          orderTimestamp = data.timestamp.toDate();
+        } else if (data.timestamp) {
+          orderTimestamp = new Date(data.timestamp);
+        } else if (data.lastUpdated?.toDate) {
+          orderTimestamp = data.lastUpdated.toDate();
+        } else if (data.lastUpdated) {
+          orderTimestamp = new Date(data.lastUpdated);
+        } else if (data.created_at) {
+          orderTimestamp = new Date(data.created_at);
+        } else {
+          orderTimestamp = new Date();
+        }
+        
+        // Normalize order data to consistent structure
         const order = {
           id: doc.id,
-          ...data,
-          timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp)
+          status: data.status || 'pending',
+          timestamp: orderTimestamp,
+          
+          // Handle different customer info structures
+          customerInfo: data.customerInfo || {
+            name: data.customer_name || data.name || 'Unknown',
+            email: data.customer_email || data.email || '',
+            address: data.address || '',
+            city: data.city || '',
+            state: data.state || '',
+            zip: data.zip || ''
+          },
+          
+          // Handle different items structures
+          items: data.items || (data.metadata?.items) || [],
+          
+          // Handle different order total structures
+          orderDetails: data.orderDetails || {
+            subtotal: data.subtotal_amount || data.subtotal || 0,
+            shipping: data.shipping_amount || data.shipping || 0,
+            tax: data.tax_amount || data.tax || 0,
+            total: data.total_amount || data.total || 0,
+            discount: data.discount_amount || 0,
+            discountCode: data.discount_code || ''
+          },
+          
+          // Preserve original fields
+          emailSent: data.emailSent || false,
+          orderNumber: data.orderNumber || doc.id,
+          
+          // Stripe-specific fields
+          stripeSessionId: data.stripe_session_id,
+          paypalOrderId: data.paypal_order_id,
+          
+          // Source tracking
+          source: data.source || (isAbandoned ? 'abandoned' : 'order')
         };
+        
+        // Calculate total if not present
+        if (!order.orderDetails.total && order.items && order.items.length > 0) {
+          const itemsTotal = order.items.reduce((sum, item) => {
+            return sum + ((item.price || 0) * (item.quantity || item.qty || 1));
+          }, 0);
+          order.orderDetails.subtotal = itemsTotal;
+          order.orderDetails.total = itemsTotal + (order.orderDetails.shipping || 0) + (order.orderDetails.tax || 0) - (order.orderDetails.discount || 0);
+        }
+        
+        // Apply client-side filtering for non-abandoned orders
+        const normalizedStatus = order.status.toLowerCase();
+        
+        if (!isAbandoned) {
+          // Filter based on status if not showing all
+          if (filter === 'completed') {
+            if (!['completed', 'paid', 'delivered'].includes(normalizedStatus)) {
+              return; // Skip this order
+            }
+          } else if (filter === 'pending') {
+            if (!['pending_payment', 'pending', 'created', 'processing'].includes(normalizedStatus)) {
+              return; // Skip this order
+            }
+          }
+        }
         
         orders.push(order);
         
-        if (data.status === 'completed') {
+        // Count by normalized status
+        if (['completed', 'paid', 'delivered'].includes(normalizedStatus)) {
           completedCount++;
-          totalRevenue += parseFloat(data.orderDetails?.total || data.total || 0);
-        } else if (data.status === 'pending_payment') {
+          totalRevenue += parseFloat(order.orderDetails.total || 0);
+        } else if (['pending_payment', 'pending', 'created', 'processing'].includes(normalizedStatus)) {
           pendingCount++;
-        } else if (data.status === 'abandoned') {
+        } else if (normalizedStatus === 'abandoned') {
           abandonedCount++;
         }
       });
       
+      // Sort orders by timestamp (newest first)
+      orders.sort((a, b) => b.timestamp - a.timestamp);
+      
+      // Limit results after filtering and sorting
+      const limitedOrders = orders.slice(0, 100);
+      
+      console.log('✅ Processed orders:', {
+        total: limitedOrders.length,
+        completed: completedCount,
+        pending: pendingCount,
+        abandoned: abandonedCount,
+        revenue: totalRevenue.toFixed(2)
+      });
+      
       return {
-        orders: orders,
-        totalOrders: orders.length,
+        orders: limitedOrders,
+        totalOrders: limitedOrders.length,
         completedOrders: completedCount,
         pendingOrders: pendingCount,
         abandonedCarts: abandonedCount,
@@ -2013,9 +2153,143 @@ class AdminDashboard {
       };
       
     } catch (error) {
-      console.warn('Firebase orders query failed, using mock data:', error);
+      console.error('❌ Firebase orders query failed:', error);
+      console.error('Error details:', error.message, error.code);
       return this.getMockOrdersData(filter);
     }
+  }
+  
+  async getOrdersFromSupabase(filter = 'all') {
+    try {
+      if (!window.supabase) {
+        console.log('⏭️ Supabase not configured, skipping Supabase orders');
+        return { orders: [] };
+      }
+      
+      console.log('💾 Loading orders from Supabase, filter:', filter);
+      
+      // Build query based on filter
+      let query = window.supabase
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(200);
+      
+      // Apply status filter if needed
+      if (filter === 'completed') {
+        query = query.in('status', ['completed', 'paid', 'delivered']);
+      } else if (filter === 'pending') {
+        query = query.in('status', ['pending', 'created', 'pending_payment', 'processing']);
+      } else if (filter === 'abandoned') {
+        // Supabase doesn't have abandoned orders, skip
+        return { orders: [] };
+      }
+      
+      const { data, error } = await query;
+      
+      if (error) {
+        console.error('❌ Supabase query error:', error);
+        return { orders: [] };
+      }
+      
+      if (!data || data.length === 0) {
+        console.log('📋 No orders found in Supabase');
+        return { orders: [] };
+      }
+      
+      console.log('📋 Supabase orders found:', data.length);
+      
+      // Transform Supabase orders to match our internal format
+      const orders = data.map(order => ({
+        id: order.id,
+        status: order.status || 'pending',
+        timestamp: new Date(order.created_at),
+        
+        customerInfo: {
+          name: order.customer_name || 'Unknown',
+          email: order.customer_email || '',
+          address: order.shipping_address || '',
+          city: order.shipping_city || '',
+          state: order.shipping_state || '',
+          zip: order.shipping_zip || ''
+        },
+        
+        items: order.items || [],
+        
+        orderDetails: {
+          subtotal: parseFloat(order.subtotal_amount || 0),
+          shipping: parseFloat(order.shipping_amount || 0),
+          tax: parseFloat(order.tax_amount || 0),
+          total: parseFloat(order.total_amount || 0),
+          discount: parseFloat(order.discount_amount || 0),
+          discountCode: order.discount_code || ''
+        },
+        
+        emailSent: order.email_sent || false,
+        orderNumber: order.order_number || order.id,
+        stripeSessionId: order.stripe_session_id,
+        paypalOrderId: order.paypal_order_id,
+        source: 'supabase'
+      }));
+      
+      console.log('✅ Processed Supabase orders:', orders.length);
+      
+      return { orders };
+      
+    } catch (error) {
+      console.error('❌ Supabase orders fetch failed:', error);
+      return { orders: [] };
+    }
+  }
+  
+  deduplicateOrders(orders) {
+    // Remove duplicate orders based on order ID or Stripe session ID
+    const seen = new Set();
+    const unique = [];
+    
+    for (const order of orders) {
+      // Create a unique key based on multiple identifiers
+      const key = order.stripeSessionId || order.orderNumber || order.id;
+      
+      if (!seen.has(key)) {
+        seen.add(key);
+        unique.push(order);
+      } else {
+        console.log('🔄 Duplicate order removed:', key);
+      }
+    }
+    
+    return unique;
+  }
+  
+  calculateOrderTotals(orders, filter) {
+    // Recalculate totals from the combined order list
+    let totalRevenue = 0;
+    let completedCount = 0;
+    let pendingCount = 0;
+    let abandonedCount = 0;
+    
+    orders.forEach(order => {
+      const normalizedStatus = order.status.toLowerCase();
+      
+      if (['completed', 'paid', 'delivered'].includes(normalizedStatus)) {
+        completedCount++;
+        totalRevenue += parseFloat(order.orderDetails.total || 0);
+      } else if (['pending_payment', 'pending', 'created', 'processing'].includes(normalizedStatus)) {
+        pendingCount++;
+      } else if (normalizedStatus === 'abandoned') {
+        abandonedCount++;
+      }
+    });
+    
+    return {
+      orders: orders,
+      totalOrders: orders.length,
+      completedOrders: completedCount,
+      pendingOrders: pendingCount,
+      abandonedCarts: abandonedCount,
+      totalRevenue: totalRevenue
+    };
   }
   
   getMockOrdersData(filter = 'all') {
@@ -2121,7 +2395,10 @@ class AdminDashboard {
                     data-order-id="${order.id}" 
                     onchange="window.adminDashboard.updateOrderStatus('${order.id}', this.value)"
                     style="padding: 0.3rem; font-size: 0.75rem; border-radius: 4px; border: 1px solid #ddd;">
+                    <option value="created" ${order.status === 'created' ? 'selected' : ''}>Created</option>
                     <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
+                    <option value="pending_payment" ${order.status === 'pending_payment' ? 'selected' : ''}>Pending Payment</option>
+                    <option value="paid" ${order.status === 'paid' ? 'selected' : ''}>Paid</option>
                     <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>Processing</option>
                     <option value="shipped" ${order.status === 'shipped' ? 'selected' : ''}>Shipped</option>
                     <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>Delivered</option>
@@ -2159,6 +2436,8 @@ class AdminDashboard {
     const statusMap = {
       'pending': 'Pending',
       'pending_payment': 'Pending Payment',
+      'created': 'Created',
+      'paid': 'Paid',
       'processing': 'Processing',
       'shipped': 'Shipped',
       'delivered': 'Delivered', 
@@ -2183,21 +2462,117 @@ class AdminDashboard {
     }
   }
   
+  async updateOrderStatus(orderId, newStatus) {
+    try {
+      console.log('🔄 Updating order status:', { orderId, newStatus });
+      
+      let firebaseUpdated = false;
+      let supabaseUpdated = false;
+      
+      // Try updating in Firebase
+      if (window.db) {
+        try {
+          // Import Firestore functions dynamically
+          const { doc, updateDoc, getDoc } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
+          
+          // Try to update in regular orders collection
+          const orderRef = doc(window.db, 'orders', orderId);
+          const orderSnap = await getDoc(orderRef);
+          
+          if (orderSnap.exists()) {
+            await updateDoc(orderRef, {
+              status: newStatus,
+              updatedAt: new Date().toISOString(),
+              lastModified: new Date().toISOString()
+            });
+            console.log('✅ Firebase order updated');
+            firebaseUpdated = true;
+          } else {
+            // Try abandoned_orders collection
+            const abandonedRef = doc(window.db, 'abandoned_orders', orderId);
+            const abandonedSnap = await getDoc(abandonedRef);
+            
+            if (abandonedSnap.exists()) {
+              await updateDoc(abandonedRef, {
+                status: newStatus,
+                updatedAt: new Date().toISOString(),
+                lastModified: new Date().toISOString()
+              });
+              console.log('✅ Firebase abandoned order updated');
+              firebaseUpdated = true;
+            }
+          }
+        } catch (fbError) {
+          console.error('Firebase update error:', fbError);
+        }
+      }
+      
+      // Try updating in Supabase
+      if (window.supabase) {
+        try {
+          const { data, error } = await window.supabase
+            .from('orders')
+            .update({ 
+              status: newStatus,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', orderId);
+          
+          if (error) {
+            console.error('Supabase update error:', error);
+          } else {
+            console.log('✅ Supabase order updated');
+            supabaseUpdated = true;
+          }
+        } catch (sbError) {
+          console.error('Supabase update error:', sbError);
+        }
+      }
+      
+      // Show result
+      if (firebaseUpdated || supabaseUpdated) {
+        const sources = [];
+        if (firebaseUpdated) sources.push('Firebase');
+        if (supabaseUpdated) sources.push('Supabase');
+        
+        this.showStatus('success', `Order status updated to ${this.formatOrderStatus(newStatus)} (${sources.join(' + ')})`, 'orders');
+        
+        // Reload orders to reflect changes
+        await this.loadOrdersData();
+      } else {
+        throw new Error(`Order ${orderId} not found in any database`);
+      }
+      
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      
+      let errorMessage = 'Failed to update order status';
+      if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      this.showStatus('error', errorMessage, 'orders');
+    }
+  }
+  
   async getOrderDetailsFromFirebase(orderId) {
     // Try both regular orders and abandoned orders collections
     try {
-      if (!window.firebaseDB) {
+      if (!window.db) {
         return this.getMockOrderDetails(orderId);
       }
       
+      // Import Firestore functions dynamically
+      const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
+      
       // Try regular orders first
-      let orderDoc = window.firebaseDoc(window.firebaseDB, 'orders', orderId);
-      let snapshot = await window.firebaseGetDoc(orderDoc);
+      let orderDoc = doc(window.db, 'orders', orderId);
+      let snapshot = await getDoc(orderDoc);
       
       if (!snapshot.exists()) {
         // Try abandoned orders
-        orderDoc = window.firebaseDoc(window.firebaseDB, 'abandoned_orders', orderId);
-        snapshot = await window.firebaseGetDoc(orderDoc);
+        orderDoc = doc(window.db, 'abandoned_orders', orderId);
+        snapshot = await getDoc(orderDoc);
       }
       
       if (!snapshot.exists()) {
@@ -2399,13 +2774,16 @@ class AdminDashboard {
   
   async getMarketingFromFirebase() {
     try {
-      if (!window.firebaseDB) {
+      if (!window.db) {
         return this.getMockMarketingData();
       }
       
+      // Import Firestore functions dynamically
+      const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
+      
       // Query marketing tracking data
-      const trackingRef = window.firebaseCollection(window.firebaseDB, 'marketing_tracking');
-      const snapshot = await window.firebaseGetDocs(trackingRef);
+      const trackingRef = collection(window.db, 'marketing_tracking');
+      const snapshot = await getDocs(trackingRef);
       
       if (snapshot.empty) {
         return this.getMockMarketingData();
@@ -2644,6 +3022,42 @@ class AdminDashboard {
     }
   }
   
+  async getTodayVisitorCount() {
+    try {
+      if (!window.db) {
+        return 0;
+      }
+      
+      // Import Firestore functions dynamically
+      const { collection, query, where, getDocs } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const analyticsRef = collection(window.db, 'analytics');
+      const todayQuery = query(
+        analyticsRef,
+        where('collection', '==', 'page_views'),
+        where('timestamp', '>=', today)
+      );
+      
+      const snapshot = await getDocs(todayQuery);
+      
+      const uniqueVisitors = new Set();
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.data && data.data.visitorId) {
+          uniqueVisitors.add(data.data.visitorId);
+        }
+      });
+      
+      return uniqueVisitors.size;
+    } catch (error) {
+      console.warn('Error getting today visitor count:', error);
+      return 0;
+    }
+  }
+  
   async checkNewOrders() {
     try {
       const lastOrderCheck = localStorage.getItem('last_order_check') || new Date(Date.now() - 300000).toISOString();
@@ -2653,7 +3067,7 @@ class AdminDashboard {
         this.addNotification({
           type: 'order',
           title: 'New Order Received! 🛍️',
-          message: `Order #${order.orderNumber || order.id} - $${order.total}`,
+          message: `Order #${order.orderNumber || order.id} - $${(order.orderDetails?.total || order.total || 0).toFixed(2)}`,
           timestamp: new Date().toISOString(),
           orderId: order.id
         });
@@ -2665,6 +3079,43 @@ class AdminDashboard {
       localStorage.setItem('last_order_check', new Date().toISOString());
     } catch (error) {
       console.warn('Error checking new orders:', error);
+    }
+  }
+  
+  async getOrdersSince(sinceDate) {
+    try {
+      if (!window.db) {
+        return [];
+      }
+      
+      // Import Firestore functions dynamically
+      const { collection, query, where, orderBy, getDocs } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
+      
+      const ordersRef = collection(window.db, 'orders');
+      const sinceTimestamp = new Date(sinceDate);
+      
+      const ordersQuery = query(
+        ordersRef,
+        where('timestamp', '>', sinceTimestamp),
+        orderBy('timestamp', 'desc')
+      );
+      
+      const snapshot = await getDocs(ordersQuery);
+      
+      const orders = [];
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        orders.push({
+          id: doc.id,
+          ...data,
+          timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp)
+        });
+      });
+      
+      return orders;
+    } catch (error) {
+      console.warn('Error getting orders since date:', error);
+      return [];
     }
   }
   

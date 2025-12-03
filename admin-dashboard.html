@@ -917,6 +917,18 @@
         border: 1px solid #27ae60;
       }
       
+      .status-paid {
+        background: rgba(46, 204, 113, 0.2);
+        color: #2ecc71;
+        border: 1px solid #2ecc71;
+      }
+      
+      .status-created {
+        background: rgba(149, 165, 166, 0.2);
+        color: #95a5a6;
+        border: 1px solid #95a5a6;
+      }
+      
       .status-pending_payment {
         background: rgba(243, 156, 18, 0.2);
         color: #f39c12;
@@ -1730,6 +1742,12 @@
 
     <!-- Chart.js for Analytics -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    
+    <!-- Firebase Configuration -->
+    <script type="module" src="firebase-config.js"></script>
+    
+    <!-- Supabase Configuration -->
+    <script type="module" src="supabase-config.js"></script>
     
     <script src="admin-dashboard.js"></script>
   </body>

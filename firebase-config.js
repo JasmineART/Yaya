@@ -1,7 +1,20 @@
 // Firebase Configuration for Yaya Starchild Website
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-analytics.js";
-import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { 
+  getFirestore, 
+  collection, 
+  addDoc, 
+  getDocs, 
+  getDoc,
+  doc,
+  updateDoc,
+  query, 
+  where,
+  orderBy, 
+  limit, 
+  serverTimestamp 
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -27,4 +40,18 @@ console.log('📊 Analytics enabled');
 console.log('💾 Firestore database ready');
 
 // Export for use in other modules
-export { db, collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp, analytics };
+export { 
+  db, 
+  collection, 
+  addDoc, 
+  getDocs, 
+  getDoc,
+  doc,
+  updateDoc,
+  query, 
+  where,
+  orderBy, 
+  limit, 
+  serverTimestamp, 
+  analytics 
+};
