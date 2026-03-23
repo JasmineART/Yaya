@@ -18,10 +18,15 @@ const DISCOUNTS = {
     "value": 0.25,
     "description": "25% off entire cart"
   },
+  "BLACKFRIDAY": {
+    "type": "percentage",
+    "value": 0.40,
+    "description": "40% off entire cart"
+  },
   "ADMINTEST25": {
     "code": "ADMINTEST25",
     "type": "percentage",
-    "value": 25,
+    "value": 0.25,
     "description": "25% off for admin testing",
     "active": true,
     "created": "2025-11-14T03:22:18.628Z"
@@ -72,6 +77,17 @@ function announceToScreenReader(message, priority = 'polite') {
     }, 1000);
   }
   console.log(`📢 Announced: ${message}`);
+}
+
+// Calculate cart total
+function getCartTotal() {
+  const items = getCart();
+  if (!window.PRODUCTS || !items.length) return 0;
+  
+  return items.reduce((total, item) => {
+    const product = window.PRODUCTS.find(p => p.id === item.id);
+    return total + ((product?.price || 0) * item.qty);
+  }, 0);
 }
 
 // Enhanced focus management
@@ -366,10 +382,10 @@ function removeFromCart(uniqueKey) {
       
       // Track analytics event for cart removal
       if (window.analyticsTracker) {
-        const product = window.products?.find(p => p.id === item.id);
+        const product = window.PRODUCTS?.find(p => p.id === item.id);
         window.analyticsTracker.trackEcommerce('remove_from_cart', {
           product_id: item.id,
-          product_name: product?.name || 'Unknown Item',
+          product_name: product?.title || product?.name || 'Unknown Item',
           quantity: item.qty,
           price: product?.price || 0,
           variant: item.metadata?.variantId || null
@@ -392,45 +408,63 @@ function removeFromCart(uniqueKey) {
 }
 
 function addToCart(productId, qty=1, metadata={}){
+  console.log('🛒 addToCart called:', {productId, qty, metadata});
+  
   const items = getCart();
+  console.log('📦 Current cart:', items);
+  
   // For items with variants, create unique cart entries
   const uniqueKey = metadata.variantId ? `${productId}-${metadata.variantId}` : productId;
   const found = items.find(i=>i.uniqueKey===uniqueKey || (!i.uniqueKey && i.id===productId && !metadata.variantId));
   
-  const product = window.products?.find(p => p.id === productId);
-  const productName = product?.name || 'Item';
+  const product = window.PRODUCTS?.find(p => p.id === productId);
+  console.log('📖 Product found:', product);
+  
+  const productName = product?.title || product?.name || 'Item';
   
   if(found) {
     found.qty += qty;
+    console.log('✏️ Updated existing item quantity:', found);
     announceToScreenReader(`Updated ${productName} quantity to ${found.qty} in cart`);
     
     // Track analytics event for cart update
     if (window.analyticsTracker) {
-      window.analyticsTracker.trackEcommerce('cart_update', {
-        product_id: productId,
-        product_name: productName,
-        quantity: found.qty,
-        price: product?.price || 0,
-        variant: metadata.variantId || null
-      });
+      try {
+        window.analyticsTracker.trackEcommerce('cart_update', {
+          product_id: productId,
+          product_name: productName,
+          quantity: found.qty,
+          price: product?.price || 0,
+          variant: metadata.variantId || null
+        });
+      } catch(e) {
+        console.warn('Analytics tracking failed:', e);
+      }
     }
   } else {
-    items.push({id:productId, qty, uniqueKey, metadata});
+    const newItem = {id:productId, qty, uniqueKey, metadata};
+    items.push(newItem);
+    console.log('➕ Added new item:', newItem);
     announceToScreenReader(`Added ${productName} to cart`);
     
     // Track analytics event for cart addition
     if (window.analyticsTracker) {
-      window.analyticsTracker.trackEcommerce('add_to_cart', {
-        product_id: productId,
-        product_name: productName,
-        quantity: qty,
-        price: product?.price || 0,
-        variant: metadata.variantId || null,
-        cart_total: getCartTotal()
-      });
+      try {
+        window.analyticsTracker.trackEcommerce('add_to_cart', {
+          product_id: productId,
+          product_name: productName,
+          quantity: qty,
+          price: product?.price || 0,
+          variant: metadata.variantId || null,
+          cart_total: typeof getCartTotal === 'function' ? getCartTotal() : 0
+        });
+      } catch(e) {
+        console.warn('Analytics tracking failed:', e);
+      }
     }
   }
   saveCart(items);
+  console.log('💾 Cart saved:', items);
 }
 
 function updateCartCount(){
@@ -764,112 +798,14 @@ document.addEventListener('DOMContentLoaded',()=>{
     }, 5000);
   })}
 
-  // checkout
+  // checkout — the actual handler lives in stripe-payments.js (handleStripeCheckout)
+  // This listener only prevents accidental form-submit (e.g. Enter key) from crashing.
   const checkout = document.getElementById('checkout-form');
   if(checkout){
-    checkout.addEventListener('submit',async e=>{
+    checkout.addEventListener('submit', e => {
       e.preventDefault();
-      // Disclaimer check removed - modal available but not forced
-      
-      if(!window.PRODUCTS || window.PRODUCTS.length === 0) {
-        alert('Products not loaded yet. Please wait a moment and try again.');
-        return;
-      }
-      
-      const pay = document.querySelector('input[name="pay"]:checked').value;
-      const name = document.getElementById('fullname').value;
-      const email = document.getElementById('email').value;
-      const items = getCart().map(it=>{
-        const p = window.PRODUCTS.find(x=>x.id===it.id);
-        if(!p) return null;
-        return {id: it.id, title: p.title, price: p.price, qty: it.qty, name: p.title, quantity: it.qty, image: p.images && p.images[0]};
-      }).filter(Boolean); // Remove null entries
-
-      // Calculate order totals
-      const subtotal = items.reduce((s,it)=>{
-        const p = window.PRODUCTS.find(x=>x.id===it.id);
-        return p ? s + (p.price * it.qty) : s;
-      },0);
-      
-      const appliedDiscount = getAppliedDiscount();
-      let discountAmount = 0;
-      let discountCode = '';
-      let discountedSubtotal = subtotal;
-      
-      if (appliedDiscount && appliedDiscount.code) {
-        const discountResult = calculateDiscount(subtotal, appliedDiscount.code, items);
-        if (discountResult.valid) {
-          discountAmount = discountResult.amount;
-          discountCode = appliedDiscount.code;
-          discountedSubtotal = subtotal - discountAmount;
-        }
-      }
-      
-      const shipping = 9.99;
-      const taxRate = 0.085;
-      const tax = discountedSubtotal * taxRate;
-      const total = discountedSubtotal + shipping + tax;
-      
-      console.log('💳 Preparing Stripe checkout:', {
-        subtotal: subtotal.toFixed(2),
-        discountCode,
-        discountAmount: discountAmount.toFixed(2),
-        discountedSubtotal: discountedSubtotal.toFixed(2),
-        shipping: shipping.toFixed(2),
-        tax: tax.toFixed(2),
-        total: total.toFixed(2)
-      });
-
-      // Save order attempt to Supabase if available
-      const orderRecord = {name,email,items,created_at:new Date().toISOString()};
-      try{ await postToSupabase('/rest/v1/orders',orderRecord); }catch(e){}
-
-      // Also notify the server (if configured) so it can persist to Firebase/DB and send email to the company
-      try{
-        if(window.YAYA_CONFIG && window.YAYA_CONFIG.serverUrl){
-          fetch(window.YAYA_CONFIG.serverUrl + '/submit-order', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(Object.assign({}, orderRecord, {address: document.getElementById('address') ? document.getElementById('address').value : '', city: document.getElementById('city') ? document.getElementById('city').value : '', giftWrap: !!document.getElementById('gift-wrap') && document.getElementById('gift-wrap').checked}))}).then(async r=>{
-            if(r.ok){ const j = await r.json(); console.log('server submit-order response', j); }
-          }).catch(err=>{console.warn('submit-order to server failed',err)});
-        }
-      }catch(e){console.warn('notify server failed',e)}
-
-      // Call server to create payment session with calculated totals
-      try{
-        if(pay==='stripe'){
-          const stripePayload = {
-            items,
-            customer: {name, email},
-            discountAmount,
-            discountCode,
-            shipping,
-            tax,
-            taxRate,
-            subtotal,
-            total,
-            successUrl:location.origin + '/success.html?session_id={CHECKOUT_SESSION_ID}',
-            cancelUrl:location.origin + '/cart.html'
-          };
-          
-          console.log('📤 Sending to Stripe API:', stripePayload);
-          
-          const resp = await fetch((window.YAYA_CONFIG && window.YAYA_CONFIG.serverUrl ? window.YAYA_CONFIG.serverUrl : '') + '/create-stripe-session',{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify(stripePayload)
-          });
-          const data = await resp.json();
-          console.log('📥 Stripe API response:', data);
-          if(data.url) window.location.href = data.url; else throw new Error(data.error || 'No url');
-        }else if(pay==='paypal'){
-          const resp = await fetch((window.YAYA_CONFIG && window.YAYA_CONFIG.serverUrl ? window.YAYA_CONFIG.serverUrl : '') + '/create-paypal-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items,returnUrl:location.origin + '/index.html',cancelUrl:location.origin + '/cart.html'})});
-          const data = await resp.json();
-          // PayPal returns links — find approval link
-          const approve = data && data.links && data.links.find(l=>l.rel==='approve');
-          if(approve) window.location.href = approve.href; else throw new Error('Could not create PayPal order');
-        }
-      }catch(err){
-        console.error(err);
-        alert('Payment failed to start: '+err.message);
+      if (typeof handleStripeCheckout === 'function') {
+        handleStripeCheckout();
       }
     });
     renderOrderSummary();
@@ -972,11 +908,10 @@ function renderOrderSummary(){
     }
   }
   
-  // Add shipping ($9.99 standard)
-  const shipping = 9.99;
-  
-  // Calculate tax (8.5% on discounted subtotal)
-  const taxRate = 0.085;
+  // Read shipping & tax from config (matching checkout.html YAYA_CONFIG)
+  const cfg = window.YAYA_CONFIG || {};
+  const shipping = (typeof cfg.shipping !== 'undefined') ? Number(cfg.shipping) : 9.99;
+  const taxRate = (typeof cfg.taxRate !== 'undefined') ? Number(cfg.taxRate) : 0.085;
   const tax = discountedSubtotal * taxRate;
   
   // Calculate final total
@@ -996,7 +931,7 @@ function renderOrderSummary(){
       <span>${formatPrice(shipping)}</span>
     </div>
     <div style="display: flex; justify-content: space-between; margin: 0.5rem 0;">
-      <span>Tax (8.5%):</span>
+      <span>Tax (${(taxRate * 100).toFixed(1)}%):</span>
       <span>${formatPrice(tax)}</span>
     </div>
     <div style="display: flex; justify-content: space-between; margin: 0.5rem 0; font-weight: 700; font-size: 1.1rem; padding-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.2);">
@@ -1011,6 +946,7 @@ window.addToCart = addToCart;
 window.updateCartCount = updateCartCount;
 window.getCartItems = getCartItems;
 window.getCart = getCart;
+window.getCartTotal = getCartTotal;
 window.removeFromCart = removeFromCart;
 window.removeDiscount = removeDiscount;
 window.getAppliedDiscount = getAppliedDiscount;

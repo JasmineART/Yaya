@@ -36,9 +36,6 @@ async function initializeStripe() {
 /**
  * Store order metadata in Firebase for later retrieval
  */
-/**
- * Store order metadata in Firebase for later retrieval
- */
 async function storeOrderMetadata(cartItems, customerInfo, orderDetails) {
   try {
     const orderData = {
@@ -286,7 +283,10 @@ async function handleStripeCheckout() {
     
     // Track analytics event for checkout initiation
     if (window.analyticsTracker) {
-      const cartTotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+      const cartTotal = cart.reduce((sum, item) => {
+        const qty = item.quantity || item.qty || 1;
+        return sum + ((parseFloat(item.price) || 0) * qty);
+      }, 0);
       window.analyticsTracker.trackEcommerce('begin_checkout', {
         cart_items: cart.length,
         cart_value: cartTotal,
@@ -304,7 +304,7 @@ async function handleStripeCheckout() {
     // Send order notification email (if available)
     if (window.sendOrderNotification) {
       try {
-        const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+        const total = cart.reduce((sum, item) => sum + (parseFloat(item.price) * (item.quantity || item.qty || 1)), 0);
         const fullAddress = `${customerInfo.address}, ${customerInfo.city}, ${customerInfo.state} ${customerInfo.zip}`;
         
         await window.sendOrderNotification({

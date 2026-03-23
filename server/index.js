@@ -165,15 +165,20 @@ app.post('/create-stripe-session', async (req,res)=>{
   if(!stripe) return res.status(500).json({error:'Stripe not configured'});
   try{
     const {items, customer, discountAmount, discountCode, shipping, tax, taxRate, subtotal, total, successUrl, cancelUrl} = req.body;
+    const normalizedShipping = Number(shipping) || 0;
+    const normalizedTax = Number(tax) || 0;
+    const normalizedTaxRate = Number(taxRate) || 0;
+    const normalizedSubtotal = Number(subtotal) || 0;
+    const normalizedTotal = Number(total) || 0;
     
     // Debug logging
     console.log('📦 Stripe session request received:', {
       itemsCount: items?.length,
       customer: customer?.name,
-      shipping,
-      tax,
-      subtotal,
-      total,
+      shipping: normalizedShipping,
+      tax: normalizedTax,
+      subtotal: normalizedSubtotal,
+      total: normalizedTotal,
       discountCode,
       discountAmount
     });
@@ -184,21 +189,22 @@ app.post('/create-stripe-session', async (req,res)=>{
     
     // Calculate the original subtotal from items (before discount)
     const calculatedOriginalSubtotal = items.reduce((sum, item) => {
-      return sum + ((item.price || 0) * (item.quantity || item.qty || 1));
+      return sum + ((Number(item.price) || 0) * (Number(item.quantity || item.qty) || 1));
     }, 0);
     
     // The frontend sends 'subtotal' which is the ORIGINAL subtotal (before discount)
     // We use this to verify calculations match, then apply discount
-    const originalSubtotal = subtotal || calculatedOriginalSubtotal;
+    const originalSubtotal = normalizedSubtotal || calculatedOriginalSubtotal;
+    const normalizedDiscountAmount = Math.max(0, Math.min(Number(discountAmount) || 0, originalSubtotal));
     let discountRatio = 1;
     
-    if (discountAmount && discountAmount > 0 && originalSubtotal > 0) {
+    if (normalizedDiscountAmount > 0 && originalSubtotal > 0) {
       // Calculate ratio: if $100 original becomes $80 after $20 discount, ratio = 0.8
-      const discountedSubtotal = originalSubtotal - discountAmount;
+      const discountedSubtotal = originalSubtotal - normalizedDiscountAmount;
       discountRatio = discountedSubtotal / originalSubtotal;
       console.log('💰 Discount calculation:', {
         originalSubtotal: originalSubtotal.toFixed(2),
-        discountAmount: discountAmount.toFixed(2),
+        discountAmount: normalizedDiscountAmount.toFixed(2),
         discountedSubtotal: discountedSubtotal.toFixed(2),
         discountRatio: discountRatio.toFixed(4)
       });
@@ -206,7 +212,7 @@ app.post('/create-stripe-session', async (req,res)=>{
     
     // Map items to line_items for Stripe with discounted prices
     const line_items = items.map(item => {
-      const originalPrice = item.price || 0;
+      const originalPrice = Number(item.price) || 0;
       const discountedPrice = originalPrice * discountRatio; // Apply discount proportionally to match frontend
       
       const product_data = {
@@ -220,7 +226,7 @@ app.post('/create-stripe-session', async (req,res)=>{
       }
       
       // Add discount indicator to product name if discount applied
-      if (discountAmount && discountAmount > 0 && discountCode) {
+      if (normalizedDiscountAmount > 0 && discountCode) {
         product_data.name = `${product_data.name} (${discountCode} applied)`;
       }
       
@@ -230,7 +236,7 @@ app.post('/create-stripe-session', async (req,res)=>{
           product_data,
           unit_amount: Math.round(discountedPrice * 100) // Convert to cents with discount applied
         },
-        quantity: item.quantity || item.qty || 1
+        quantity: Number(item.quantity || item.qty) || 1
       };
     });
     
@@ -239,17 +245,17 @@ app.post('/create-stripe-session', async (req,res)=>{
     // The discount info is stored in metadata for reference
     
     console.log('🔍 Checking shipping and tax values:', {
-      shipping,
-      shippingType: typeof shipping,
-      shippingGreaterThanZero: shipping > 0,
-      tax,
-      taxType: typeof tax,
-      taxGreaterThanZero: tax > 0
+      shipping: normalizedShipping,
+      shippingType: typeof normalizedShipping,
+      shippingGreaterThanZero: normalizedShipping > 0,
+      tax: normalizedTax,
+      taxType: typeof normalizedTax,
+      taxGreaterThanZero: normalizedTax > 0
     });
     
     // Add shipping as a line item
-    if (shipping && shipping > 0) {
-      console.log('✅ Adding shipping line item: $' + shipping);
+    if (normalizedShipping > 0) {
+      console.log('✅ Adding shipping line item: $' + normalizedShipping);
       line_items.push({
         price_data: {
           currency: 'usd',
@@ -257,30 +263,30 @@ app.post('/create-stripe-session', async (req,res)=>{
             name: 'Standard Shipping',
             description: 'Processing time: 2 to 3 business days before shipping'
           },
-              unit_amount: Math.round(shipping * 100)
+              unit_amount: Math.round(normalizedShipping * 100)
         },
         quantity: 1
       });
     } else {
-      console.log('❌ Shipping NOT added:', { shipping, condition: shipping && shipping > 0 });
+      console.log('❌ Shipping NOT added:', { shipping: normalizedShipping, condition: normalizedShipping > 0 });
     }
     
     // Add tax as a line item
-    if (tax && tax > 0) {
-      console.log('✅ Adding tax line item: $' + tax);
+    if (normalizedTax > 0) {
+      console.log('✅ Adding tax line item: $' + normalizedTax);
       line_items.push({
         price_data: {
           currency: 'usd',
           product_data: {
-            name: `Sales Tax (${taxRate ? (taxRate * 100).toFixed(1) : '8.5'}%)`,
+            name: `Sales Tax (${normalizedTaxRate ? (normalizedTaxRate * 100).toFixed(1) : '8.5'}%)`,
             description: 'State and local sales tax'
           },
-          unit_amount: Math.round(tax * 100)
+          unit_amount: Math.round(normalizedTax * 100)
         },
         quantity: 1
       });
     } else {
-      console.log('❌ Tax NOT added:', { tax, condition: tax && tax > 0 });
+      console.log('❌ Tax NOT added:', { tax: normalizedTax, condition: normalizedTax > 0 });
     }
     
     // Log line items being sent to Stripe
@@ -295,12 +301,12 @@ app.post('/create-stripe-session', async (req,res)=>{
     }, 0) / 100;
     
     console.log('💵 Stripe checkout total will be: $' + stripeTotal.toFixed(2));
-    console.log('💵 Frontend calculated total: $' + (total || 0).toFixed(2));
+    console.log('💵 Frontend calculated total: $' + normalizedTotal.toFixed(2));
     
     // Verify totals match (within 1 cent due to rounding)
-    const totalDifference = Math.abs(stripeTotal - (total || 0));
+    const totalDifference = Math.abs(stripeTotal - normalizedTotal);
     if (totalDifference > 0.01) {
-      console.warn('⚠️ TOTAL MISMATCH! Stripe will charge $' + stripeTotal.toFixed(2) + ' but frontend calculated $' + (total || 0).toFixed(2));
+      console.warn('⚠️ TOTAL MISMATCH! Stripe will charge $' + stripeTotal.toFixed(2) + ' but frontend calculated $' + normalizedTotal.toFixed(2));
       console.warn('⚠️ Difference: $' + totalDifference.toFixed(2));
     } else {
       console.log('✅ Total verification passed - Stripe charge matches frontend calculation');
@@ -320,10 +326,10 @@ app.post('/create-stripe-session', async (req,res)=>{
       metadata: {
         customer_name: customer?.name || 'Guest',
         discount_code: discountCode || '',
-        discount_amount: discountAmount?.toString() || '0',
-        shipping_amount: shipping?.toString() || '0',
-        tax_amount: tax?.toString() || '0',
-        tax_rate: taxRate?.toString() || '0',
+        discount_amount: normalizedDiscountAmount.toString(),
+        shipping_amount: normalizedShipping.toString(),
+        tax_amount: normalizedTax.toString(),
+        tax_rate: normalizedTaxRate.toString(),
         order_source: 'yaya_website'
       }
     };
@@ -338,7 +344,7 @@ app.post('/create-stripe-session', async (req,res)=>{
     // Store order information in Supabase
     if(supabase){
       try{
-        const discountedSubtotal = originalSubtotal - (discountAmount || 0);
+        const discountedSubtotal = originalSubtotal - normalizedDiscountAmount;
         await supabase.from('orders').insert([{
           stripe_session_id: session.id,
           customer_email: customer?.email || '',
@@ -346,10 +352,10 @@ app.post('/create-stripe-session', async (req,res)=>{
           total_amount: stripeTotal,  // Use actual Stripe total, not frontend calculation
           subtotal_amount: discountedSubtotal,  // Discounted subtotal (after discount applied)
           discount_code: discountCode || '',
-          discount_amount: discountAmount || 0,
-          shipping_amount: shipping || 0,
-          tax_amount: tax || 0,
-          metadata: {items, customer, frontend_total: total, original_subtotal: originalSubtotal},
+          discount_amount: normalizedDiscountAmount,
+          shipping_amount: normalizedShipping,
+          tax_amount: normalizedTax,
+          metadata: {items, customer, frontend_total: normalizedTotal, original_subtotal: originalSubtotal},
           status: 'created',
           created_at: new Date().toISOString()
         }]); 
@@ -362,13 +368,13 @@ app.post('/create-stripe-session', async (req,res)=>{
     console.log('✅ Stripe session created:', { 
       sessionId: session.id, 
       originalSubtotal: calculatedOriginalSubtotal.toFixed(2),
-      discountedSubtotal: effectiveSubtotal.toFixed(2),
+      discountedSubtotal: (originalSubtotal - normalizedDiscountAmount).toFixed(2),
       discountCode,
-      discountAmount: (discountAmount || 0).toFixed(2),
-      shipping: (shipping || 0).toFixed(2),
-      tax: (tax || 0).toFixed(2),
+      discountAmount: normalizedDiscountAmount.toFixed(2),
+      shipping: normalizedShipping.toFixed(2),
+      tax: normalizedTax.toFixed(2),
       stripeChargeTotal: stripeTotal.toFixed(2),
-      frontendTotal: (total || 0).toFixed(2)
+      frontendTotal: normalizedTotal.toFixed(2)
     });
     res.json({url: session.url, id: session.id});
     
