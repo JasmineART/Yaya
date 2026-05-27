@@ -46,8 +46,8 @@
 4. Click **Update Credentials**
 
 ## 🛍️ CURRENT PRODUCTS
-- **Suncatcher Spirit (Signed)** - $24.99
-- **Suncatcher Spirit (Paperback)** - $19.99  
+- **Suncatcher Spirit (Signed)** - $21.99
+- **Suncatcher Spirit (Paperback)** - $16.99  
 - **Suncatcher Spirit Stickers** - $3.00
 
 ## 🎫 ACTIVE COUPON CODES

@@ -17,12 +17,12 @@
 
 Example Cart:
 ┌──────────────────────────────┐
-│ Signed Book        $24.99    │
+│ Signed Book        $21.99    │
 │ Sticker            $3.00     │
 ├──────────────────────────────┤
-│ Subtotal:          $27.99    │
+│ Subtotal:          $24.99    │
 │ PASTEL Discount:   -$1.50 ⭐ │ ← 50% off sticker
-│ NEW TOTAL:         $26.49    │
+│ NEW TOTAL:         $23.49    │
 └──────────────────────────────┘
 Savings: $1.50
 ```
@@ -38,14 +38,14 @@ Savings: $1.50
 
 Example Cart:
 ┌──────────────────────────────┐
-│ Signed Book        $24.99    │
-│ Signed Book        $24.99    │
+│ Signed Book        $21.99    │
+│ Signed Book        $21.99    │
 ├──────────────────────────────┤
-│ Subtotal:          $49.98    │
-│ SUNCATCHER (15%):  -$7.50 ⭐ │
-│ NEW TOTAL:         $42.48    │
+│ Subtotal:          $43.98    │
+│ SUNCATCHER (15%):  -$6.60 ⭐ │
+│ NEW TOTAL:         $37.38    │
 └──────────────────────────────┘
-Savings: $7.50
+Savings: $6.60
 ```
 
 ### 3. **WHIMSY** - 25% Off Entire Cart
@@ -59,15 +59,15 @@ Savings: $7.50
 
 Example Cart:
 ┌──────────────────────────────┐
-│ Signed Book        $24.99    │
-│ Paperback Book     $19.99    │
+│ Signed Book        $21.99    │
+│ Paperback Book     $16.99    │
 │ Sticker            $3.00     │
 ├──────────────────────────────┤
-│ Subtotal:          $47.98    │
-│ WHIMSY (25%):      -$12.00 ⭐│
-│ NEW TOTAL:         $35.98    │
+│ Subtotal:          $41.98    │
+│ WHIMSY (25%):      -$10.50 ⭐│
+│ NEW TOTAL:         $31.48    │
 └──────────────────────────────┘
-Savings: $12.00
+Savings: $10.50
 ```
 
 ---
@@ -76,9 +76,9 @@ Savings: $12.00
 
 | Cart Value | PASTEL      | SUNCATCHER (15%) | WHIMSY (25%) | Best Deal |
 |------------|-------------|------------------|--------------|-----------|
-| $27.99*    | -$1.50      | -$4.20           | -$7.00       | WHIMSY    |
-| $49.98**   | -$12.50     | -$7.50           | -$12.50      | TIE***    |
-| $100.00*** | -$25.00     | -$15.00          | -$25.00      | TIE***    |
+| $24.99*    | -$1.50      | -$3.75           | -$6.25       | WHIMSY   |
+| $43.98**   | -$11.00     | -$6.60           | -$11.00      | TIE***   |
+| $100.00*** | -$25.00     | -$15.00          | -$25.00      | TIE***   |
 
 \* 1 Book + 1 Sticker  
 \*\* 2 Books (same price)  
@@ -122,17 +122,17 @@ Savings: $12.00
 
 **Example Strategy:**
 ```
-Add: 2 Books ($24.99 each) + 2 Stickers ($3.00 each)
+Add: 2 Books ($21.99 each) + 2 Stickers ($3.00 each)
 
-Without pairing: $55.98
+Without pairing: $49.98
 With PASTEL:
-  Book 1: $24.99 (full price)
-  Book 2: $12.50 (50% off) ⭐
+  Book 1: $21.99 (full price)
+  Book 2: $11.00 (50% off) ⭐
   Sticker 1: $3.00 (full price)
   Sticker 2: $1.50 (50% off) ⭐
   
-Total: $41.99
-Savings: $14.00! 🎉
+Total: $37.49
+Savings: $12.50! 🎉
 ```
 
 ### Percentage Code Tricks

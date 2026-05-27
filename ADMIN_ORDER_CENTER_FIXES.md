@@ -458,10 +458,10 @@ Orders should contain:
     zip: "..."
   },
   items: [
-    { name: "Product", price: 24.99, quantity: 1 }
+    { name: "Product", price: 21.99, quantity: 1 }
   ],
   orderDetails: {
-    subtotal: 24.99,
+    subtotal: 21.99,
     shipping: 9.99,
     tax: 2.23,
     total: 37.21

@@ -147,9 +147,9 @@ if (['completed', 'paid', 'delivered'].includes(normalizedStatus)) {
 ```javascript
 {
   id: 'ord_001',
-  items: [{ name: 'Suncatcher Spirit (Signed)', price: 24.99, quantity: 1 }],
+  items: [{ name: 'Suncatcher Spirit (Signed)', price: 21.99, quantity: 1 }],
   orderDetails: { 
-    subtotal: 24.99,   // ✅ Items only
+    subtotal: 21.99,   // ✅ Items only
     shipping: 9.99,    // ✅ Shipping fee
     tax: 2.23,         // ✅ Tax
     total: 37.21,      // ✅ Complete total
@@ -183,7 +183,7 @@ When orders load, you'll now see detailed logs confirming all fees:
 ```javascript
 💾 Supabase order loaded: {
   orderId: 'cs_test_a1b2',
-  subtotal: '24.99',
+  subtotal: '21.99',
   shipping: '9.99',
   tax: '2.23',
   total: '37.21'
@@ -210,7 +210,7 @@ When orders load, you'll now see detailed logs confirming all fees:
 ```javascript
 📊 Calculated order total: {
   orderId: 'ord_123',
-  itemsTotal: '24.99',
+  itemsTotal: '21.99',
   shipping: '9.99',
   tax: '2.23',
   discount: '0.00',

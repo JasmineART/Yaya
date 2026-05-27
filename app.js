@@ -542,10 +542,12 @@ function renderCartContents(){
   const appliedDiscount = getAppliedDiscount();
   let discountHTML = '';
   let total = subtotal;
+  let discountApplied = false;
   
   if (appliedDiscount && appliedDiscount.code) {
     const discountResult = calculateDiscount(subtotal, appliedDiscount.code, items);
     if (discountResult.valid) {
+      discountApplied = true;
       total = subtotal - discountResult.amount;
       discountHTML = `
         <div style="display: flex; justify-content: space-between; padding: 0.5rem 1rem; background: rgba(102, 126, 234, 0.2); border-radius: 8px; margin: 1rem 0;">
@@ -557,15 +559,27 @@ function renderCartContents(){
         </div>
       `;
     } else {
-      // Discount no longer valid, clear it
-      clearAppliedDiscount();
+      // For BOGO discounts, keep the code but show a hint so the user knows why it's not applying
+      const discountDef = DISCOUNTS[appliedDiscount.code];
+      if (discountDef && discountDef.type === 'bogo_half') {
+        discountHTML = `
+          <div style="display: flex; justify-content: space-between; padding: 0.5rem 1rem; background: rgba(255,166,0,0.15); border-radius: 8px; margin: 1rem 0; align-items: center;">
+            <span>⚠️ Code <strong>${appliedDiscount.code}</strong>: ${discountResult.message}</span>
+            <button onclick="removeDiscount()" style="background: none; border: none; color: rgba(255,255,255,0.7); cursor: pointer; margin-left: 1rem;" title="Remove discount">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        `;
+      } else {
+        clearAppliedDiscount();
+      }
     }
   }
   
   node.innerHTML = rows + discountHTML + `
     <div style="text-align: right; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 12px; margin-top: 1rem;">
       <div style="font-size: 0.9rem; margin-bottom: 0.5rem;">Subtotal: ${formatPrice(subtotal)}</div>
-      ${appliedDiscount ? `<div style="font-size: 1.2rem; font-weight: 700; color: #4CAF50;">Total: ${formatPrice(total)}</div>` : `<div style="font-size: 1.2rem; font-weight: 700;">Total: ${formatPrice(total)}</div>`}
+      ${discountApplied ? `<div style="font-size: 1.2rem; font-weight: 700; color: #4CAF50;">Total: ${formatPrice(total)}</div>` : `<div style="font-size: 1.2rem; font-weight: 700;">Total: ${formatPrice(total)}</div>`}
     </div>
   `;
 }

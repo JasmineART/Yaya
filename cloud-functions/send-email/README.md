@@ -92,8 +92,8 @@ if (result.success) {
    sendEmailViaCloud('order', {
      customerName: 'Jane Smith',
      customerEmail: 'jane@example.com',
-     total: 19.99,
-     items: [{ name: 'Suncatcher Spirit', quantity: 1, price: 19.99 }],
+     total: 16.99,
+     items: [{ name: 'Suncatcher Spirit', quantity: 1, price: 16.99 }],
      shippingAddress: '123 Main St, City, ST 12345'
    });
    ```

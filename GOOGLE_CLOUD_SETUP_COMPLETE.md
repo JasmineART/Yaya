@@ -247,14 +247,14 @@ import { sendOrderNotification } from './google-email-client.js';
 await sendOrderNotification({
   customerName: 'Jane Smith',
   customerEmail: 'jane@example.com',
-  total: 19.99,
-  items: [{ name: 'Suncatcher Spirit', quantity: 1, price: 19.99 }],
+  total: 16.99,
+  items: [{ name: 'Suncatcher Spirit', quantity: 1, price: 16.99 }],
   shippingAddress: '123 Main St, City, ST 12345'
 });
 ```
 
 **Sends to:** faeriepoetics@gmail.com  
-**Subject:** 🛒 New Order - $19.99  
+**Subject:** 🛒 New Order - $16.99  
 **Content:** Customer info, items, total, shipping address
 
 ---

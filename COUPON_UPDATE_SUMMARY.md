@@ -11,9 +11,9 @@ Updated the discount code system with new promotional codes and enhanced BOGO (B
 - **Type:** BOGO Half-Off
 - **Logic:** Automatically applies 50% discount to every 2nd item (lower-priced items in pairs)
 - **Example:** 
-  - Cart: Book ($24.99), Sticker ($3.00)
+  - Cart: Book ($21.99), Sticker ($3.00)
   - Discount: 50% off the sticker = $1.50 off
-  - Final: $26.49
+  - Final: $23.49
 - **Minimum:** Requires at least 2 items in cart
 - **How it works:**
   1. Expands cart items by quantity (e.g., qty=2 becomes 2 separate items)
@@ -66,26 +66,25 @@ const DISCOUNTS = {
 
 **New Discount Type: `bogo_half`**
 ```javascript
-else if (discount.type === 'bogo_half') {
+} else if (discount.type === 'bogo_half') {
   // PASTEL: Buy one, get second item at 50% off (applies to lower-priced item)
-  if (!cartItems || cartItems.length < 2) {
+  if (!cartItems) {
     return {
       valid: false,
       amount: 0,
       message: 'Add at least 2 items to cart to use this discount'
     };
   }
-  
-  // Get all individual items (expand quantities)
-  const allItems = [];
-  cartItems.forEach(item => {
-    const product = window.PRODUCTS ? window.PRODUCTS.find(p => p.id === item.id) : null;
-    if (product) {
-      for (let i = 0; i < item.qty; i++) {
-        allItems.push(product.price);
-      }
-    }
-  });
+  // Expand cart items into individual prices (respects qty and item.price if present)
+  const allItems = expandItems(cartItems); // uses item.price ?? product.price per item
+
+  if (allItems.length < 2) {
+    return {
+      valid: false,
+      amount: 0,
+      message: 'Add at least 2 items to cart to use this discount'
+    };
+  }
   
   // Sort prices descending (highest first)
   allItems.sort((a, b) => b - a);
@@ -96,6 +95,10 @@ else if (discount.type === 'bogo_half') {
   }
 }
 ```
+
+**Key behaviours:**
+- `expandItems()` respects `item.price` directly (e.g. from test data) before falling back to `window.PRODUCTS` lookup
+- Length check happens **after** expansion so `{id:1, qty:2}` correctly counts as 2 items and qualifies for BOGO
 
 #### 3. Updated Function Calls to `calculateDiscount()`
 
@@ -134,43 +137,43 @@ const discountResult = calculateDiscount(subtotal, appliedDiscount.code, items);
 ### Example 1: Two Items, Different Prices
 ```
 Cart:
-- Book (signed): $24.99
+- Book (signed): $21.99
 - Sticker: $3.00
 
-Sorted descending: [$24.99, $3.00]
+Sorted descending: [$21.99, $3.00]
 Apply 50% to position 1 (2nd item): $3.00 × 0.5 = $1.50
 
 Discount: $1.50
-Final: $26.49
+Final: $23.49
 ```
 
 ### Example 2: Three Items
 ```
 Cart:
-- Book (signed): $24.99
-- Book (paperback): $19.99
+- Book (signed): $21.99
+- Book (paperback): $16.99
 - Sticker: $3.00
 
-Sorted descending: [$24.99, $19.99, $3.00]
-Apply 50% to position 1 (2nd item): $19.99 × 0.5 = $9.995
+Sorted descending: [$21.99, $16.99, $3.00]
+Apply 50% to position 1 (2nd item): $16.99 × 0.5 = $8.495
 
-Discount: $10.00
-Final: $37.98
+Discount: $8.50
+Final: $33.48
 ```
 
 ### Example 3: Four Items
 ```
 Cart:
-- Book (signed) × 2: $24.99 each
+- Book (signed) × 2: $21.99 each
 - Sticker × 2: $3.00 each
 
-Expanded and sorted: [$24.99, $24.99, $3.00, $3.00]
+Expanded and sorted: [$21.99, $21.99, $3.00, $3.00]
 Apply 50% to positions 1 and 3:
-  - $24.99 × 0.5 = $12.495
+  - $21.99 × 0.5 = $10.995
   - $3.00 × 0.5 = $1.50
 
-Discount: $13.995 ≈ $14.00
-Final: $41.98
+Discount: $12.495 ≈ $12.50
+Final: $37.48
 ```
 
 ---
@@ -224,7 +227,7 @@ Final: $41.98
 - Visual success/error feedback
 
 **Test Scenarios:**
-1. Cart 1: 1 Book ($24.99) - Tests PASTEL validation (should fail)
+1. Cart 1: 1 Book ($21.99) - Tests PASTEL validation (should fail)
 2. Cart 2: 2 Books ($49.98) - Tests PASTEL with same-price items
 3. Cart 3: 3 Stickers ($9.00) - Tests PASTEL with multiple items
 4. Cart 4: Mixed items - Tests all codes with varied prices

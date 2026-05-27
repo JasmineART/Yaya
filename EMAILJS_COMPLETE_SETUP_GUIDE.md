@@ -312,8 +312,8 @@ You need to create **2 email templates** for your site.
      to_email: faeriepoetics@gmail.com
      customer_name: Jane Doe
      customer_email: jane@example.com
-     order_total: 24.99
-     order_items: Suncatcher Spirit (Signed) x1 - $24.99
+     order_total: 21.99
+     order_items: Suncatcher Spirit (Signed) x1 - $21.99
      shipping_address: 123 Main St, City, ST 12345
      timestamp: 11/7/2025 10:30 AM
      from_name: Yaya Starchild Website
