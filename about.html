@@ -27,17 +27,27 @@
     <meta name="twitter:title" content="About Yaya Starchild — Queer Black Woman Poet" />
     <meta name="twitter:description" content="Meet Yaya Starchild, a queer Black woman poet from St. Louis exploring love, loss, and magic through whimsical contemporary poetry." />
     <meta name="twitter:image" content="https://pastelpoetics.com/assets/AuthorPhoto.jpg" />
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
+  <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+  <!-- Google Fonts: non-render-blocking -->
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Cormorant+Garamond:wght@400;500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Cormorant+Garamond:wght@400;500;600;700&display=swap" /></noscript>
+  <!-- Preload LCP image -->
+  <link rel="preload" as="image" type="image/webp" href="assets/AuthorPhoto.webp" fetchpriority="high" />
   <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" /></noscript>
   <!-- <link rel="manifest" href="/manifest.webmanifest"> -->
   <link rel="icon" href="/favicon.ico">
     <!-- EmailJS Library - Load BEFORE app.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <!-- Simple Email Notifications - Load BEFORE app.js -->
     <script defer src="simple-email.js"></script>
-    <script src="error-monitor.js"></script>
-    <script src="cookie-consent.js"></script>
-    <script src="data-handler.js"></script>
+    <script defer src="error-monitor.js"></script>
+    <script defer src="cookie-consent.js"></script>
+    <script defer src="data-handler.js"></script>
     <script defer src="app.js"></script>
     <script defer src="analytics-tracker.js"></script>
   </head>
@@ -45,7 +55,7 @@
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header">
       <div class="brand">
-        <a href="index.html" aria-label="Yaya Starchild homepage"><img src="assets/logo-new.jpg" alt="Yaya Starchild circular logo with whimsical script lettering" class="logo"/></a>
+        <a href="index.html" aria-label="Yaya Starchild homepage"><picture><source srcset="assets/logo-new.webp" type="image/webp" /><img src="assets/logo-new.jpg" alt="Yaya Starchild circular logo with whimsical script lettering" class="logo" width="72" height="72" /></picture></a>
         <div>
           <h1>Yaya Starchild</h1>
           <p class="tag">Whimsical poet who hopes to leave you enchanted.</p>
@@ -64,7 +74,10 @@
       <p class="lead reveal">Yaya is a queer artist from St. Louis, MO, whose poetry explores the romance and whimsy woven into life's intricacies and simplicities. Her verses touch on love, loss, resilience, and the magic found in the present moment.</p>
 
       <section class="bio-grid reveal-scale">
-        <img src="assets/AuthorPhoto.jpg" alt="Yaya Starchild - Author headshot" class="author-photo" />
+        <picture>
+          <source srcset="assets/AuthorPhoto.webp" type="image/webp" />
+          <img src="assets/AuthorPhoto.jpg" alt="Yaya Starchild - Author headshot" class="author-photo" fetchpriority="high" width="300" height="300" />
+        </picture>
         <div>
           <h3><i class="fas fa-book-heart"></i> The Journey</h3>
           <p>At the age of eight, Yaya picked up a pen for solace and never looked back. Starting with short stories in her youth, she eventually landed upon poetry as her most treasured means of expression. She's been reading books for as long as she's known how to sound out words, falling in love with the stories held between inked pages and developing a strong sentiment for vocabulary.</p>

@@ -5,8 +5,15 @@
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <meta name="theme-color" content="#E89CC8" />
     <title>Payment — Yaya Starchild</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://js.stripe.com" crossorigin />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+    <!-- Google Fonts: non-render-blocking -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Cormorant+Garamond:wght@400;500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Cormorant+Garamond:wght@400;500;600;700&display=swap" /></noscript>
     <link rel="stylesheet" href="styles.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" /></noscript>
     <script src="https://js.stripe.com/v3/"></script>
     <script defer src="app.js"></script>
   </head>
@@ -14,7 +21,7 @@
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header">
       <div class="brand">
-        <a href="index.html" aria-label="Yaya Starchild homepage"><img src="assets/logo-new.jpg" alt="Yaya Starchild circular logo with whimsical script lettering" class="logo"/></a>
+        <a href="index.html" aria-label="Yaya Starchild homepage"><picture><source srcset="assets/logo-new.webp" type="image/webp" /><img src="assets/logo-new.jpg" alt="Yaya Starchild circular logo with whimsical script lettering" class="logo" width="72" height="72" /></picture></a>
         <div>
           <h1>Yaya Starchild</h1>
           <p class="tag">Whimsical poet who hopes to leave you enchanted.</p>

@@ -12,23 +12,31 @@
     <meta name="description" content="Whimsical poetry to leave you enchanted — Review your cart and checkout to purchase Suncatcher Spirit poetry book and merchandise by Yaya Starchild." />
     <meta name="robots" content="noindex, nofollow" />
     <link rel="canonical" href="https://pastelpoetics.com/cart.html" />
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
+  <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+  <!-- Google Fonts: non-render-blocking -->
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Cormorant+Garamond:wght@400;500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Cormorant+Garamond:wght@400;500;600;700&display=swap" /></noscript>
   <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" /></noscript>
   <!-- <link rel="manifest" href="/manifest.webmanifest"> -->
   <link rel="icon" href="/favicon.ico">
     <!-- EmailJS Library - Load BEFORE app.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <!-- Simple Email Notifications - Load BEFORE app.js -->
     <script defer src="simple-email.js"></script>
-    <script src="error-monitor.js"></script>
-    <script src="cookie-consent.js"></script>
-    <script src="data-handler.js"></script>
+    <script defer src="error-monitor.js"></script>
+    <script defer src="cookie-consent.js"></script>
+    <script defer src="data-handler.js"></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header">
       <div class="brand">
-        <a href="index.html" aria-label="Yaya Starchild homepage"><img src="assets/logo-new.jpg" alt="Yaya Starchild circular logo with whimsical script lettering" class="logo"/></a>
+        <a href="index.html" aria-label="Yaya Starchild homepage"><picture><source srcset="assets/logo-new.webp" type="image/webp" /><img src="assets/logo-new.jpg" alt="Yaya Starchild circular logo with whimsical script lettering" class="logo" width="72" height="72" /></picture></a>
         <div>
           <h1>Yaya Starchild</h1>
           <p class="tag">Whimsical poet who hopes to leave you enchanted.</p>
@@ -48,7 +56,9 @@
       <h2 class="reveal"><i class="fas fa-shopping-bag" aria-hidden="true"></i> Your Enchanted Cart</h2>
       <p class="lead reveal">Review your magical treasures before checkout. Remember to use a discount code for extra sparkle!</p>
       <section id="cart-contents" class="cart-contents reveal-scale" aria-live="polite" aria-label="Cart items">
-        <!-- cart rendered by app.js -->
+        <!-- Skeleton shown while app.js loads -->
+        <div class="skeleton-cart-item" aria-hidden="true"><div class="skeleton-cart-thumb skeleton-pulse"></div><div class="skeleton-cart-info"><div class="skeleton-text skeleton-pulse"></div><div class="skeleton-text short skeleton-pulse"></div></div><div class="skeleton-price skeleton-pulse"></div></div>
+        <div class="skeleton-cart-item" aria-hidden="true"><div class="skeleton-cart-thumb skeleton-pulse"></div><div class="skeleton-cart-info"><div class="skeleton-text skeleton-pulse"></div><div class="skeleton-text short skeleton-pulse"></div></div><div class="skeleton-price skeleton-pulse"></div></div>
       </section>
       <div class="cart-actions reveal">
           <!-- deployment-cache-bust: 2025-11-10T19:24:00Z -->

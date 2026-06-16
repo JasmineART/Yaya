@@ -510,7 +510,7 @@ function renderCartContents(){
     const productTitle = p.title || p.name || `Product ${p.id}`;
     
     // Get the correct image - use variant image if available, otherwise use product's first image
-    let itemImage = p.images && p.images[0] ? p.images[0] : 'assets/logo-new.jpg';
+    let itemImage = p.images && p.images[0] ? p.images[0] : 'assets/logo-new.webp';
     if (it.metadata && it.metadata.variantId && p.variants) {
       const variant = p.variants.find(v => v.id === it.metadata.variantId);
       if (variant && variant.image) {
@@ -881,7 +881,7 @@ function renderOrderSummary(){
     const productTitle = p.title || p.name || `Product ${p.id}`;
     
     // Get the correct image - use variant image if available, otherwise use product's first image
-    let itemImage = p.images && p.images[0] ? p.images[0] : 'assets/logo-new.jpg';
+    let itemImage = p.images && p.images[0] ? p.images[0] : 'assets/logo-new.webp';
     if (it.metadata && it.metadata.variantId && p.variants) {
       const variant = p.variants.find(v => v.id === it.metadata.variantId);
       if (variant && variant.image) {

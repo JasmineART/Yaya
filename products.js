@@ -16,7 +16,7 @@ let PRODUCTS = [];
         {name:'Moon Sisters Book Club',rating:5,text:"A tender, luminous collection that feels both grounding and uplifting. One of those books you return to again and again.",date:'2025-10-27'},
         {name:'Ingrid',rating:5,text:"Delightful — playful yet deep. Yaya's voice sparkles.",date:'2025-10-29'}
       ],
-      images:['assets/suncatcher-cover.jpg']
+      images:['assets/suncatcher-cover.webp']
     },
     {
       id:2,
@@ -26,7 +26,7 @@ let PRODUCTS = [];
       isbn: '979-8-9999322-0-4',
       description:'Softcover paperback edition — 64 pages of poetry perfect for bedside reading, carrying in your bag, or gifting. Printed on cream-colored paper that feels gentle in your hands.',
       reviews:[{name:'Adriana Auch',rating:5,text:'I highly recommend bringing this book into nature with you.',date:'2025-11-02'}],
-      images:['assets/suncatcher-cover.jpg']
+      images:['assets/suncatcher-cover.webp']
     },
     {
       id:3,
@@ -37,20 +37,20 @@ let PRODUCTS = [];
       description:"Keep the whimsy of \"Suncatcher Spirit\" close with stickers of the book's 11 dazzling illustrations or front cover! Perfect for laptops and water bottles. High-quality waterproof vinyl stickers featuring vibrant pastel artwork. Durable, weather-resistant, and fade-proof. Each sticker sold separately.",
       requiresVariant: true,
       variants: [
-        {id: 'dancing', name: 'The Ball', image: 'assets/sticker_Dancing.jpg'},
-        {id: 'skydiving', name: 'Sky Dweller', image: 'assets/sticker_skydiving.jpg'},
-        {id: 'sunflower', name: 'Bloom', image: 'assets/sticker_sunflower.jpg'},
-        {id: 'ballerina', name: 'Ballerina', image: 'assets/sticker_ballerina.jpg'},
-        {id: 'birdsnbees', name: 'Amusement Parks', image: 'assets/sticker_birdsnbees.jpg'},
-        {id: 'crows', name: 'Crow Society', image: 'assets/sticker_crows.jpg'},
-        {id: 'applepicking', name: 'Apple Trees', image: 'assets/sticker_applepicking.jpg'},
-        {id: 'pinklady', name: 'Monkey Bars', image: 'assets/sticker_pinklady.jpg'},
-        {id: 'fairytea', name: 'Photosynthesis', image: 'assets/sticker_fairyTea.jpg'},
-        {id: 'candyland', name: 'Candyland', image: 'assets/Sticker_CandyLand.jpg'},
-        {id: 'cover', name: 'Cover', image: 'assets/suncatcher-cover.jpg'}
+        {id: 'dancing', name: 'The Ball', image: 'assets/sticker_Dancing.webp'},
+        {id: 'skydiving', name: 'Sky Dweller', image: 'assets/sticker_skydiving.webp'},
+        {id: 'sunflower', name: 'Bloom', image: 'assets/sticker_sunflower.webp'},
+        {id: 'ballerina', name: 'Ballerina', image: 'assets/sticker_ballerina.webp'},
+        {id: 'birdsnbees', name: 'Amusement Parks', image: 'assets/sticker_birdsnbees.webp'},
+        {id: 'crows', name: 'Crow Society', image: 'assets/sticker_crows.webp'},
+        {id: 'applepicking', name: 'Apple Trees', image: 'assets/sticker_applepicking.webp'},
+        {id: 'pinklady', name: 'Monkey Bars', image: 'assets/sticker_pinklady.webp'},
+        {id: 'fairytea', name: 'Photosynthesis', image: 'assets/sticker_fairyTea.webp'},
+        {id: 'candyland', name: 'Candyland', image: 'assets/Sticker_CandyLand.webp'},
+        {id: 'cover', name: 'Cover', image: 'assets/suncatcher-cover.webp'}
       ],
       reviews:[{name:'StickerFan',rating:5,text:'Stuck these on my laptop and they never peel — gorgeous colors.',date:'2025-11-05'}],
-      images:['assets/sticker_Dancing.jpg', 'assets/sticker_skydiving.jpg', 'assets/sticker_sunflower.jpg', 'assets/sticker_ballerina.jpg', 'assets/sticker_birdsnbees.jpg', 'assets/sticker_crows.jpg', 'assets/sticker_applepicking.jpg', 'assets/sticker_pinklady.jpg', 'assets/sticker_fairyTea.jpg', 'assets/Sticker_CandyLand.jpg', 'assets/suncatcher-cover.jpg']
+      images:['assets/sticker_Dancing.webp', 'assets/sticker_skydiving.webp', 'assets/sticker_sunflower.webp', 'assets/sticker_ballerina.webp', 'assets/sticker_birdsnbees.webp', 'assets/sticker_crows.webp', 'assets/sticker_applepicking.webp', 'assets/sticker_pinklady.webp', 'assets/sticker_fairyTea.webp', 'assets/Sticker_CandyLand.webp', 'assets/suncatcher-cover.webp']
     }
   ];
 })();
